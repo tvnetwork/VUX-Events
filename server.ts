@@ -53,24 +53,24 @@ async function startServer() {
   // --- OTP Endpoints ---
 
   app.post('/api/auth/send-otp', async (req, res) => {
-    console.log('Sending OTP to:', req.body.email);
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ error: 'Email is required' });
-
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    otpStore.set(email, { code, expires: Date.now() + 10 * 60 * 1000 });
-
     try {
+      console.log('Sending OTP request for:', req.body.email);
+      const { email } = req.body;
+      if (!email) return res.status(400).json({ error: 'Email is required' });
+
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      otpStore.set(email, { code, expires: Date.now() + 10 * 60 * 1000 });
+
       const user = process.env.SMTP_USER || 'coolshotsystemsofficial@gmail.com';
       const pass = process.env.SMTP_PASS;
 
       if (!pass) {
-        console.warn('SMTP_PASS is missing, returning mock success for development');
-        console.log(`[DEV] OTP for ${email}: ${code}`);
-        return res.json({ success: true, devMode: true, message: 'Check server logs for code' });
+        console.error('SMTP_PASS is missing in environment variables');
+        return res.status(503).json({ 
+          error: 'Email authentication is temporarily unavailable. Please set SMTP_PASS in Secrets.' 
+        });
       }
 
-      console.log('Initializing SMTP transporter...');
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
         port: parseInt(process.env.SMTP_PORT || '587'),
@@ -78,7 +78,6 @@ async function startServer() {
         auth: { user, pass },
       });
 
-      console.log('Attempting to send email via SMTP...');
       await transporter.sendMail({
         from: process.env.SMTP_FROM || `"VUX Events" <${user}>`,
         to: email,
@@ -95,28 +94,28 @@ async function startServer() {
         `,
       });
       console.log('Email sent successfully');
-      res.json({ success: true });
+      return res.json({ success: true });
     } catch (error: any) {
       console.error('SMTP Error:', error);
-      res.status(500).json({ error: error.message || 'Failed to send email. Check SMTP configuration.' });
+      return res.status(500).json({ error: error.message || 'Failed to send verification email' });
     }
   });
 
   app.post('/api/auth/verify-otp', async (req, res) => {
-    const { email, code } = req.body;
-    const stored = otpStore.get(email);
-
-    if (!stored || stored.code !== code || stored.expires < Date.now()) {
-      return res.status(400).json({ error: 'Invalid or expired code' });
-    }
-
     try {
+      const { email, code } = req.body;
+      const stored = otpStore.get(email);
+
+      if (!stored || stored.code !== code || Date.now() > stored.expires) {
+        return res.status(400).json({ error: 'Invalid or expired code' });
+      }
+
       const customToken = await admin.auth().createCustomToken(email);
       otpStore.delete(email);
-      res.json({ success: true, token: customToken });
-    } catch (error) {
-      console.error('Token generation error:', error);
-      res.status(500).json({ error: 'Failed to generate auth token' });
+      return res.json({ success: true, token: customToken });
+    } catch (error: any) {
+      console.error('Verification error:', error);
+      return res.status(500).json({ error: error.message || 'Verification failed' });
     }
   });
 
