@@ -1,12 +1,12 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Default deny
+    // 0. Global Safety Net
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // Global helpers
+    // Phase 3: Primitive Definition
     function isSignedIn() { return request.auth != null; }
     function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
     function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
@@ -14,59 +14,84 @@ service cloud.firestore {
     function incoming() { return request.resource.data; }
     function existing() { return resource.data; }
 
-    // User validation
+    // Validation Helpers
     function isValidUser(data) {
-      return data.uid == request.auth.uid &&
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'createdAt']) &&
+             data.keys().size() >= 4 && data.keys().size() <= 7 &&
+             data.uid == request.auth.uid &&
              data.email == request.auth.token.email &&
              data.displayName is string && data.displayName.size() <= 100 &&
+             (data.get('bio', '') is string && data.get('bio', '').size() <= 500) &&
              data.createdAt == request.time;
     }
 
+    function isValidEvent(data) {
+      return data.keys().hasAll(['id', 'hostId', 'title', 'date', 'status', 'createdAt']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.hostId == request.auth.uid &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 200 &&
+             data.description is string && data.description.size() <= 5000 &&
+             data.date is string && data.date.size() <= 100 &&
+             data.location is string && data.location.size() <= 500 &&
+             data.status in ['draft', 'published', 'completed', 'cancelled'] &&
+             data.isApprovalRequired is bool &&
+             (data.get('capacity', 0) is number) &&
+             data.createdAt == request.time;
+    }
+
+    function isValidRSVP(data, eventId) {
+      return data.keys().hasAll(['id', 'eventId', 'userId', 'status', 'createdAt']) &&
+             data.eventId == eventId &&
+             data.userId == request.auth.uid &&
+             data.status == 'pending' &&
+             data.userEmail == request.auth.token.email &&
+             data.createdAt == request.time;
+    }
+
+    // Phase 4: Match Blocks
     match /users/{userId} {
       allow get: if isSignedIn();
-      allow list: if isSignedIn();
+      allow list: if false; // Prevention of user scraping
       allow create: if isOwner(userId) && isValidUser(incoming());
       allow update: if isOwner(userId) && 
                       incoming().uid == existing().uid &&
+                      incoming().email == existing().email &&
                       incoming().createdAt == existing().createdAt &&
                       incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'bio']);
     }
 
-    // Event validation
-    function isValidEvent(data) {
-      return isValidId(data.id) &&
-             data.hostId == request.auth.uid &&
-             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
-             data.date is string &&
-             data.status in ['draft', 'published', 'completed', 'cancelled'];
-    }
-
     match /events/{eventId} {
       allow get: if true;
-      allow list: if true;
-      allow create: if isVerified() && isValidEvent(incoming()) && incoming().createdAt == request.time;
-      allow update: if isVerified() && isOwner(existing().hostId) && 
-                      isValidEvent(incoming()) && 
-                      incoming().createdAt == existing().createdAt && 
+      allow list: if true; // Events are public
+      allow create: if isVerified() && isValidId(eventId) && isValidEvent(incoming());
+      allow update: if isVerified() && isOwner(existing().hostId) &&
+                      incoming().id == existing().id &&
+                      incoming().hostId == existing().hostId &&
+                      incoming().createdAt == existing().createdAt &&
                       incoming().updatedAt == request.time &&
-                      incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'date', 'location', 'coverImageUrl', 'status', 'isApprovalRequired', 'capacity', 'ticketTypes', 'updatedAt']);
+                      incoming().diff(existing()).affectedKeys().hasOnly([
+                        'title', 'description', 'date', 'location', 
+                        'coverImageUrl', 'status', 'isApprovalRequired', 
+                        'capacity', 'ticketTypes', 'updatedAt', 'hostName'
+                      ]);
       allow delete: if isVerified() && isOwner(existing().hostId);
 
       match /rsvps/{rsvpId} {
-        function isValidRSVP(data) {
-          return data.eventId == eventId &&
-                 data.userId == (request.method == 'create' ? request.auth.uid : existing().userId) &&
-                 data.status in ['pending', 'approved', 'declined'];
-        }
-
-        allow get: if isSignedIn();
-        allow list: if isSignedIn();
-        allow create: if isVerified() && isValidRSVP(incoming()) && incoming().createdAt == request.time;
+        allow get: if isSignedIn() && (request.auth.uid == resource.data.userId || request.auth.uid == get(/databases/$(database)/documents/events/$(eventId)).data.hostId);
+        allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || get(/databases/$(database)/documents/events/$(eventId)).data.hostId == request.auth.uid);
+        
+        allow create: if isVerified() && isValidId(rsvpId) && isValidRSVP(incoming(), eventId);
+        
         allow update: if isSignedIn() && (
-          (isOwner(existing().userId) && incoming().diff(existing()).affectedKeys().hasOnly(['status']) && incoming().status == 'declined') ||
-          (isOwner(get(/databases/$(database)/documents/events/$(eventId)).data.hostId) && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'checkedIn']))
+          (request.auth.uid == existing().userId && 
+           incoming().status == 'declined' && 
+           incoming().diff(existing()).affectedKeys().hasOnly(['status'])) ||
+          
+          (get(/databases/$(database)/documents/events/$(eventId)).data.hostId == request.auth.uid && 
+           incoming().diff(existing()).affectedKeys().hasOnly(['status', 'checkedIn']))
         );
-        allow delete: if isSignedIn() && isOwner(existing().userId);
+        
+        allow delete: if false;
       }
     }
   }
