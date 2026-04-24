@@ -43,8 +43,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({ email }),
     });
     
-    const data = await response.json();
-    if (data.error) throw new Error(data.error);
+    let data;
+    try {
+      data = await response.json();
+    } catch (e) {
+      throw new Error(`Server returned invalid response (${response.status})`);
+    }
+
+    if (!response.ok || data.error) {
+      throw new Error(data.error || `Request failed with status ${response.status}`);
+    }
   };
 
   const verifyCode = async (email: string, code: string) => {
@@ -54,8 +62,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({ email, code }),
     });
     
-    const data = await response.json();
-    if (data.error) throw new Error(data.error);
+    let data;
+    try {
+      data = await response.json();
+    } catch (e) {
+      throw new Error(`Server returned invalid response (${response.status})`);
+    }
+
+    if (!response.ok || data.error) {
+      throw new Error(data.error || `Verification failed (${response.status})`);
+    }
     
     if (data.token) {
       await signInWithCustomToken(auth, data.token);
