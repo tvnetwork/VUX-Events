@@ -10,7 +10,19 @@
         "displayName": { "type": "string" },
         "photoURL": { "type": "string" },
         "bio": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "string", "format": "date-time" },
+        "passkeys": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "credentialId": { "type": "string" },
+              "publicKey": { "type": "string" },
+              "name": { "type": "string" },
+              "createdAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
       },
       "required": ["uid", "email", "createdAt"]
     },

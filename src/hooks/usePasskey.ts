@@ -4,47 +4,56 @@
  */
 
 import { useState } from 'react';
+import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
 
 export function usePasskey() {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const authenticate = async () => {
+  const register = async (userEmail: string, displayName: string) => {
     setIsAuthenticating(true);
     setError(null);
 
     try {
-      if (!window.PublicKeyCredential) {
-          throw new Error("Passkeys are not supported on this browser.");
-      }
+      // 1. Get registration options from server
+      const resp = await fetch(`/api/auth/register-options?email=${encodeURIComponent(userEmail)}&displayName=${encodeURIComponent(displayName)}`);
+      const options = await resp.json();
 
-      // This is a simplified WebAuthn call. 
-      // In a real app, 'challenge' and 'allowCredentials' come from the backend.
-      const challenge = new Uint8Array(32);
-      window.crypto.getRandomValues(challenge);
+      if (options.error) throw new Error(options.error);
 
-      const credential = await navigator.credentials.get({
-        publicKey: {
-          challenge,
-          allowCredentials: [], // In real use, this would be empty for conditional UI or populated for specific keys
-          userVerification: "preferred",
-          timeout: 60000,
-        }
+      // 2. Start browser registration
+      const attestationResponse = await startRegistration({ optionsJSON: options });
+
+      // 3. Verify on server
+      const verifyResp = await fetch('/api/auth/verify-registration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: userEmail,
+          body: attestationResponse
+        }),
       });
 
-      if (!credential) {
-        throw new Error("Passkey authentication failed.");
+      const verification = await verifyResp.json();
+
+      if (!verification.verified) {
+         throw new Error("Verification failed on server");
       }
 
-      console.log("Passkey Credential:", credential);
-      return credential;
+      // Return the public data to store in Firestore for the user record
+      return {
+        credentialId: attestationResponse.id,
+        publicKey: btoa(String.fromCharCode(...new Uint8Array(verification.registrationInfo.credentialPublicKey))),
+        name: navigator.userAgent.includes("Mac") ? "MacPasskey" : "MobilePasskey",
+        createdAt: new Date().toISOString()
+      };
     } catch (err: any) {
-      console.error("Passkey Error:", err);
+      console.error("Passkey Register Error:", err);
       const message = err.name === 'NotAllowedError' 
-        ? "Passkey authentication was cancelled or timed out." 
+        ? "Passkey registration was cancelled or timed out." 
         : (err.name === 'SecurityError' || err.message?.includes('feature is not enabled'))
-        ? "Passkey access is blocked in the preview iframe. Please open the app in a new tab to use this feature."
-        : err.message || "Failed to authenticate with passkey.";
+        ? "Passkey registration is blocked in the preview iframe. Please open the app in a new tab."
+        : err.message || "Failed to register passkey.";
       setError(message);
       throw err;
     } finally {
@@ -52,8 +61,53 @@ export function usePasskey() {
     }
   };
 
+  const authenticateWithPasskey = async (email: string, credential: any) => {
+      setIsAuthenticating(true);
+      setError(null);
+
+      try {
+        // 1. Get auth options from server
+        const resp = await fetch(`/api/auth/login-options?email=${encodeURIComponent(email)}`);
+        const options = await resp.json();
+
+        if (options.error) throw new Error(options.error);
+
+        // 2. Start browser authentication
+        const assertionResponse = await startAuthentication({ optionsJSON: options });
+
+        // 3. Verify on server
+        const verifyResp = await fetch('/api/auth/verify-authentication', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            body: assertionResponse,
+            credential
+          }),
+        });
+
+        const verification = await verifyResp.json();
+
+        if (!verification.verified) {
+           throw new Error("Verification failed on server");
+        }
+
+        return verification.token;
+      } catch (err: any) {
+        console.error("Passkey Auth Error:", err);
+        const message = err.name === 'NotAllowedError' 
+          ? "Passkey authentication was cancelled or timed out." 
+          : err.message || "Failed to authenticate with passkey.";
+        setError(message);
+        throw err;
+      } finally {
+        setIsAuthenticating(false);
+      }
+  };
+
   return {
-    authenticate,
+    authenticate: authenticateWithPasskey,
+    register,
     isAuthenticating,
     error,
     setError

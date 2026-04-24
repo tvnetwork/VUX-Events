@@ -3,6 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+export interface Passkey {
+  credentialId: string;
+  publicKey: string;
+  name: string;
+  createdAt: string;
+}
+
 export interface UserProfile {
   uid: string;
   email: string;
@@ -10,6 +17,7 @@ export interface UserProfile {
   photoURL?: string;
   bio?: string;
   createdAt: string;
+  passkeys?: Passkey[];
 }
 
 export interface TicketType {

@@ -1,174 +1,105 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import { ArrowLeft, Loader2, RefreshCw, Clipboard } from 'lucide-react';
-import { motion } from 'motion/react';
-import { OTPInput } from './OTPInput';
+import React, { useState } from 'react';
+import { Mail, ArrowLeft, Loader2, RefreshCcw } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { useOTP } from '../../hooks/useOTP';
-import { useState, useEffect } from 'react';
-import { cn } from '../../lib/utils';
+import { OTPInput } from './OTPInput';
 
 interface OTPModalProps {
   email: string;
   onBack: () => void;
-  onVerify: (otp: string) => Promise<void>;
+  onVerify: (code: string) => Promise<void>;
   onResend: () => Promise<void>;
 }
 
 export function OTPModal({ email, onBack, onVerify, onResend }: OTPModalProps) {
-  const { 
-    digits, 
-    setInputRef, 
-    handleChange, 
-    handleKeyDown, 
-    handlePaste, 
-    isComplete, 
-    otpValue 
-  } = useOTP(6);
-
+  const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
   const [resending, setResending] = useState(false);
-  const [clipboardError, setClipboardError] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
-  // Auto-submit when complete
-  useEffect(() => {
-    if (isComplete && !loading) {
-      handleVerify();
-    }
-  }, [isComplete]);
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (code.length !== 6) return;
 
-  const handleVerify = async () => {
     setLoading(true);
-    setError(false);
+    setError('');
     try {
-      await onVerify(otpValue);
-    } catch (err) {
-      setError(true);
+      await onVerify(code);
+    } catch (err: any) {
+      setError(err.message || 'Invalid verification code');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResend = async () => {
+  const handleResendClick = async () => {
     setResending(true);
+    setError('');
     try {
       await onResend();
+      // Optional: show success toast
+    } catch (err: any) {
+      setError(err.message || 'Failed to resend code');
     } finally {
       setResending(false);
     }
   };
 
-  const handleManualPaste = async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      setClipboardError(null);
-      if (/^\d{6}$/.test(text)) {
-        // Create a synthetic event for the handlePaste logic
-        const dummyEvent = {
-          preventDefault: () => {},
-          clipboardData: {
-            getData: () => text
-          }
-        } as unknown as React.ClipboardEvent;
-        handlePaste(dummyEvent);
-      }
-    } catch (err: any) {
-      console.error("Paste failed", err);
-      if (err.name === 'NotAllowedError' || err.name === 'SecurityError') {
-        setClipboardError("Clipboard access is restricted in the preview iframe. Please use Ctrl+V/Cmd+V while focused on the input or open in a new tab.");
-      } else {
-        setClipboardError("Paste failed. Please enter the code manually.");
-      }
-    }
-  };
-
-  // Mask email for display
-  const maskEmail = (str: string) => {
-    const [name, domain] = str.split('@');
-    return `${name.slice(0, 3)}***@${domain}`;
-  };
-
   return (
-    <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
-      <header className="relative flex flex-col items-center text-center space-y-4">
-        <button 
-          onClick={onBack}
-          className="absolute left-0 top-0 p-2 rounded-xl hover:bg-white/5 text-white/40 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-
-        <div className="pt-4 space-y-2">
-          <h2 className="text-3xl font-black tracking-tight text-white uppercase italic">Enter Code</h2>
-          <p className="text-white/40 text-sm font-medium">
-            We sent a 6-digit code to <span className="text-white/60">{maskEmail(email)}</span>
-          </p>
+    <div className="space-y-6">
+      <div className="text-center">
+        <div className="w-16 h-16 bg-purple-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Mail className="w-8 h-8 text-purple-400" />
         </div>
-      </header>
-
-      <div className="space-y-6">
-        <OTPInput 
-          digits={digits}
-          setInputRef={setInputRef}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-          error={error}
-        />
-
-        <div className="space-y-2">
-          <div className="flex items-center justify-between px-2">
-            <button 
-              onClick={handleManualPaste}
-              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-white/60 transition-colors"
-            >
-              <Clipboard className="w-3 h-3" />
-              Paste Code
-            </button>
-            <button 
-              onClick={handleResend}
-              disabled={resending}
-              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-white/60 transition-colors disabled:opacity-50"
-            >
-              <RefreshCw className={cn("w-3 h-3", resending && "animate-spin")} />
-              {resending ? 'Sending...' : 'Resend Code'}
-            </button>
-          </div>
-
-          {clipboardError && (
-            <p className="px-2 text-[10px] font-bold text-red-500 uppercase tracking-widest animate-in fade-in slide-in-from-top-1">
-              {clipboardError}
-            </p>
-          )}
-        </div>
-
-        <Button
-          onClick={handleVerify}
-          disabled={!isComplete || loading}
-          className={cn(
-            "w-full h-14 text-base font-black bg-white text-black hover:bg-white/90 rounded-2xl shadow-xl transition-all",
-            error && "bg-red-500 text-white hover:bg-red-600"
-          )}
-        >
-          {loading ? (
-            <Loader2 className="w-6 h-6 animate-spin mx-auto" />
-          ) : error ? (
-            'Try Again'
-          ) : (
-            'Verify & Sign In'
-          )}
-        </Button>
-      </div>
-
-      <div className="pt-4 text-center">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/10 italic">
-          High-Entropy Verification System
+        <h3 className="text-2xl font-bold text-white mb-2">Check your email</h3>
+        <p className="text-white/50 text-sm">
+          We've sent a 6-digit code to <span className="text-white">{email}</span>
         </p>
       </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <OTPInput 
+          value={code} 
+          onChange={setCode} 
+          disabled={loading}
+        />
+
+        {error && (
+          <p className="text-red-400 text-sm text-center font-medium bg-red-400/10 py-2 rounded-lg">
+            {error}
+          </p>
+        )}
+
+        <div className="space-y-3">
+          <Button
+            type="submit"
+            disabled={code.length !== 6 || loading}
+            className="w-full h-12 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold"
+          >
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Verify Code'}
+          </Button>
+
+          <div className="flex items-center justify-between px-1">
+            <button
+              type="button"
+              onClick={onBack}
+              className="flex items-center gap-2 text-white/50 hover:text-white transition-colors text-sm"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Change email
+            </button>
+
+            <button
+              type="button"
+              onClick={handleResendClick}
+              disabled={resending}
+              className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors text-sm disabled:opacity-50"
+            >
+              {resending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCcw className="w-4 h-4" />}
+              Resend code
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
   );
 }

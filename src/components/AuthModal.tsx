@@ -5,40 +5,82 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Key, Mail } from 'lucide-react';
 import { useAuth } from '../AuthContext';
+import { db } from '../lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { UserProfile } from '../types';
+import { Button } from './ui/Button';
 import { EmailStep } from './auth/EmailStep';
 import { OTPModal } from './auth/OTPModal';
 import { PasskeyButton } from './auth/PasskeyButton';
 import { usePasskey } from '../hooks/usePasskey';
 
 export function AuthModal({ onClose }: { onClose: () => void }) {
-  const { signInWithGoogle, sendVerificationCode, verifyCode } = useAuth();
-  const { authenticate: authWithPasskey, isAuthenticating: passkeyLoading } = usePasskey();
-  
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const { signInWithGoogle, signInWithPasskey, sendVerificationCode, verifyCode, addPasskey } = useAuth();
+  const { isAuthenticating: passkeyLoading, authenticate: authWithPasskey, register: registerPasskey } = usePasskey();
+
   const [email, setEmail] = useState('');
   const [showCodeStep, setShowCodeStep] = useState(false);
+  const [setupPasskey, setSetupPasskey] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleGoogle = async () => {
     setLoading(true);
     try {
       await signInWithGoogle();
       onClose();
-    } catch (err) {
-      setError('Google Sign-In failed');
+    } catch (err: any) {
+      setError(err.message || 'Google login failed');
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePasskeyStart = async () => {
+  const handleRegisterPasskey = async () => {
     try {
-      await authWithPasskey();
+      const passkey = await registerPasskey(email, email.split('@')[0]);
+      if (passkey) {
+        await addPasskey(passkey);
+        onClose();
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to setup passkey');
+    }
+  };
+
+  const handlePasskeyStart = async () => {
+    if (!email) {
+      // If no email entered, we could try a generic discovery, 
+      // but for this implementation we'll ask for email first or show an error
+      setError('Please enter your email to sign in with passkey');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      // 1. Fetch user profile to get their passkey credential
+      const profileRef = doc(db, 'users', email);
+      const profileSnap = await getDoc(profileRef);
+      
+      if (!profileSnap.exists()) {
+        throw new Error('No account found for this email.');
+      }
+      
+      const userData = profileSnap.data() as UserProfile;
+      if (!userData.passkeys || userData.passkeys.length === 0) {
+        throw new Error('No passkey found for this account.');
+      }
+
+      // 2. Perform WebAuthn authentication and Firebase login
+      await signInWithPasskey(email, authWithPasskey, userData.passkeys[0]);
+      
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Passkey failed');
+      setError(err.message || 'Passkey login failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,19 +92,32 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
     try {
       await sendVerificationCode(email);
       setShowCodeStep(true);
-    } catch (err) {
-      setError('Failed to send code. Try again.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to send login link');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVerifyOTP = async (otp: string) => {
+  const handleVerifyOTP = async (code: string) => {
     setLoading(true);
     setError('');
     try {
-      await verifyCode(email, otp);
-      onClose();
+      await verifyCode(email, code);
+      
+      // Wait a moment for AuthProvider to sync profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Check if user has a passkey
+      const profileRef = doc(db, 'users', email);
+      const profileSnap = await getDoc(profileRef);
+      const userData = profileSnap.data() as UserProfile;
+      
+      if (!userData?.passkeys || userData.passkeys.length === 0) {
+        setSetupPasskey(true);
+      } else {
+        onClose();
+      }
     } catch (err: any) {
       setError(err.message || 'Verification failed');
       throw err;
@@ -97,7 +152,40 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
 
         <div className="p-4">
           <AnimatePresence mode="wait">
-            {!showCodeStep ? (
+            {setupPasskey ? (
+              <motion.div
+                key="setup-passkey"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="text-center space-y-6 py-4"
+              >
+                <div className="w-16 h-16 bg-purple-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                   <Key className="w-8 h-8 text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-2">Enable Passkey?</h3>
+                  <p className="text-white/50 text-sm leading-relaxed px-4">
+                    Secure your account with biometrics. No password needed for your next visit.
+                  </p>
+                </div>
+                <div className="space-y-3 pt-4">
+                  <Button 
+                    onClick={handleRegisterPasskey}
+                    disabled={passkeyLoading}
+                    className="w-full h-12 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold gap-2"
+                  >
+                    {passkeyLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Key className="w-4 h-4" />}
+                    <span>Activate Passkey</span>
+                  </Button>
+                  <button 
+                    onClick={onClose}
+                    className="w-full py-3 text-white/30 hover:text-white/60 transition-colors text-sm font-medium"
+                  >
+                    Maybe later
+                  </button>
+                </div>
+              </motion.div>
+            ) : !showCodeStep ? (
               <motion.div
                 key="email-step"
                 initial={{ x: -20, opacity: 0 }}

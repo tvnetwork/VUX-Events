@@ -57,7 +57,7 @@ service cloud.firestore {
                       incoming().uid == existing().uid &&
                       incoming().email == existing().email &&
                       incoming().createdAt == existing().createdAt &&
-                      incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'bio']);
+                      incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'bio', 'passkeys']);
     }
 
     match /events/{eventId} {

@@ -10,20 +10,20 @@ import {
   GoogleAuthProvider, 
   signInWithPopup, 
   signOut,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
+  signInWithCustomToken,
   updateProfile
 } from 'firebase/auth';
 import { auth, db } from './lib/firebase';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { UserProfile } from './types';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, arrayUnion } from 'firebase/firestore';
+import { UserProfile, Passkey } from './types';
 
 interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
-  signInWithPasskey: () => Promise<void>;
+  signInWithPasskey: (email: string, authenticateWithPasskey: any, credential: any) => Promise<void>;
+  addPasskey: (passkey: Passkey) => Promise<void>;
   sendVerificationCode: (email: string) => Promise<void>;
   verifyCode: (email: string, code: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -36,25 +36,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // In a real production app, you would use Firebase's isSignInWithEmailLink
-  // For this demonstration, we'll simulate the "code" experience requested.
   const sendVerificationCode = async (email: string) => {
-    console.log(`Sending verification code to ${email}...`);
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    // In production: await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+    const response = await fetch('/api/auth/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
   };
 
   const verifyCode = async (email: string, code: string) => {
-    console.log(`Verifying code ${code} for ${email}...`);
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    const response = await fetch('/api/auth/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code }),
+    });
     
-    if (code === '123456') { // Demo code
-      // In production, we'd complete the Firebase Email Link flow here
-      // For now, we'll manually sign in with a demo user or throw error
-      throw new Error('Verification service is being configured. Try Google Sign-In for now.');
-    } else {
-      throw new Error('Invalid verification code.');
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    
+    if (data.token) {
+      await signInWithCustomToken(auth, data.token);
     }
   };
 
@@ -62,14 +66,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
-        // Sync profile
-        const profileRef = doc(db, 'users', user.uid);
+        // Sync profile - use email as ID if available for easier lookup
+        const docId = user.email || user.uid;
+        const profileRef = doc(db, 'users', docId);
         const profileSnap = await getDoc(profileRef);
         
         if (!profileSnap.exists()) {
           const newProfile: UserProfile = {
             uid: user.uid,
-            email: user.email || '',
+            email: user.email || (user.uid.includes('@') ? user.uid : ''),
             displayName: user.displayName || 'Guest',
             photoURL: user.photoURL || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${user.uid}&backgroundColor=c084fc`,
             createdAt: new Date().toISOString(),
@@ -101,17 +106,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signInWithPasskey = async () => {
-    console.log('Simulating Passkey Biometric Auth...');
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    // In a real app, this would use the WebAuthn API
-    throw new Error('Passkey registration is required on your first login. Try Google for now.');
+  const signInWithPasskey = async (email: string, authenticateWithPasskey: any, credential: any) => {
+    try {
+      // 1. Authenticate with passkey via server to get custom token
+      const token = await authenticateWithPasskey(email, credential);
+      
+      // 2. Sign in with the custom token
+      if (token) {
+        await signInWithCustomToken(auth, token);
+      }
+    } catch (err: any) {
+      console.error('Passkey Sign-In failed:', err);
+      throw err;
+    }
+  };
+
+  const addPasskey = async (passkey: Passkey) => {
+    if (!user) throw new Error('Must be logged in to add a passkey.');
+    const docId = user.email || user.uid;
+    const userRef = doc(db, 'users', docId);
+    await updateDoc(userRef, {
+      passkeys: arrayUnion(passkey)
+    });
+    
+    // Update local profile state
+    setProfile(prev => prev ? {
+      ...prev,
+      passkeys: [...(prev.passkeys || []), passkey]
+    } : null);
   };
 
   const logout = () => signOut(auth);
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signInWithGoogle, signInWithPasskey, sendVerificationCode, verifyCode, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      profile, 
+      loading, 
+      signInWithGoogle, 
+      signInWithPasskey, 
+      addPasskey, 
+      sendVerificationCode, 
+      verifyCode,
+      logout 
+    }}>
       {children}
     </AuthContext.Provider>
   );
