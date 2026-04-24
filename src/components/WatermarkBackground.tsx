@@ -56,8 +56,8 @@ export function WatermarkBackground() {
   }
 
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 opacity-[0.06] select-none">
-      <div className="flex flex-wrap gap-x-32 gap-y-24 rotate-[-15deg] scale-125 origin-center justify-center p-20">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 opacity-15 select-none">
+      <div className="flex flex-wrap gap-x-24 gap-y-20 rotate-[-15deg] scale-125 origin-center justify-center p-20 min-w-[200%] min-h-[200%] -translate-x-1/4 -translate-y-1/4">
         {pattern.map((item, idx) => (
           <motion.div
             key={item.id}
@@ -68,9 +68,9 @@ export function WatermarkBackground() {
               x: [0, 5, 0]
             }}
             transition={{ 
-              duration: 10 + (idx % 10), 
+              duration: 15 + (idx % 20), 
               repeat: Infinity, 
-              delay: idx * 0.1,
+              delay: idx * 0.05,
               ease: "easeInOut" 
             }}
             className="flex items-center gap-4 whitespace-nowrap"
@@ -78,7 +78,7 @@ export function WatermarkBackground() {
             <div className="text-white">
               {item.icon}
             </div>
-            <span className="text-2xl font-black tracking-tighter uppercase italic text-white leading-none">
+            <span className="text-2xl font-black tracking-tighter uppercase italic text-white/80 leading-none">
               {item.word}
             </span>
           </motion.div>
