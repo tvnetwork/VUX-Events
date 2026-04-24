@@ -41,11 +41,11 @@ async function startServer() {
 
   // Initialize SMTP Transporter
   const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT || '587'),
     secure: process.env.SMTP_PORT === '465',
     auth: {
-      user: process.env.SMTP_USER,
+      user: process.env.SMTP_USER || 'coolshotsystemsofficial@gmail.com',
       pass: process.env.SMTP_PASS,
     },
   });
@@ -66,12 +66,15 @@ async function startServer() {
     otpStore.set(email, { code, expires: Date.now() + 10 * 60 * 1000 });
 
     try {
-      if (!process.env.SMTP_USER) {
-        throw new Error('SMTP_USER is not configured in secrets.');
+      const user = process.env.SMTP_USER || 'coolshotsystemsofficial@gmail.com';
+      const pass = process.env.SMTP_PASS;
+
+      if (!pass) {
+        throw new Error('SMTP_PASS is not configured. Please add it to your project secrets in Settings.');
       }
 
       await transporter.sendMail({
-        from: process.env.SMTP_FROM || `"VUX Events" <${process.env.SMTP_USER}>`,
+        from: process.env.SMTP_FROM || `"VUX Events" <${user}>`,
         to: email,
         subject: `${code} is your VUX Events verification code`,
         html: `
