@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Outfit", serif;
+}
+
+@layer base {
+  body {
+    @apply bg-[#0b0b0f] text-white selection:bg-purple-500/30 font-sans antialiased;
+    background-image: 
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"),
+      radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.05) 0px, transparent 50%),
+      linear-gradient(to bottom right, #0b0b0f, #1a1023, #0b0b0f);
+    background-attachment: fixed;
+    background-blend-mode: overlay, normal, normal, normal;
+  }
+}
+
+@utility glass {
+  background-color: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@utility glass-card {
+  @apply glass;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-2xl);
+  transition-property: all;
+  transition-duration: 200ms;
+}
+
+@utility text-muted {
+  color: var(--color-white / 40%);
+}
+
+@utility text-body {
+  color: var(--color-white / 70%);
+}
+
+@utility scrollbar-hide {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@utility custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--color-white / 10%);
+    border-radius: 9999px;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+    
+    &:hover {
+      background-color: var(--color-white / 20%);
+    }
+  }
+}
+
+@utility mesh-purple { background: radial-gradient(circle at 50% 50%, rgba(147, 51, 234, 0.3) 0%, transparent 100%); }
+@utility mesh-blue { background: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.2) 0%, transparent 100%); }
+@utility mesh-pink { background: radial-gradient(circle at 50% 50%, rgba(219, 39, 119, 0.2) 0%, transparent 100%); }

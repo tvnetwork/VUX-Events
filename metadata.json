@@ -1,0 +1,11 @@
+{
+  "name": "VUX Events",
+  "description": "A minimalist event management platform for hosting and discovering local events with AI-powered creation and seamless RSVPs.",
+  "requestFramePermissions": [
+    "publickey-credentials-get",
+    "publickey-credentials-create",
+    "clipboard-read",
+    "webauthn"
+  ],
+  "majorCapabilities": []
+}

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VUX Events</title>
+    <link rel="icon" type="image/jpeg" href="/src/assets/logo.jpg" />
+    <script>
+      // Workaround for some libraries trying to overwrite window.fetch
+      // which is a read-only getter in some environments like AI Studio.
+      if (typeof window !== 'undefined') {
+        const originalFetch = window.fetch;
+        try {
+          Object.defineProperty(window, 'fetch', {
+            get: () => originalFetch,
+            set: () => { console.warn('Something tried to overwrite window.fetch - ignoring.'); },
+            configurable: true
+          });
+        } catch (e) {
+          console.warn('Could not redefine window.fetch setter:', e);
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

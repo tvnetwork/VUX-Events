@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global helpers
+    function isSignedIn() { return request.auth != null; }
+    function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // User validation
+    function isValidUser(data) {
+      return data.uid == request.auth.uid &&
+             data.email == request.auth.token.email &&
+             data.displayName is string && data.displayName.size() <= 100 &&
+             data.createdAt == request.time;
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && 
+                      incoming().uid == existing().uid &&
+                      incoming().createdAt == existing().createdAt &&
+                      incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'bio']);
+    }
+
+    // Event validation
+    function isValidEvent(data) {
+      return isValidId(data.id) &&
+             data.hostId == request.auth.uid &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+             data.date is string &&
+             data.status in ['draft', 'published', 'completed', 'cancelled'];
+    }
+
+    match /events/{eventId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isVerified() && isValidEvent(incoming()) && incoming().createdAt == request.time;
+      allow update: if isVerified() && isOwner(existing().hostId) && 
+                      isValidEvent(incoming()) && 
+                      incoming().createdAt == existing().createdAt && 
+                      incoming().updatedAt == request.time &&
+                      incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'date', 'location', 'coverImageUrl', 'status', 'isApprovalRequired', 'capacity', 'ticketTypes', 'updatedAt']);
+      allow delete: if isVerified() && isOwner(existing().hostId);
+
+      match /rsvps/{rsvpId} {
+        function isValidRSVP(data) {
+          return data.eventId == eventId &&
+                 data.userId == (request.method == 'create' ? request.auth.uid : existing().userId) &&
+                 data.status in ['pending', 'approved', 'declined'];
+        }
+
+        allow get: if isSignedIn();
+        allow list: if isSignedIn();
+        allow create: if isVerified() && isValidRSVP(incoming()) && incoming().createdAt == request.time;
+        allow update: if isSignedIn() && (
+          (isOwner(existing().userId) && incoming().diff(existing()).affectedKeys().hasOnly(['status']) && incoming().status == 'declined') ||
+          (isOwner(get(/databases/$(database)/documents/events/$(eventId)).data.hostId) && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'checkedIn']))
+        );
+        allow delete: if isSignedIn() && isOwner(existing().userId);
+      }
+    }
+  }
+}

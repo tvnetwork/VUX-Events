@@ -1,0 +1,81 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "bio": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "Event": {
+      "title": "Event",
+      "description": "Event details and configuration",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "hostId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "location": { "type": "string" },
+        "coverImageUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "published", "completed", "cancelled"] },
+        "isApprovalRequired": { "type": "boolean" },
+        "capacity": { "type": "integer" },
+        "ticketTypes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "price": { "type": "number" },
+              "capacity": { "type": "number" }
+            }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "hostId", "title", "date", "status", "createdAt"]
+    },
+    "RSVP": {
+      "title": "RSVP",
+      "description": "Guest registration for an event",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "eventId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "userDisplayName": { "type": "string" },
+        "userPhotoURL": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "declined"] },
+        "checkedIn": { "type": "boolean" },
+        "ticketType": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "eventId", "userId", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/events/{eventId}": {
+      "schema": "Event",
+      "description": "Events"
+    },
+    "/events/{eventId}/rsvps/{rsvpId}": {
+      "schema": "RSVP",
+      "description": "RSVPs for a specific event"
+    }
+  }
+}
