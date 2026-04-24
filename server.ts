@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import admin from 'firebase-admin';
 import nodemailer from 'nodemailer';
+import fs from 'fs';
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
@@ -54,7 +55,10 @@ async function startServer() {
 
   app.post('/api/auth/send-otp', async (req, res) => {
     try {
-      console.log('Sending OTP request for:', req.body.email);
+      console.log('--- Auth Request ---');
+      console.log('Method: POST, URL: /api/auth/send-otp');
+      console.log('Target Email:', req.body.email);
+
       const { email } = req.body;
       if (!email) return res.status(400).json({ error: 'Email is required' });
 
@@ -65,32 +69,139 @@ async function startServer() {
       const pass = process.env.SMTP_PASS;
 
       if (!pass) {
-        console.error('SMTP_PASS is missing in environment variables');
+        console.error('CRITICAL: SMTP_PASS is missing in environment variables. Please add it to Secrets.');
         return res.status(503).json({ 
-          error: 'Email authentication is temporarily unavailable. Please set SMTP_PASS in Secrets.' 
+          error: 'Email service is not configured. please add SMTP_PASS to Secrets in the Settings menu.' 
         });
       }
 
-      const transporter = nodemailer.createTransport({
+      console.log('Configuring SMTP transporter for user:', user);
+      const transportConfig = {
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
         port: parseInt(process.env.SMTP_PORT || '587'),
         secure: process.env.SMTP_PORT === '465',
         auth: { user, pass },
-      });
+      };
+      
+      const transporter = nodemailer.createTransport(transportConfig);
+
+      console.log('Sending email...');
+      
+      const logoUrl = 'https://imgcdn.dev/i/YV1TaK';
 
       await transporter.sendMail({
         from: process.env.SMTP_FROM || `"VUX Events" <${user}>`,
         to: email,
         subject: `${code} is your VUX Events verification code`,
         html: `
-          <div style="font-family: sans-serif; max-width: 400px; margin: 0 auto; background: #0b0b0f; border-radius: 24px; padding: 40px; color: white;">
-            <h2 style="color: white; margin-top: 0;">Verification Code</h2>
-            <p style="color: rgba(255,255,255,0.7); line-height: 1.6;">Use the following code to sign in to VUX Events. This code will expire in 10 minutes.</p>
-            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 8px; border: 1px solid rgba(255,255,255,0.1); margin: 30px 0;">
-              ${code}
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <style>
+              .container {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                max-width: 500px;
+                margin: 0 auto;
+                background-color: #0b0b0f;
+                border-radius: 32px;
+                padding: 48px;
+                color: #ffffff;
+                text-align: center;
+                border: 1px solid rgba(255,255,255,0.08);
+              }
+              .logo-container {
+                margin-bottom: 32px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+              }
+              .logo-image {
+                width: 72px;
+                height: 72px;
+                border-radius: 18px;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+                object-fit: cover;
+              }
+              .logo-text {
+                font-weight: 900;
+                font-style: italic;
+                text-transform: uppercase;
+                letter-spacing: -0.05em;
+                font-size: 24px;
+                color: #ffffff;
+                margin-top: 8px;
+              }
+              .title {
+                font-size: 28px;
+                font-weight: 800;
+                margin: 0 0 16px 0;
+                letter-spacing: -0.02em;
+                color: #ffffff;
+              }
+              .description {
+                color: rgba(255,255,255,0.6);
+                line-height: 1.6;
+                font-size: 15px;
+                margin-bottom: 32px;
+              }
+              .code-container {
+                margin: 32px 0;
+              }
+              .code-box {
+                display: inline-block;
+                background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(168, 85, 247, 0.05));
+                padding: 24px 40px;
+                border-radius: 24px;
+                font-size: 48px;
+                font-weight: 800;
+                letter-spacing: 14px;
+                color: #a855f7;
+                border: 1px solid rgba(168, 85, 247, 0.3);
+                text-shadow: 0 0 25px rgba(168, 85, 247, 0.4);
+              }
+              .copy-helper {
+                font-size: 12px;
+                color: rgba(168, 85, 247, 0.6);
+                margin-top: 12px;
+                font-weight: 500;
+              }
+              .footer {
+                color: rgba(255,255,255,0.3);
+                font-size: 12px;
+                margin-top: 48px;
+                border-top: 1px solid rgba(255,255,255,0.05);
+                padding-top: 24px;
+                line-height: 1.5;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="logo-container">
+                <img src="${logoUrl}" class="logo-image" alt="VUX Logo" />
+                <div class="logo-text">VUX Events</div>
+              </div>
+              
+              <h1 class="title">Verify your identity</h1>
+              <p class="description">Copy the 6-digit code below and paste it into the VUX Events app to complete your sign-in.</p>
+              
+              <div class="code-container">
+                <div class="code-box">${code}</div>
+                <div class="copy-helper">↑ Copy this code ↑</div>
+              </div>
+              
+              <p style="color: rgba(255,255,255,0.4); font-size: 14px;">This code is valid for 10 minutes.</p>
+              
+              <div class="footer">
+                This verification code was requested for <strong>${email}</strong>.<br/>
+                If you did not request this, please ignore this email.<br/>
+                <br/>
+                &copy; ${new Date().getFullYear()} VUX Events. All rights reserved.
+              </div>
             </div>
-            <p style="color: rgba(255,255,255,0.4); font-size: 12px; margin-bottom: 0;">If you didn't request this, you can safely ignore this email.</p>
-          </div>
+          </body>
+          </html>
         `,
       });
       console.log('Email sent successfully');

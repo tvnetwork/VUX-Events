@@ -37,17 +37,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const sendVerificationCode = async (email: string) => {
-    const response = await fetch('/api/auth/send-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    });
-    
-    let data;
+    let response;
     try {
-      data = await response.json();
+      response = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
     } catch (e) {
-      throw new Error(`Server returned invalid response (${response.status})`);
+      console.error('Fetch error:', e);
+      throw new Error('Could not connect to authentication server. Please check your internet connection.');
+    }
+    
+    const contentType = response.headers.get('content-type');
+    let data;
+    
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        data = await response.json();
+      } catch (e) {
+        console.error('JSON parse error:', e);
+        throw new Error('Server returned an invalid response. Please try again.');
+      }
+    } else {
+      const text = await response.text();
+      console.error('Non-JSON response:', text);
+      throw new Error(`Server error (${response.status}). Please contact support if this persists.`);
     }
 
     if (!response.ok || data.error) {
@@ -56,17 +71,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const verifyCode = async (email: string, code: string) => {
-    const response = await fetch('/api/auth/verify-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, code }),
-    });
-    
-    let data;
+    let response;
     try {
-      data = await response.json();
+      response = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code }),
+      });
     } catch (e) {
-      throw new Error(`Server returned invalid response (${response.status})`);
+      console.error('Fetch error:', e);
+      throw new Error('Could not connect to verification server. Please check your internet connection.');
+    }
+    
+    const contentType = response.headers.get('content-type');
+    let data;
+
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        data = await response.json();
+      } catch (e) {
+        console.error('JSON parse error:', e);
+        throw new Error('Server returned an invalid verification response. Please try again.');
+      }
+    } else {
+      const text = await response.text();
+      console.error('Non-JSON verification response:', text);
+      throw new Error(`Verification error (${response.status}). Please try again.`);
     }
 
     if (!response.ok || data.error) {

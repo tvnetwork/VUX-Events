@@ -5,9 +5,11 @@ interface OTPInputProps {
   onChange: (value: string) => void;
   length?: number;
   disabled?: boolean;
+  isError?: boolean;
+  isSuccess?: boolean;
 }
 
-export function OTPInput({ value, onChange, length = 6, disabled }: OTPInputProps) {
+export function OTPInput({ value, onChange, length = 6, disabled, isError, isSuccess }: OTPInputProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -58,7 +60,13 @@ export function OTPInput({ value, onChange, length = 6, disabled }: OTPInputProp
           onChange={(e) => handleChange(e, i)}
           onKeyDown={(e) => handleKeyDown(e, i)}
           disabled={disabled}
-          className="w-12 h-14 text-center text-2xl font-bold bg-white/5 border border-white/10 rounded-xl text-white focus:border-purple-500 focus:outline-none transition-colors disabled:opacity-50"
+          className={`w-12 h-14 text-center text-2xl font-bold bg-white/5 border rounded-xl text-white focus:outline-none transition-all disabled:opacity-50 ${
+            isSuccess 
+              ? 'border-green-500 bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.2)]' 
+              : isError 
+                ? 'border-red-500 bg-red-500/10 focus:border-red-500' 
+                : 'border-white/10 focus:border-purple-500'
+          }`}
         />
       ))}
     </div>

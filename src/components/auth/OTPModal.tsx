@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, ArrowLeft, Loader2, RefreshCcw } from 'lucide-react';
+import { Mail, ArrowLeft, Loader2, RefreshCcw, ClipboardCheck } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { OTPInput } from './OTPInput';
 
@@ -15,15 +15,19 @@ export function OTPModal({ email, onBack, onVerify, onResend }: OTPModalProps) {
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [error, setError] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleSubmit = async (e?: React.FormEvent) => {
+  const handleSubmit = async (e?: React.FormEvent, currentCode?: string) => {
     e?.preventDefault();
-    if (code.length !== 6) return;
+    const finalCode = currentCode || code;
+    if (finalCode.length !== 6) return;
 
     setLoading(true);
     setError('');
+    setIsSuccess(false);
     try {
-      await onVerify(code);
+      await onVerify(finalCode);
+      setIsSuccess(true);
     } catch (err: any) {
       setError(err.message || 'Invalid verification code');
     } finally {
@@ -31,16 +35,37 @@ export function OTPModal({ email, onBack, onVerify, onResend }: OTPModalProps) {
     }
   };
 
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    if (newCode.length === 6) {
+      handleSubmit(undefined, newCode);
+    }
+  };
+
   const handleResendClick = async () => {
     setResending(true);
     setError('');
+    setCode(''); // Clear input on resend
+    setIsSuccess(false);
     try {
       await onResend();
-      // Optional: show success toast
     } catch (err: any) {
       setError(err.message || 'Failed to resend code');
     } finally {
       setResending(false);
+    }
+  };
+
+  const handlePasteCode = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      const cleaned = text.replace(/\D/g, '').slice(0, 6);
+      if (cleaned) {
+        setCode(cleaned);
+      }
+    } catch (err) {
+      console.error('Failed to read clipboard:', err);
+      setError('Could not access clipboard. Please paste manually.');
     }
   };
 
@@ -56,12 +81,33 @@ export function OTPModal({ email, onBack, onVerify, onResend }: OTPModalProps) {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <OTPInput 
-          value={code} 
-          onChange={setCode} 
-          disabled={loading}
-        />
+      <div className="space-y-6">
+        <div className="relative group">
+          <OTPInput 
+            value={code} 
+            onChange={handleCodeChange} 
+            disabled={loading}
+            isError={!!error}
+            isSuccess={isSuccess}
+          />
+          <button
+            type="button"
+            onClick={handlePasteCode}
+            className="absolute -right-12 top-1/2 -translate-y-1/2 p-2 text-white/30 hover:text-purple-400 transition-colors bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex"
+            title="Paste from clipboard"
+          >
+            <ClipboardCheck className="w-5 h-5" />
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={handlePasteCode}
+          className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium mx-auto md:hidden"
+        >
+          <ClipboardCheck className="w-4 h-4" />
+          Paste code from clipboard
+        </button>
 
         {error && (
           <p className="text-red-400 text-sm text-center font-medium bg-red-400/10 py-2 rounded-lg">
@@ -69,7 +115,7 @@ export function OTPModal({ email, onBack, onVerify, onResend }: OTPModalProps) {
           </p>
         )}
 
-        <div className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <Button
             type="submit"
             disabled={code.length !== 6 || loading}
@@ -98,8 +144,8 @@ export function OTPModal({ email, onBack, onVerify, onResend }: OTPModalProps) {
               Resend code
             </button>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

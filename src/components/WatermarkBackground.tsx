@@ -56,14 +56,14 @@ export function WatermarkBackground() {
   }
 
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 opacity-20 select-none">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-[1] select-none">
       <div className="flex flex-wrap gap-x-24 gap-y-20 rotate-[-15deg] scale-125 origin-center justify-center p-20 min-w-[300vw] min-h-[300vh] -translate-x-1/3 -translate-y-1/3">
         {pattern.map((item, idx) => (
           <motion.div
             key={item.id}
             initial={{ opacity: 0 }}
             animate={{ 
-              opacity: [0.6, 1, 0.6],
+              opacity: [0.1, 0.2, 0.1],
               y: [0, -10, 0],
               x: [0, 5, 0]
             }}
