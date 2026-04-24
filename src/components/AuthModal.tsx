@@ -13,6 +13,7 @@ import { UserProfile } from '../types';
 import { Button } from './ui/Button';
 import { EmailStep } from './auth/EmailStep';
 import { OTPModal } from './auth/OTPModal';
+import { WatermarkBackground } from './WatermarkBackground';
 import { PasskeyButton } from './auth/PasskeyButton';
 import { usePasskey } from '../hooks/usePasskey';
 
@@ -143,6 +144,9 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
         exit={{ scale: 0.95, opacity: 0 }}
         className="bg-[#16161e]/60 glass border border-white/10 w-full max-w-md rounded-[2rem] p-4 relative shadow-2xl overflow-hidden"
       >
+        <div className="absolute inset-0 opacity-20 pointer-events-none">
+           <WatermarkBackground />
+        </div>
         <button 
           onClick={onClose}
           className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 transition-colors z-20"

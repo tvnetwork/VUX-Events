@@ -49,14 +49,14 @@ export function WatermarkBackground() {
 
   // We'll create a grid of these elements
   const pattern = [];
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 120; i++) {
     const word = words[i % words.length];
     const icon = icons[i % icons.length];
     pattern.push({ word, icon, id: i });
   }
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-[0.06] select-none">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 opacity-[0.06] select-none">
       <div className="flex flex-wrap gap-x-32 gap-y-24 rotate-[-15deg] scale-125 origin-center justify-center p-20">
         {pattern.map((item, idx) => (
           <motion.div

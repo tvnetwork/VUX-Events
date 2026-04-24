@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { Navbar } from '../components/Navbar';
 import { Dashboard } from '../pages/Dashboard';
+import { WatermarkBackground } from '../components/WatermarkBackground';
 import { Discover } from '../pages/Discover';
 import { Calendars } from '../pages/Calendars';
 import { Settings } from '../pages/Settings';
@@ -39,17 +40,20 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab} 
-        onSearchClick={() => setIsCommandPaletteOpen(true)}
-        onCreateClick={() => setIsCreateModalOpen(true)}
-      />
-      
-      <main className="flex-1 w-full max-w-[1280px] mx-auto px-6 py-12 md:py-16">
-        {renderContent()}
-      </main>
+    <div className="min-h-screen flex flex-col relative bg-[#0b0b0f]">
+      <WatermarkBackground />
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <Navbar 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab} 
+          onSearchClick={() => setIsCommandPaletteOpen(true)}
+          onCreateClick={() => setIsCreateModalOpen(true)}
+        />
+        
+        <main className="flex-1 w-full max-w-[1280px] mx-auto px-6 py-12 md:py-16">
+          {renderContent()}
+        </main>
+      </div>
 
       <CommandPalette 
         isOpen={isCommandPaletteOpen} 
