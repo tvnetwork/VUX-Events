@@ -15,6 +15,7 @@ import { cn, getAvatarUrl } from '../lib/utils';
 import { updateDoc, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { VUXQRCode } from '../components/VUXQRCode';
+import { StorageService } from '../services/StorageService';
 
 export function Settings() {
   const { user, profile } = useAuth();
@@ -177,9 +178,27 @@ export function Settings() {
                                 className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000"
                              />
                          </div>
-                         <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-2xl text-black hover:scale-110 active:scale-95 transition-transform">
+                         <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-2xl text-black hover:scale-110 active:scale-95 transition-transform cursor-pointer">
                              <Camera className="w-5 h-5" />
-                         </button>
+                             <input 
+                                type="file" 
+                                className="hidden" 
+                                accept="image/*"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file && user) {
+                                    try {
+                                      setSaveStatus('saving');
+                                      const url = await StorageService.uploadProfileImage(file, user.uid);
+                                      setFormData(prev => ({ ...prev, photoURL: url }));
+                                    } catch (err) {
+                                      console.error('Upload failed:', err);
+                                      setSaveStatus('error');
+                                    }
+                                  }
+                                }}
+                             />
+                         </label>
                       </div>
                       <div className="space-y-2 text-center md:text-left">
                         <h3 className="text-2xl font-black italic uppercase tracking-tighter">Profile Picture</h3>

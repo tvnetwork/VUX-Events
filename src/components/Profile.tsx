@@ -10,6 +10,7 @@ import { useAuth } from '../AuthContext';
 import { db } from '../lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { getAvatarUrl } from '../lib/utils';
+import { StorageService } from '../services/StorageService';
 
 export function Profile({ onClose }: { onClose: () => void }) {
   const { profile, user } = useAuth();
@@ -61,11 +62,30 @@ export function Profile({ onClose }: { onClose: () => void }) {
             <div className="relative inline-block">
               <img 
                 src={formData.photoURL || getAvatarUrl(profile?.uid)} 
-                className="w-24 h-24 rounded-full border-4 border-white/10 mx-auto" 
+                className="w-24 h-24 rounded-full border-4 border-white/10 mx-auto object-cover" 
               />
-              <button className="absolute bottom-0 right-0 p-2 bg-white rounded-full text-slate-900 border-4 border-slate-950">
+              <label className="absolute bottom-0 right-0 p-2 bg-white rounded-full text-slate-900 border-4 border-slate-950 cursor-pointer hover:scale-110 transition-transform">
                 <Camera className="w-4 h-4" />
-              </button>
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file && user) {
+                      try {
+                        setLoading(true);
+                        const url = await StorageService.uploadProfileImage(file, user.uid);
+                        setFormData(prev => ({ ...prev, photoURL: url }));
+                      } catch (err) {
+                        console.error('Upload failed:', err);
+                      } finally {
+                        setLoading(false);
+                      }
+                    }
+                  }}
+                />
+              </label>
             </div>
             <h2 className="text-2xl font-bold">Edit Profile</h2>
           </div>

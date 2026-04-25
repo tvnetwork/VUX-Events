@@ -15,6 +15,7 @@ import { Input } from './ui/Input';
 import { Badge } from './ui/Badge';
 import confetti from 'canvas-confetti';
 import { cn } from '../lib/utils';
+import { StorageService } from '../services/StorageService';
 
 export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eventToEdit?: Event | null }) {
   const { user } = useAuth();
@@ -386,10 +387,29 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                         <div className="relative aspect-[21/9] rounded-3xl overflow-hidden group shadow-2xl">
                            <img src={formData.coverImageUrl} className="w-full h-full object-cover" />
                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button variant="secondary" size="sm" className="rounded-full shadow-2xl gap-2 h-10 px-6">
-                                <ImageIcon className="w-4 h-4" />
-                                <span>Change Vector</span>
-                              </Button>
+                               <label className="flex items-center gap-2 h-10 px-6 rounded-full shadow-2xl bg-white text-black hover:scale-105 transition-transform cursor-pointer font-bold text-[10px] uppercase tracking-widest">
+                                 <ImageIcon className="w-3.5 h-3.5" />
+                                 <span>Upload Image</span>
+                                 <input 
+                                    type="file" 
+                                    className="hidden" 
+                                    accept="image/*"
+                                    onChange={async (e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) {
+                                        try {
+                                          setLoading(true);
+                                          const url = await StorageService.uploadEventBanner(file, eventToEdit?.id || 'temp');
+                                          setFormData(prev => ({ ...prev, coverImageUrl: url }));
+                                        } catch (err) {
+                                          console.error('Upload failed:', err);
+                                        } finally {
+                                          setLoading(false);
+                                        }
+                                      }
+                                    }}
+                                 />
+                               </label>
                            </div>
                            <div className="absolute bottom-6 left-6 flex items-center gap-2">
                               <Badge className="bg-purple-600 text-white uppercase text-[8px] font-black tracking-widest py-1 border-none">{formData.category}</Badge>

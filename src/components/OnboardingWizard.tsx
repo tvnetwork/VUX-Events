@@ -14,6 +14,7 @@ import { useAuth } from '../AuthContext';
 import { db } from '../lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { cn, getAvatarUrl } from '../lib/utils';
+import { StorageService } from '../services/StorageService';
 
 export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
   const { user, profile } = useAuth();
@@ -25,6 +26,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
     bio: '',
     phoneNumber: '',
     dob: '',
+    photoURL: profile?.photoURL || '',
     preferences: {
       emailNotifications: true,
       pushNotifications: true,
@@ -52,6 +54,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
         bio: formData.bio,
         phoneNumber: formData.phoneNumber,
         dob: formData.dob,
+        photoURL: formData.photoURL,
         preferences: formData.preferences,
         onboardingCompleted: true,
         updatedAt: new Date().toISOString()
@@ -118,11 +121,30 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                     <div className="flex items-center gap-6">
                         <div className="relative group">
                             <div className="w-20 h-20 rounded-full glass border border-white/10 overflow-hidden ring-4 ring-white/5">
-                                <img src={getAvatarUrl(user?.uid)} className="w-full h-full object-cover" />
+                                <img src={formData.photoURL || getAvatarUrl(user?.uid)} className="w-full h-full object-cover" />
                             </div>
-                            <button className="absolute -bottom-1 -right-1 p-2 bg-white text-black rounded-full shadow-lg">
+                            <label className="absolute -bottom-1 -right-1 p-2 bg-white text-black rounded-full shadow-lg cursor-pointer hover:scale-110 transition-transform">
                                 <Camera className="w-3 h-3" />
-                            </button>
+                                <input 
+                                  type="file" 
+                                  className="hidden" 
+                                  accept="image/*"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file && user) {
+                                      try {
+                                        setLoading(true);
+                                        const url = await StorageService.uploadProfileImage(file, user.uid);
+                                        setFormData(prev => ({ ...prev, photoURL: url }));
+                                      } catch (err) {
+                                        console.error('Upload failed:', err);
+                                      } finally {
+                                        setLoading(false);
+                                      }
+                                    }
+                                  }}
+                                />
+                            </label>
                         </div>
                         <div className="flex-1 space-y-2">
                              <label className="text-[10px] font-bold uppercase tracking-widest text-white/30 px-1">Display Name</label>
