@@ -17,7 +17,7 @@ import { cn, getAvatarUrl } from '../lib/utils';
 import { StorageService } from '../services/StorageService';
 
 export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
-  const { user, profile } = useAuth();
+  const { user, profile, updateProfileData } = useAuth();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   
@@ -31,6 +31,8 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
       emailNotifications: true,
       pushNotifications: true,
       publicProfile: true,
+      calendarSync: false,
+      theme: 'dark' as const,
     }
   });
 
@@ -48,8 +50,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
     if (!user) return;
     setLoading(true);
     try {
-      const docId = user.email || user.uid;
-      await updateDoc(doc(db, 'users', docId), {
+      await updateProfileData({
         displayName: formData.displayName,
         bio: formData.bio,
         phoneNumber: formData.phoneNumber,
@@ -57,7 +58,6 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
         photoURL: formData.photoURL,
         preferences: formData.preferences,
         onboardingCompleted: true,
-        updatedAt: new Date().toISOString()
       });
       onComplete();
     } catch (error) {

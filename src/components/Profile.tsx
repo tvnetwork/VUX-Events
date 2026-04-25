@@ -13,7 +13,7 @@ import { getAvatarUrl } from '../lib/utils';
 import { StorageService } from '../services/StorageService';
 
 export function Profile({ onClose }: { onClose: () => void }) {
-  const { profile, user } = useAuth();
+  const { profile, user, updateProfileData } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     displayName: profile?.displayName || '',
@@ -25,10 +25,7 @@ export function Profile({ onClose }: { onClose: () => void }) {
     if (!user) return;
     setLoading(true);
     try {
-      await updateDoc(doc(db, 'users', user.uid), {
-        ...formData,
-        updatedAt: new Date().toISOString()
-      });
+      await updateProfileData(formData);
       onClose();
     } catch (e) {
       console.error(e);

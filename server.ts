@@ -21,9 +21,12 @@ import type {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function startServer() {
+export async function createServer() {
   const app = express();
   const PORT = 3000;
+
+  // Trust proxy for correct hostname and protocol detection behind Nginx
+  app.set('trust proxy', true);
 
   app.use(cors());
   app.use(express.json());
@@ -251,7 +254,13 @@ async function startServer() {
   });
   
   apiRouter.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString(), env: process.env.NODE_ENV });
+    res.json({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(), 
+      env: process.env.NODE_ENV,
+      smtpConfigured: !!process.env.SMTP_PASS,
+      firebaseAdminStatus: admin.apps.length > 0 ? 'initialized' : 'not-initialized'
+    });
   });
 
   apiRouter.post('/email/welcome', async (req, res) => {
@@ -722,6 +731,15 @@ async function startServer() {
     });
   });
 
+  // Global API error handler
+  apiRouter.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error('Unhandled API Error:', err);
+    res.status(500).json({ 
+      error: 'Internal Server Error', 
+      message: err.message || 'An unexpected error occurred on the server.' 
+    });
+  });
+
   // --- Vite Middleware ---
 
   if (process.env.NODE_ENV !== 'production') {
@@ -737,9 +755,15 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-  });
+  return app;
 }
 
-startServer();
+// Start server if not running on Vercel
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  createServer().then(app => {
+    const PORT = 3000;
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server running at http://localhost:${PORT}`);
+    });
+  });
+}

@@ -18,7 +18,7 @@ import { VUXQRCode } from '../components/VUXQRCode';
 import { StorageService } from '../services/StorageService';
 
 export function Settings() {
-  const { user, profile } = useAuth();
+  const { user, profile, updateProfileData } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'connections' | 'payment'>('profile');
   const [loading, setLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -83,11 +83,9 @@ export function Settings() {
 
       setSaveStatus('saving');
       try {
-        const docId = user.email || user.uid;
-        await updateDoc(doc(db, 'users', docId), {
+        await updateProfileData({
           ...formData,
-          preferences,
-          updatedAt: new Date().toISOString()
+          preferences
         });
         setSaveStatus('saved');
         setTimeout(() => setSaveStatus('idle'), 2000);
@@ -98,7 +96,7 @@ export function Settings() {
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [formData, preferences, profile, user]);
+  }, [formData, preferences, profile, user, updateProfileData]);
 
   return (
     <div className="max-w-6xl mx-auto py-12 px-4 animate-in fade-in duration-1000">

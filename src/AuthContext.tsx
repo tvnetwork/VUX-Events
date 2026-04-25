@@ -26,6 +26,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signInWithPasskey: (email: string, authenticateWithPasskey: any, credential: any) => Promise<void>;
   addPasskey: (passkey: Passkey) => Promise<void>;
+  updateProfileData: (data: Partial<UserProfile>) => Promise<void>;
   sendVerificationCode: (email: string) => Promise<void>;
   verifyCode: (email: string, code: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -62,9 +63,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Server returned an invalid response. Please try again.');
       }
     } else {
-      const text = await response.text();
+      let text;
+      try {
+        text = await response.text();
+      } catch (e) {
+        text = 'Unknown error';
+      }
       console.error('Non-JSON response:', text);
-      throw new Error(`Server error (${response.status}). Please contact support if this persists.`);
+      throw new Error(`Server error (${response.status}): ${text.substring(0, 50)}...`);
     }
 
     if (!response.ok || data.error) {
@@ -217,6 +223,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } : null);
   };
 
+  const updateProfileData = async (data: Partial<UserProfile>) => {
+    if (!user) throw new Error('Must be logged in to update profile.');
+    const docId = user.email || user.uid;
+    const userRef = doc(db, 'users', docId);
+    
+    const updatePayload = {
+      ...data,
+      updatedAt: new Date().toISOString()
+    };
+
+    await updateDoc(userRef, updatePayload);
+    
+    // Update local state
+    setProfile(prev => prev ? { ...prev, ...updatePayload } : null);
+  };
+
   const logout = () => signOut(auth);
 
   return (
@@ -227,6 +249,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signInWithGoogle, 
       signInWithPasskey, 
       addPasskey, 
+      updateProfileData,
       sendVerificationCode, 
       verifyCode,
       logout 
