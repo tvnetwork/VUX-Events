@@ -25,7 +25,15 @@ export class StorageService {
 
     if (uploadError) {
       console.error('Supabase Upload Error:', uploadError);
-      throw new Error(`Upload failed: ${uploadError.message}`);
+      
+      let errorMessage = uploadError.message;
+      if (errorMessage.includes('row-level security')) {
+        errorMessage = `Upload failed: Permission denied (RLS). 
+        Please ensure your Supabase bucket "${this.BUCKET_NAME}" has BOTH 'INSERT' and 'UPDATE' policies for 'anon' or 'authenticated' roles. 
+        SQL Hint: CREATE POLICY "Allow public" ON storage.objects FOR ALL TO anon USING (bucket_id = '${this.BUCKET_NAME}');`;
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const { data } = supabase.storage

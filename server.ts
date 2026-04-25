@@ -21,28 +21,28 @@ import type {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize Firebase Admin globally
-if (admin.apps.length === 0) {
-  const saVar = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (saVar) {
-    try {
-      const serviceAccount = JSON.parse(saVar);
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        projectId: serviceAccount.project_id
-      });
-      console.log('Firebase Admin initialized with service account certificate from environment.');
-    } catch (e) {
-      console.error('Failed to initialize with FIREBASE_SERVICE_ACCOUNT secret. Falling back to default credentials.', e);
-      admin.initializeApp({
-        projectId: 'ultra-badge-470321-a1',
-      });
+// Initialize Firebase Admin globally with robust error handling
+try {
+  if (admin.apps.length === 0) {
+    const saVar = process.env.FIREBASE_SERVICE_ACCOUNT;
+    if (saVar) {
+      try {
+        const serviceAccount = JSON.parse(saVar);
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount),
+          projectId: serviceAccount.project_id
+        });
+        console.log('Firebase Admin initialized with service account.');
+      } catch (e) {
+        console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT. Falling back.', e);
+        admin.initializeApp({ projectId: 'ultra-badge-470321-a1' });
+      }
+    } else {
+      admin.initializeApp({ projectId: 'ultra-badge-470321-a1' });
     }
-  } else {
-    admin.initializeApp({
-      projectId: 'ultra-badge-470321-a1',
-    });
   }
+} catch (error) {
+  console.error('Critical Firebase Admin Initialization Failure:', error);
 }
 
 export async function createServer() {
@@ -63,11 +63,7 @@ export async function createServer() {
   // Use a router for all API routes to ensure they are handled as a group
   const apiRouter = express.Router();
   
-  // Request logger
-  app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-    next();
-  });
+  // Request logger removed to reduce clutter as requested by user
 
   const getRpID = (hostname: string) => {
     // Dynamic RpID extraction - use the base domain
@@ -90,11 +86,11 @@ export async function createServer() {
 
   apiRouter.post('/auth/send-otp', async (req, res) => {
     try {
+      const email = req.body?.email;
       console.log('--- Auth Request ---');
       console.log('Method: POST, URL: /api/auth/send-otp');
-      console.log('Target Email:', req.body.email);
+      console.log('Target Email:', email);
 
-      const { email } = req.body;
       if (!email) return res.status(400).json({ error: 'Email is required' });
 
       const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -118,9 +114,22 @@ export async function createServer() {
         auth: { user, pass },
       };
       
+      console.log('Sending email to:', email);
+      console.log('Using SMTP User:', user);
+      
       const transporter = nodemailer.createTransport(transportConfig);
 
-      console.log('Sending email...');
+      // Verify connection configuration
+      try {
+        console.log('Verifying SMTP connection...');
+        await transporter.verify();
+        console.log('SMTP connection verified.');
+      } catch (verifyError: any) {
+        console.error('SMTP Verification Error:', verifyError);
+        throw new Error(`SMTP configuration invalid: ${verifyError.message}`);
+      }
+
+      console.log('Attempting to sendMail...');
       
       const logoUrl = 'https://imgcdn.dev/i/YV1TaK';
 
@@ -259,7 +268,8 @@ export async function createServer() {
 
   apiRouter.post('/email/welcome', async (req, res) => {
     try {
-      const { email, displayName } = req.body;
+      const email = req.body?.email;
+      const displayName = req.body?.displayName;
       if (!email) return res.status(400).json({ error: 'Email is required' });
 
       console.log(`[SMTP] Sending welcome email to: ${email}`);
@@ -315,7 +325,7 @@ export async function createServer() {
 
   apiRouter.post('/email/rsvp-confirmation', async (req, res) => {
     try {
-      const { email, displayName, eventTitle, eventDate, eventLocation, rsvpId } = req.body;
+      const { email, displayName, eventTitle, eventDate, eventLocation, rsvpId } = req.body || {};
       if (!email || !eventTitle) return res.status(400).json({ error: 'Missing required fields' });
 
       console.log(`[SMTP] Sending ticket email to: ${email} for ${eventTitle}`);
@@ -390,7 +400,7 @@ export async function createServer() {
 
   apiRouter.post('/email/login-notification', async (req, res) => {
     try {
-      const { email, displayName, timestamp } = req.body;
+      const { email, displayName, timestamp } = req.body || {};
       if (!email) return res.status(400).json({ error: 'Email is required' });
 
       console.log(`[SMTP] Sending login notification to: ${email}`);
@@ -492,7 +502,9 @@ export async function createServer() {
 
   apiRouter.post('/auth/verify-otp', async (req, res) => {
     try {
-      const { email, code } = req.body;
+      const { email, code } = req.body || {};
+      if (!email || !code) return res.status(400).json({ error: 'Email and code are required' });
+      
       const stored = otpStore.get(email);
 
       if (!stored || stored.code !== code || Date.now() > stored.expires) {
@@ -549,10 +561,13 @@ export async function createServer() {
   });
 
   apiRouter.post('/auth/verify-registration', async (req, res) => {
-    const { email, body } = req.body;
-    const hostname = req.hostname;
-    const rpID = getRpID(hostname);
-    const expectedChallenge = challenges.get(`reg_${email}`);
+    try {
+      const { email, body } = req.body || {};
+      if (!email || !body) return res.status(400).json({ error: 'Email and body are required' });
+      
+      const hostname = req.hostname;
+      const rpID = getRpID(hostname);
+      const expectedChallenge = challenges.get(`reg_${email}`);
 
     if (!expectedChallenge) {
       return res.status(400).json({ error: 'Challenge not found' });
@@ -599,7 +614,11 @@ export async function createServer() {
       console.error('Verify Registration Error:', error);
       res.status(400).json({ error: error.message });
     }
-  });
+  } catch (error: any) {
+    console.error('Outer Verify Reg Error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
   apiRouter.get('/auth/login-options', async (req, res) => {
     console.log('GET /api/auth/login-options hit', req.query);
@@ -624,8 +643,11 @@ export async function createServer() {
   });
 
   apiRouter.post('/auth/verify-authentication', async (req, res) => {
-    const { email, body } = req.body;
-    const hostname = req.hostname;
+    try {
+      const { email, body } = req.body || {};
+      if (!email || !body) return res.status(400).json({ error: 'Email and body are required' });
+
+      const hostname = req.hostname;
     const rpID = getRpID(hostname);
     const key = email ? `auth_${email}` : 'auth_generic';
     const expectedChallenge = challenges.get(key);
@@ -714,7 +736,11 @@ export async function createServer() {
       console.error('Passkey Auth Verification Error:', error);
       res.status(400).json({ error: error.message });
     }
-  });
+  } catch (error: any) {
+    console.error('Outer Verify Auth Error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
   // API 404 handler for any unmatched routes inside the apiRouter
   apiRouter.use((req, res) => {
@@ -728,10 +754,12 @@ export async function createServer() {
   // Global API error handler
   apiRouter.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error('Unhandled API Error:', err);
-    res.status(500).json({ 
-      error: 'Internal Server Error', 
-      message: err.message || 'An unexpected error occurred on the server.' 
-    });
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: 'Internal Server Error', 
+        message: err.message || 'An unexpected error occurred on the server.' 
+      });
+    }
   });
 
   // --- Vite Middleware / Static Serving ---
@@ -753,6 +781,7 @@ export async function createServer() {
     }
   }
 
+  console.log('Express server created and routes initialized.');
   return app;
 }
 

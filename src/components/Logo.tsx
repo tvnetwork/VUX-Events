@@ -1,5 +1,7 @@
 import { cn } from '../lib/utils';
+
 const logoUrl = 'https://imgcdn.dev/i/YV1TaK';
+const fallbackLogo = '/assets/logo.jpg';
 
 interface LogoProps {
   className?: string;
@@ -27,7 +29,10 @@ export function Logo({ className, showText = true, size = 'md' }: LogoProps) {
           referrerPolicy="no-referrer"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            target.src = '/assets/logo.jpg'; // Fallback to local
+            // Prevent infinite loop if fallback also fails
+            if (target.src !== window.location.origin + fallbackLogo) {
+              target.src = fallbackLogo;
+            }
           }}
         />
       </div>
