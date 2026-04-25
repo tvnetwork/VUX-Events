@@ -22,6 +22,7 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
 }) {
   const { profile, logout } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const isAdmin = profile?.email?.toLowerCase() === 'oladoyeheritage445@gmail.com'.toLowerCase();
 
@@ -74,10 +75,47 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
                 <Search className="w-4 h-4" />
             </Button>
             
-            <Button variant="ghost" size="icon" className="text-white/40 hover:text-white h-9 w-9 relative">
-                <Bell className="w-4 h-4" />
-                <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-purple-500 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
-            </Button>
+            <div className="relative">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className={cn(
+                  "text-white/40 hover:text-white h-9 w-9 relative",
+                   showNotifications && "text-white bg-white/5"
+                )}
+              >
+                  <Bell className="w-4 h-4" />
+                  <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-purple-500 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
+              </Button>
+
+              <AnimatePresence>
+                {showNotifications && (
+                  <>
+                    <div className="fixed inset-0" onClick={() => setShowNotifications(false)} />
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute top-full right-0 mt-2 w-72 bg-[#0b0b0f]/95 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[60] origin-top-right"
+                    >
+                      <h4 className="text-[10px] font-black italic uppercase tracking-tighter mb-4 text-white/40">COMMUNICATIONS</h4>
+                      <div className="space-y-3">
+                        <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/5">
+                          <p className="text-[10px] font-black italic uppercase tracking-tighter text-purple-400 mb-1">SYSTEM UPDATE</p>
+                          <p className="text-[10px] font-bold text-white/60 leading-relaxed uppercase tracking-widest">
+                            Welcome to VUX Roadmaps v2.0. Explore the new directory.
+                          </p>
+                        </div>
+                        <div className="px-3 py-4 text-center">
+                          <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">End of Transmission</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
           <Button variant="primary" size="sm" onClick={onCreateClick} className="hidden lg:flex gap-2 h-9 rounded-xl text-xs font-bold px-5 shadow-xl shadow-purple-500/10">
@@ -93,7 +131,7 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
                   className="focus:outline-none transition-transform active:scale-95 flex items-center gap-3 group"
                 >
                   <div className="hidden xl:block text-right">
-                      <p className="text-xs font-bold leading-none mb-1 group-hover:text-purple-300 transition-colors">{profile?.displayName?.split(' ')[0]}</p>
+                      <p className="text-xs font-bold leading-none mb-1 group-hover:text-purple-300 transition-colors uppercase italic font-black tracking-tighter">{profile?.displayName?.split(' ')[0]}</p>
                       <p className="text-[10px] font-bold text-white/20 tracking-widest leading-none">VERIFIED</p>
                   </div>
                   <div className="relative">
@@ -110,50 +148,52 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
                   {showProfileMenu && (
                     <>
                       <div className="fixed inset-0" onClick={() => setShowProfileMenu(false)} />
-                      <motion.div
+                        <motion.div
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute right-0 mt-3 w-56 glass border border-white/10 rounded-2xl p-2 shadow-2xl overflow-hidden"
+                        className="absolute top-full right-0 mt-2 w-64 bg-[#0b0b0f]/95 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-3 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden origin-top-right z-[60]"
                       >
-                        <div className="px-3 py-2 mb-2 border-b border-white/5">
-                          <p className="text-sm font-bold truncate">{profile?.displayName}</p>
-                          <p className="text-xs text-white/40 truncate">{profile?.email}</p>
+                         <div className="p-4 mb-2 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col gap-1">
+                          <p className="text-sm font-black italic uppercase tracking-tighter truncate">{profile?.displayName}</p>
+                          <p className="text-[10px] font-bold text-white/20 tracking-widest truncate">{profile?.email}</p>
                         </div>
                         
-                        <button 
-                          onClick={() => { onTabChange('settings'); setShowProfileMenu(false); }}
-                          className="w-full flex items-center gap-3 p-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
-                        >
-                          <User className="w-4 h-4" />
-                          <span>Profile</span>
-                        </button>
-                        
-                        <button 
-                          onClick={() => { onTabChange('settings'); setShowProfileMenu(false); }}
-                          className="w-full flex items-center gap-3 p-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
-                        >
-                          <SettingsIcon className="w-4 h-4" />
-                          <span>Settings</span>
-                        </button>
-                        
-                        {isAdmin && (
+                        <div className="space-y-1">
                           <button 
-                            onClick={() => { onTabChange('admin'); setShowProfileMenu(false); }}
-                            className="w-full flex items-center gap-3 p-2 text-sm text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-xl transition-colors mt-1 border-t border-white/5"
+                            onClick={() => { onTabChange('settings'); setShowProfileMenu(false); }}
+                            className="w-full flex items-center gap-3 p-3 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/5 rounded-xl transition-all"
                           >
-                            <Shield className="w-4 h-4" />
-                            <span>Admin Station</span>
+                            <User className="w-4 h-4" />
+                            <span>PROFILE CENTER</span>
                           </button>
-                        )}
-                        
-                        <button 
-                          onClick={() => { logout(); setShowProfileMenu(false); }}
-                          className="w-full flex items-center gap-3 p-2 text-sm text-pink-400 hover:bg-pink-500/5 rounded-xl transition-colors mt-1"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          <span>Sign Out</span>
-                        </button>
+                          
+                          <button 
+                            onClick={() => { onTabChange('settings'); setShowProfileMenu(false); }}
+                            className="w-full flex items-center gap-3 p-3 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                          >
+                            <SettingsIcon className="w-4 h-4" />
+                            <span>SYSTEM SETTINGS</span>
+                          </button>
+                          
+                          {isAdmin && (
+                            <button 
+                              onClick={() => { onTabChange('admin'); setShowProfileMenu(false); }}
+                              className="w-full flex items-center gap-3 p-3 text-[10px] font-bold uppercase tracking-widest text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-xl transition-all border-t border-white/5 mt-1 pt-4"
+                            >
+                              <Shield className="w-4 h-4" />
+                              <span>ADMIN STATION</span>
+                            </button>
+                          )}
+                          
+                          <button 
+                            onClick={() => { logout(); setShowProfileMenu(false); }}
+                            className="w-full flex items-center gap-3 p-3 text-[10px] font-bold uppercase tracking-widest text-pink-500 hover:bg-pink-500/5 rounded-xl transition-all"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            <span>TERMINATE SESSION</span>
+                          </button>
+                        </div>
                       </motion.div>
                     </>
                   )}

@@ -120,13 +120,13 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] bg-[#0b0b0f]/80 backdrop-blur-xl flex items-center justify-center p-4"
+      className="fixed inset-0 z-[100] bg-[#0b0b0f]/80 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto custom-scrollbar"
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-[#16161e]/60 glass border border-white/10 w-full max-w-md rounded-[2rem] p-4 relative shadow-2xl overflow-hidden"
+        className="bg-[#16161e]/60 glass border border-white/10 w-full max-w-md rounded-[2rem] p-4 relative shadow-2xl overflow-y-auto max-h-[90vh] custom-scrollbar my-auto"
       >
         <div className="absolute inset-0 opacity-20 pointer-events-none">
            <WatermarkBackground />

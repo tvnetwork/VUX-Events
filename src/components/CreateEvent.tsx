@@ -83,14 +83,14 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
   const totalSteps = 4;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto custom-scrollbar">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="w-full max-w-4xl bg-[#0b0b0f] border border-white/10 rounded-[32px] overflow-hidden shadow-2xl"
+        className="w-full max-w-4xl bg-[#0b0b0f] border border-white/10 rounded-[32px] overflow-hidden shadow-2xl my-auto"
       >
-        <div className="flex flex-col md:flex-row h-[700px]">
+        <div className="flex flex-col md:flex-row min-h-[500px] max-h-[90vh] md:h-[700px]">
           {/* Sidebar Info */}
           <div className="hidden md:flex w-72 bg-white/5 border-r border-white/5 p-10 flex-col justify-between">
             <div className="space-y-10">

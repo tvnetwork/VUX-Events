@@ -15,11 +15,12 @@ import { Badge } from '../components/ui/Badge';
 import { formatDate, cn } from '../lib/utils';
 import { motion } from 'motion/react';
 
-export function Calendars({ onEditEvent }: { onEditEvent?: (e: Event) => void }) {
+export function Calendars({ onEditEvent, onTabChange }: { onEditEvent?: (e: Event) => void, onTabChange?: (tab: 'events' | 'calendars' | 'discover' | 'settings' | 'admin') => void }) {
   const { user, profile } = useAuth();
   const [myEvents, setMyEvents] = useState<Event[]>([]);
   const [suggestedEvents, setSuggestedEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showStats, setShowStats] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -209,13 +210,49 @@ export function Calendars({ onEditEvent }: { onEditEvent?: (e: Event) => void })
                </div>
             </div>
             <div className="flex items-center gap-3">
-               <Button variant="ghost" className="h-14 px-8 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/5 hover:bg-white/5">Stats</Button>
-               <Button className="h-14 px-8 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-white text-black hover:bg-white/90 group">
+               <Button 
+                variant="ghost" 
+                onClick={() => setShowStats(!showStats)}
+                className={cn(
+                  "h-14 px-8 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/5 hover:bg-white/5",
+                  showStats && "bg-white/10 text-purple-400 border-purple-500/20"
+                )}
+               >
+                 {showStats ? 'Close Summary' : 'Stats'}
+               </Button>
+               <Button 
+                onClick={() => onTabChange?.('discover')}
+                className="h-14 px-8 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-white text-black hover:bg-white/90 group"
+               >
                   <span>Find Communities</span>
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                </Button>
             </div>
          </div>
+
+         {showStats && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6"
+            >
+              {[
+                { label: 'Events Hosted', value: myEvents.length, icon: CalendarIcon },
+                { label: 'Total Scanned', value: suggestedEvents.length, icon: Box },
+                { label: 'Protocol Level', value: '02', icon: Zap }
+              ].map((stat, i) => (
+                <Card key={i} className="p-8 bg-white/[0.02] border-white/5 rounded-[32px] flex items-center gap-6">
+                  <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center">
+                    <stat.icon className="w-5 h-5 text-purple-500" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-1">{stat.label}</p>
+                    <p className="text-2xl font-black italic tracking-tighter uppercase">{stat.value}</p>
+                  </div>
+                </Card>
+              ))}
+            </motion.div>
+         )}
       </footer>
     </div>
   );

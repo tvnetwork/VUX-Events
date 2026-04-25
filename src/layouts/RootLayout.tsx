@@ -35,6 +35,11 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
+  // Scroll to top on tab change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeTab]);
+
   // Check for event ID in URL
   useEffect(() => {
     const eventId = searchParams.get('event');
@@ -67,7 +72,7 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
       case 'discover':
         return <Discover onCreateClick={() => setIsCreateModalOpen(true)} onEventClick={setSelectedEvent} />;
       case 'calendars':
-        return <Calendars onEditEvent={setEditingEvent} />;
+        return <Calendars onEditEvent={setEditingEvent} onTabChange={setActiveTab} />;
       case 'settings':
         return <Settings />;
       case 'admin':
@@ -92,7 +97,7 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
         <main className="flex-1 w-full max-w-[1280px] mx-auto px-6 py-12 md:py-16">
           {renderContent()}
         </main>
-        <Footer />
+        <Footer onAuthClick={() => setIsCreateModalOpen(true)} />
       </div>
 
       <CommandPalette 

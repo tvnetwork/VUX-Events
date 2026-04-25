@@ -25,12 +25,19 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
   const { user, profile } = useAuth();
   const [rsvps, setRsvps] = useState<RSVP[]>([]);
   const [isRSVPLoading, setIsRSVPLoading] = useState(false);
+  const [rsvpError, setRsvpError] = useState<string | null>(null);
   const [userRSVP, setUserRSVP] = useState<RSVP | null>(null);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showGuestForm, setShowGuestForm] = useState(false);
   const [guestInfo, setGuestInfo] = useState({ name: '', email: '' });
   const [customFields, setCustomFields] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!showGuestForm) {
+      setRsvpError(null);
+    }
+  }, [showGuestForm]);
 
   const shareUrl = `${window.location.origin}/discover?event=${event.id}`;
 
@@ -48,7 +55,10 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
       
       // If we have a user, find their RSVP
       if (user) {
-        const found = rsvpList.find(r => r.userId === user.uid);
+        const found = rsvpList.find(r => 
+          r.userId === user.uid || 
+          (r.userEmail && user.email && r.userEmail.toLowerCase() === user.email.toLowerCase())
+        );
         setUserRSVP(found || null);
       } else {
         // If guest, try to find by email in localStorage if we previously RSVP'd as guest
@@ -73,13 +83,27 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
     }
 
     setIsRSVPLoading(true);
+    setRsvpError(null);
     try {
-      const rsvpId = isGuest ? `guest_${Date.now()}` : user!.uid;
+      const emailToRegister = (isGuest ? guestInfo.email : user!.email || '').toLowerCase();
+      
+      // Check if already registered
+      const isAlreadyRegistered = rsvps.some(r => r.userEmail.toLowerCase() === emailToRegister);
+      if (isAlreadyRegistered) {
+        setRsvpError('This email is already registered for this event.');
+        setIsRSVPLoading(false);
+        return;
+      }
+
+      // Use email as a deterministic ID to prevent duplicates at the DB level
+      // We sanitize it to be safe for a document ID, although Firestore IDs can be emails
+      const rsvpId = emailToRegister.replace(/[^a-zA-Z0-9@.]/g, '_');
+      
       const rsvpData: RSVP = {
         id: rsvpId,
         eventId: event.id,
-        userId: isGuest ? rsvpId : user!.uid,
-        userEmail: isGuest ? guestInfo.email : user!.email || '',
+        userId: user?.uid || rsvpId, // Still use UID if available for lookup
+        userEmail: emailToRegister,
         userDisplayName: isGuest ? guestInfo.name : profile!.displayName,
         userPhotoURL: isGuest ? getAvatarUrl(guestInfo.email) : profile!.photoURL,
         status: event.isApprovalRequired ? 'pending' : 'approved',
@@ -225,12 +249,12 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
         )}
 
         {showGuestForm && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md overflow-y-auto custom-scrollbar">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }} 
               animate={{ opacity: 1, scale: 1, y: 0 }} 
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-2xl"
+              className="w-full max-w-2xl my-auto"
             >
               <Card className="p-12 border-white/10 bg-[#0b0b0f] space-y-10 rounded-[48px] shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-y-auto max-h-[90vh] custom-scrollbar">
                 <div className="flex items-center justify-between">
@@ -272,13 +296,26 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                             type="email"
                             value={guestInfo.email}
                             onChange={(e) => setGuestInfo(prev => ({ ...prev, email: e.target.value }))}
-                            className="w-full h-14 bg-white/[0.03] border border-white/10 rounded-2xl px-6 text-white text-sm focus:outline-none focus:border-purple-500/50 transition-colors"
+                            className={cn(
+                              "w-full h-14 bg-white/[0.03] border rounded-2xl px-6 text-white text-sm focus:outline-none transition-colors",
+                              rsvpError ? "border-pink-500/50" : "border-white/10 focus:border-purple-500/50"
+                            )}
                             placeholder="your@email.com"
                           />
                         </div>
                       </>
                     )}
                   </div>
+
+                  {rsvpError && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-4 rounded-xl bg-pink-500/10 border border-pink-500/20 text-pink-500 text-[10px] font-black uppercase tracking-widest text-center"
+                    >
+                      {rsvpError}
+                    </motion.div>
+                  )}
 
                   {event.registrationFields && event.registrationFields.length > 0 && (
                     <div className="space-y-8 pt-6 border-t border-white/5">

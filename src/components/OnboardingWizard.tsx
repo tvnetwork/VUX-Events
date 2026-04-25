@@ -68,13 +68,13 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto custom-scrollbar">
       <motion.div
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="w-full max-w-xl overflow-hidden"
+        className="w-full max-w-xl overflow-hidden my-auto"
       >
-        <Card className="p-0 border-white/10 bg-[#0b0b0f] shadow-2xl relative overflow-hidden">
+        <Card className="p-0 border-white/10 bg-[#0b0b0f] shadow-2xl relative overflow-y-auto max-h-[90vh] custom-scrollbar">
           {/* Background Glow */}
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-500/10 blur-[100px] rounded-full" />
           

@@ -51,7 +51,7 @@ export function Footer({ onAuthClick }: { onAuthClick?: () => void }) {
         </div>
 
         {/* Bottom Bar */}
-        <div className="flex flex-col md:row items-center justify-center gap-4 text-center pt-8">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-center pt-8">
             <button 
                 onClick={onAuthClick}
                 className="group inline-flex items-center gap-2 text-sm font-bold text-white/40 hover:text-white transition-colors cursor-pointer"
@@ -59,7 +59,7 @@ export function Footer({ onAuthClick }: { onAuthClick?: () => void }) {
                 Host your event with VUX Events 
                 <span className="group-hover:translate-x-1 transition-transform">→</span>
             </button>
-            <p className="text-[10px] font-bold text-white/10 uppercase tracking-widest pt-4">
+            <p className="text-[10px] font-bold text-white/10 uppercase tracking-widest md:pt-0 pt-4">
                 © 2026 VUX EVENTS INC.
             </p>
         </div>

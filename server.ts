@@ -95,7 +95,7 @@ async function startServer() {
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       otpStore.set(email, { code, expires: Date.now() + 10 * 60 * 1000 });
 
-      const user = process.env.SMTP_USER || 'coolshotsystemsofficial@gmail.com';
+      const user = process.env.SMTP_USER || 'vuxevents@gmail.com';
       const pass = process.env.SMTP_PASS;
 
       if (!pass) {
@@ -256,7 +256,7 @@ async function startServer() {
       const welcomes = ['👋', '🎉', '🚀', '🌟', '💎', '🤘', '🎈'];
       const randomWelcome = welcomes[Math.floor(Math.random() * welcomes.length)];
 
-      const userSmtp = process.env.SMTP_USER || 'coolshotsystemsofficial@gmail.com';
+      const userSmtp = process.env.SMTP_USER || 'vuxevents@gmail.com';
       const pass = process.env.SMTP_PASS;
 
       if (!pass) {
@@ -312,7 +312,7 @@ async function startServer() {
       const tickets = ['🎟️', '🎫', '✨', '⚡', '🔥', '🎭', '🎬'];
       const randomTicket = tickets[Math.floor(Math.random() * tickets.length)];
 
-      const userSmtp = process.env.SMTP_USER || 'coolshotsystemsofficial@gmail.com';
+      const userSmtp = process.env.SMTP_USER || 'vuxevents@gmail.com';
       const pass = process.env.SMTP_PASS;
 
       if (!pass) {
@@ -387,7 +387,7 @@ async function startServer() {
       const alerts = ['🔒', '🛡️', '⚠️', '🚨', '👤', '🔐', '🤫'];
       const randomAlert = alerts[Math.floor(Math.random() * alerts.length)];
 
-      const userSmtp = process.env.SMTP_USER || 'coolshotsystemsofficial@gmail.com';
+      const userSmtp = process.env.SMTP_USER || 'vuxevents@gmail.com';
       const pass = process.env.SMTP_PASS;
 
       if (!pass) {
@@ -438,7 +438,7 @@ async function startServer() {
 
       console.log(`[SMTP] Starting broadcast to ${recipients.length} recipients...`);
 
-      const user = process.env.SMTP_USER || 'coolshotsystemsofficial@gmail.com';
+      const user = process.env.SMTP_USER || 'vuxevents@gmail.com';
       const pass = process.env.SMTP_PASS;
 
       if (!pass) {
