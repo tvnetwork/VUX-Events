@@ -35,9 +35,26 @@ async function startServer() {
 
   // Initialize Firebase Admin
   if (admin.apps.length === 0) {
-    admin.initializeApp({
-      projectId: 'ultra-badge-470321-a1',
-    });
+    const saVar = process.env.FIREBASE_SERVICE_ACCOUNT;
+    if (saVar) {
+      try {
+        const serviceAccount = JSON.parse(saVar);
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount),
+          projectId: serviceAccount.project_id
+        });
+        console.log('Firebase Admin initialized with service account certificate from environment.');
+      } catch (e) {
+        console.error('Failed to initialize with FIREBASE_SERVICE_ACCOUNT secret. Falling back to default credentials.', e);
+        admin.initializeApp({
+          projectId: 'ultra-badge-470321-a1',
+        });
+      }
+    } else {
+      admin.initializeApp({
+        projectId: 'ultra-badge-470321-a1',
+      });
+    }
   }
 
   const getRpID = (hostname: string) => {
@@ -211,6 +228,56 @@ async function startServer() {
       return res.status(500).json({ error: error.message || 'Failed to send verification email' });
     }
   });
+  
+  app.post('/api/admin/broadcast', async (req, res) => {
+    try {
+      const { recipients, subject, body } = req.body;
+      
+      if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+        return res.status(400).json({ error: 'Recipients list is required' });
+      }
+
+      const user = process.env.SMTP_USER || 'coolshotsystemsofficial@gmail.com';
+      const pass = process.env.SMTP_PASS;
+
+      if (!pass) {
+        return res.status(503).json({ error: 'SMTP_PASS is not configured' });
+      }
+
+      const transportConfig = {
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_PORT === '465',
+        auth: { user, pass },
+      };
+      
+      const transporter = nodemailer.createTransport(transportConfig);
+
+      console.log(`Starting broadcast to ${recipients.length} recipients...`);
+
+      const results = [];
+      // We send emails in chunks or sequential for simplicity here
+      for (const email of recipients) {
+        try {
+          await transporter.sendMail({
+            from: process.env.SMTP_FROM || `"VUX Events Admin" <${user}>`,
+            to: email,
+            subject: subject || 'Announcement from VUX Events',
+            html: body
+          });
+          results.push({ email, status: 'sent' });
+        } catch (err: any) {
+          console.error(`Failed to send to ${email}:`, err);
+          results.push({ email, status: 'failed', error: err.message });
+        }
+      }
+
+      return res.json({ success: true, count: recipients.length, results });
+    } catch (error: any) {
+      console.error('Broadcast Error:', error);
+      return res.status(500).json({ error: error.message || 'Broadcast failed' });
+    }
+  });
 
   app.post('/api/auth/verify-otp', async (req, res) => {
     try {
@@ -221,7 +288,10 @@ async function startServer() {
         return res.status(400).json({ error: 'Invalid or expired code' });
       }
 
-      const customToken = await admin.auth().createCustomToken(email);
+      const customToken = await admin.auth().createCustomToken(email, {
+        email: email,
+        email_verified: true
+      });
       otpStore.delete(email);
       return res.json({ success: true, token: customToken });
     } catch (error: any) {
@@ -308,7 +378,7 @@ async function startServer() {
   });
 
   app.post('/api/auth/verify-authentication', async (req, res) => {
-    const { email, body, credential } = req.body;
+    const { email, body } = req.body;
     const hostname = req.hostname;
     const rpID = getRpID(hostname);
     const key = email ? `auth_${email}` : 'auth_generic';
@@ -319,33 +389,44 @@ async function startServer() {
     }
 
     try {
-      // In a real app, you'd fetch the user's stored public key from DB
-      // For this demo, we'll assume the client sends the credential data or we retrieve it
-      // Since this is a serverless frontend-heavy app, we'll return a verification success 
-      // if the signature matches the standard WebAuthn flow.
-      
+      // Fetch user profile from Firestore to get their stored passkey
+      const profileSnap = await admin.firestore().collection('users').doc(email).get();
+      if (!profileSnap.exists) {
+        throw new Error('User not found');
+      }
+
+      const userData = profileSnap.data();
+      const passkey = userData?.passkeys?.[0]; // Get the first passkey
+
+      if (!passkey) {
+        throw new Error('No passkey found for this account');
+      }
+
       const verification = await verifyAuthenticationResponse({
         response: body as AuthenticationResponseJSON,
         expectedChallenge,
-        expectedOrigin: `${req.protocol}://${req.get('host')}`,
+        expectedOrigin: [`${req.protocol}://${req.get('host')}`, `https://${req.get('host')}`],
         expectedRPID: rpID,
         credential: {
-          id: credential.id,
-          publicKey: Buffer.from(credential.publicKey, 'base64'),
-          counter: credential.counter || 0,
+          id: passkey.credentialId,
+          publicKey: Buffer.from(passkey.publicKey, 'base64'),
+          counter: passkey.counter || 0,
         },
       });
 
       if (verification.verified) {
         challenges.delete(key);
         // Generate custom token for Firebase login
-        const customToken = await admin.auth().createCustomToken(email);
+        const customToken = await admin.auth().createCustomToken(email, {
+          email: email,
+          email_verified: true
+        });
         res.json({ verified: true, token: customToken });
       } else {
         res.status(400).json({ error: 'Verification failed' });
       }
     } catch (error: any) {
-      console.error(error);
+      console.error('Passkey Auth Verification Error:', error);
       res.status(400).json({ error: error.message });
     }
   });

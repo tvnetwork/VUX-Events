@@ -39,7 +39,25 @@ export function DMCA() {
           <section className="space-y-4">
             <h2 className="text-xl font-bold text-white tracking-tight">Filing a Notice</h2>
             <p className="text-white/40 leading-relaxed text-sm">
-              If you believe your copyrighted work is being infringed on our platform, please submit a written notification including a description of the work, the location on our platform, and your contact information. Notices should be sent to legal@entry.com.
+              If you believe that your work has been copied in a way that constitutes copyright infringement, please provide our Copyright Agent with a written notice containing the following information:
+            </p>
+            <ul className="list-disc list-inside text-white/40 text-sm space-y-2 ml-4 italic">
+              <li>A physical or electronic signature of a person authorized to act on behalf of the owner of an exclusive right that is allegedly infringed.</li>
+              <li>Identification of the copyrighted work claimed to have been infringed.</li>
+              <li>Identification of the material that is claimed to be infringing and information reasonably sufficient to permit us to locate the material.</li>
+              <li>Information reasonably sufficient to permit us to contact you, such as an address, telephone number, and email.</li>
+              <li>A statement that you have a good faith belief that use of the material in the manner complained of is not authorized by the copyright owner.</li>
+              <li>A statement that the information in the notification is accurate, and under penalty of perjury, that you are authorized to act on behalf of the owner.</li>
+            </ul>
+            <p className="text-white/40 leading-relaxed text-sm pt-4">
+              Notices should be sent to: <span className="text-white font-bold">legal@vuxevents.com</span>
+            </p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-bold text-white tracking-tight">Counter-Notification</h2>
+            <p className="text-white/40 leading-relaxed text-sm">
+              If you believe that your content was removed by mistake or misidentification, you may submit a counter-notification to our Copyright Agent. The counter-notification must be a written communication that includes your identification of the material and a statement under penalty of perjury that you have a good faith belief the material was removed as a result of mistake.
             </p>
           </section>
 

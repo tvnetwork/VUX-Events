@@ -4,54 +4,71 @@
  */
 
 import { useState } from 'react';
-import { motion } from 'motion/react';
-import { X, Loader2, Ticket } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { X, Loader2, Plus, Check, ArrowRight, Calendar as CalendarIcon, Clock, MapPin, Globe2, Info, Image as ImageIcon } from 'lucide-react';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../AuthContext';
 import { Event } from '../types';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
+import { Badge } from './ui/Badge';
 import confetti from 'canvas-confetti';
+import { cn } from '../lib/utils';
 
-export function CreateEvent({ onClose }: { onClose: () => void }) {
+export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eventToEdit?: Event | null }) {
   const { user } = useAuth();
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<Partial<Event>>({
+  const [formData, setFormData] = useState<Partial<Event>>(eventToEdit ? {
+    ...eventToEdit,
+  } : {
     title: '',
     description: '',
     date: '',
+    time: '',
     location: '',
+    category: 'Workshop',
+    visibility: 'public',
+    capacity: 50,
     coverImageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2670&auto=format&fit=crop',
-    status: 'published',
-    isApprovalRequired: false,
-    capacity: 0,
-    ticketTypes: [{ name: 'Standard VUX Entry', price: 0 }]
   });
+
+  const categories = ['Conference', 'Workshop', 'Meetup', 'Social', 'Webinar', 'Other'];
+
+  const handleNext = () => setStep(s => s + 1);
+  const handleBack = () => setStep(s => s - 1);
 
   const handleSubmit = async () => {
     if (!user) return;
     setLoading(true);
     try {
-      const eventId = Math.random().toString(36).substring(7);
-      const newEvent = {
+      const isEditing = !!eventToEdit;
+      const eventId = eventToEdit ? eventToEdit.id : Math.random().toString(36).substring(7);
+      
+      const eventData = {
         ...formData,
         id: eventId,
         hostId: user.uid,
         hostName: user.displayName || 'VUX Host',
-        createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-        status: 'published',
       };
-      await setDoc(doc(db, 'events', eventId), newEvent);
+
+      if (!isEditing) {
+        (eventData as any).createdAt = serverTimestamp();
+        (eventData as any).status = 'published';
+      }
+
+      await setDoc(doc(db, 'events', eventId), eventData, { merge: true });
       
-      // Celebration effect
-      confetti({
-        particleCount: 200,
-        spread: 160,
-        origin: { y: 0.6 },
-        colors: ['#a855f7', '#ec4899', '#3b82f6', '#ffffff']
-      });
+      if (!isEditing) {
+        confetti({
+          particleCount: 200,
+          spread: 160,
+          origin: { y: 0.6 },
+          colors: ['#a855f7', '#ec4899', '#3b82f6', '#ffffff']
+        });
+      }
 
       onClose();
     } catch (e) {
@@ -61,141 +78,291 @@ export function CreateEvent({ onClose }: { onClose: () => void }) {
     }
   };
 
+  const totalSteps = 3;
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-[#0b0b0f]/80 backdrop-blur-2xl flex items-center justify-center p-4"
-    >
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
       <motion.div
-        initial={{ scale: 0.95, opacity: 0, y: 30 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.95, opacity: 0, y: 30 }}
-        className="glass w-full max-w-2xl rounded-[2.5rem] overflow-hidden relative border-white/10 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.6)]"
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="w-full max-w-4xl bg-[#0b0b0f] border border-white/10 rounded-[32px] overflow-hidden shadow-2xl"
       >
-        <button 
-          onClick={onClose}
-          className="absolute top-8 right-8 p-2 rounded-full hover:bg-white/10 transition-all z-10 group"
-        >
-          <X className="w-5 h-5 text-white/20 group-hover:text-white group-hover:rotate-90 transition-all duration-300" />
-        </button>
-
-        <div className="p-8 md:p-12">
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="space-y-10"
-              >
-                <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                        <h2 className="text-3xl font-bold tracking-tight text-white">Create Event</h2>
-                        <p className="text-white/40 text-sm">Fill in the details to launch your gathering.</p>
-                    </div>
+        <div className="flex flex-col md:flex-row h-[700px]">
+          {/* Sidebar Info */}
+          <div className="hidden md:flex w-72 bg-white/5 border-r border-white/5 p-10 flex-col justify-between">
+            <div className="space-y-10">
+              <div className="space-y-4">
+                <div className="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
+                  <Plus className="w-7 h-7 text-purple-500" />
                 </div>
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight">
+                    {eventToEdit ? 'Update Event' : 'Create Event'}
+                  </h2>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">VUX Events</p>
+                </div>
+              </div>
 
-                <div className="space-y-8 overflow-y-auto max-h-[60vh] pr-4 custom-scrollbar">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <InputField 
-                        label="Title" 
-                        value={formData.title} 
-                        onChange={v => setFormData({...formData, title: v})} 
-                      />
-                     <InputField 
-                        label="Date" 
-                        value={formData.date} 
-                        onChange={v => setFormData({...formData, date: v})} 
-                      />
-                     <InputField 
-                        label="Location" 
-                        value={formData.location} 
-                        onChange={v => setFormData({...formData, location: v})} 
-                      />
-                     <InputField 
-                        label="Capacity" 
-                        value={formData.capacity?.toString()} 
-                        onChange={v => setFormData({...formData, capacity: parseInt(v)})} 
-                        type="number"
-                      />
+              <div className="space-y-6">
+                {[
+                  { step: 1, label: 'Details' },
+                  { step: 2, label: 'Location' },
+                  { step: 3, label: 'Preview' }
+                ].map((s) => (
+                  <div key={s.step} className="flex items-center gap-4">
+                    <div className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black transition-all",
+                      step === s.step ? "bg-purple-500 text-white shadow-lg shadow-purple-500/40" : (step > s.step ? "bg-emerald-500 text-white" : "bg-white/10 text-white/40")
+                    )}>
+                      {step > s.step ? <Check className="w-4 h-4" /> : s.step}
+                    </div>
+                    <span className={cn(
+                      "text-xs font-bold uppercase tracking-widest transition-all",
+                      step === s.step ? "text-white translate-x-1" : "text-white/20"
+                    )}>{s.label}</span>
                   </div>
+                ))}
+              </div>
+            </div>
 
-                  <div className="space-y-4">
-                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 px-1">Ticketing</label>
-                    <div className="space-y-3">
-                      {(formData.ticketTypes || []).map((t, idx) => (
-                        <div key={idx} className="flex gap-4 items-center glass p-4 rounded-2xl border-white/5 group hover:bg-white/[0.04]">
-                          <Ticket className="w-5 h-5 text-white/20" />
-                          <input 
-                            placeholder="Ticket Name" 
-                            value={t.name}
-                            onChange={(e) => {
-                              const newTypes = [...(formData.ticketTypes || [])];
-                              newTypes[idx].name = e.target.value;
-                              setFormData({...formData, ticketTypes: newTypes});
-                            }}
-                            className="bg-transparent border-none outline-none text-sm font-bold flex-1 text-white placeholder:text-white/10"
-                          />
-                          <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
-                            <span className="text-white/30 text-xs">$</span>
-                            <input 
-                                placeholder="0" 
-                                type="number"
-                                value={t.price}
-                                onChange={(e) => {
-                                const newTypes = [...(formData.ticketTypes || [])];
-                                newTypes[idx].price = parseFloat(e.target.value);
-                                setFormData({...formData, ticketTypes: newTypes});
-                                }}
-                                className="bg-transparent border-none outline-none w-12 text-xs font-bold text-white text-right"
-                            />
-                          </div>
+            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 italic text-[10px] text-white/40 leading-relaxed">
+              &quot;Creating an event makes it visible to all users in the network.&quot;
+            </div>
+          </div>
+
+          {/* Main Content Area */}
+          <div className="flex-1 flex flex-col h-full relative">
+            <button 
+                onClick={onClose}
+                className="absolute top-8 right-8 p-2 rounded-full hover:bg-white/10 transition-all z-10"
+            >
+                <X className="w-5 h-5 text-white/20" />
+            </button>
+
+            <div className="flex-1 overflow-y-auto p-10 md:p-14 custom-scrollbar">
+              <AnimatePresence mode="wait">
+                {step === 1 && (
+                  <motion.div
+                    key="step1"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-10"
+                  >
+                     <div className="space-y-2">
+                        <h3 className="text-3xl font-bold tracking-tighter">EVENT DETAILS</h3>
+                        <p className="text-white/40 text-sm">Define the primary characteristics of your gathering.</p>
+                     </div>
+
+                     <div className="space-y-8">
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 px-1">Event Title</label>
+                           <Input 
+                            value={formData.title}
+                            onChange={(e) => setFormData({...formData, title: e.target.value})}
+                            placeholder="e.g., Summer Workshop"
+                            className="bg-white/5 border-white/5 h-16 text-xl font-bold rounded-2xl focus:border-purple-500/50"
+                           />
                         </div>
-                      ))}
-                    </div>
-                  </div>
 
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 px-1">About the Event</label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({...formData, description: e.target.value})}
-                      className="w-full h-40 bg-white/[0.02] border border-white/10 rounded-2xl p-6 resize-none transition-all focus:ring-1 focus:ring-purple-500/30 outline-none text-white text-sm leading-relaxed placeholder:text-white/10"
-                      placeholder="Give a brief description of the event..."
-                    />
-                  </div>
-                </div>
+                        <div className="grid grid-cols-2 gap-6">
+                           <div className="space-y-3">
+                              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 px-1">Category</label>
+                              <select 
+                                value={formData.category}
+                                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                                className="w-full bg-white/5 border border-white/5 rounded-2xl h-16 px-4 text-sm font-bold uppercase tracking-widest focus:outline-none focus:border-purple-500/50 appearance-none cursor-pointer"
+                              >
+                                {categories.map(c => <option key={c} value={c} className="bg-[#0b0b0f]">{c}</option>)}
+                              </select>
+                           </div>
+                           <div className="space-y-3">
+                              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 px-1">Capacity</label>
+                              <Input 
+                                type="number"
+                                value={formData.capacity}
+                                onChange={(e) => setFormData({...formData, capacity: parseInt(e.target.value)})}
+                                className="bg-white/5 border-white/5 h-16 rounded-2xl font-bold"
+                              />
+                           </div>
+                        </div>
 
-                <div className="flex gap-4 pt-4">
-                    <Button variant="outline" size="lg" className="px-8 border-white/5 w-full sm:w-auto" onClick={onClose}>
-                        Cancel
-                    </Button>
-                    <Button
-                        disabled={loading}
-                        onClick={handleSubmit}
-                        className="flex-1 py-7 text-lg shadow-2xl shadow-purple-500/20"
-                    >
-                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Launch on VUX Events'}
-                    </Button>
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 px-1">Description</label>
+                           <textarea 
+                            value={formData.description}
+                            onChange={(e) => setFormData({...formData, description: e.target.value})}
+                            placeholder="Describe your event... What should people know?"
+                            className="w-full bg-white/5 border border-white/5 rounded-2xl p-6 h-40 text-sm focus:outline-none focus:border-purple-500/50 resize-none font-medium leading-relaxed"
+                           />
+                        </div>
+                     </div>
+                  </motion.div>
+                )}
+
+                {step === 2 && (
+                  <motion.div
+                    key="step2"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-10"
+                  >
+                     <div className="space-y-2">
+                        <h3 className="text-3xl font-bold tracking-tighter">LOCATION & TIME</h3>
+                        <p className="text-white/40 text-sm">Where and when exactly is the event happening?</p>
+                     </div>
+
+                     <div className="space-y-8">
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 px-1">Event Location</label>
+                           <div className="relative">
+                             <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                             <Input 
+                              value={formData.location}
+                              onChange={(e) => setFormData({...formData, location: e.target.value})}
+                              placeholder="Physical location or link"
+                              className="bg-white/5 border-white/5 h-16 pl-14 rounded-2xl font-semibold"
+                             />
+                           </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6">
+                           <div className="space-y-3">
+                              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 px-1">Event Date</label>
+                              <div className="relative">
+                                <CalendarIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                <Input 
+                                  type="date"
+                                  value={formData.date}
+                                  onChange={(e) => setFormData({...formData, date: e.target.value})}
+                                  className="bg-white/5 border-white/5 h-16 pl-14 rounded-2xl font-mono text-xs"
+                                />
+                              </div>
+                           </div>
+                           <div className="space-y-3">
+                              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 px-1">Start Time</label>
+                              <div className="relative">
+                                <Clock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                <Input 
+                                  type="time"
+                                  value={formData.time}
+                                  onChange={(e) => setFormData({...formData, time: e.target.value})}
+                                  className="bg-white/5 border-white/5 h-16 pl-14 rounded-2xl font-mono text-xs"
+                                />
+                              </div>
+                           </div>
+                        </div>
+
+                        <div className="p-6 rounded-3xl bg-white/[0.02] border border-dashed border-white/10 flex flex-col items-center gap-6 text-center">
+                            <div className="w-12 h-12 rounded-full glass flex items-center justify-center">
+                                <Globe2 className="w-5 h-5 text-purple-400" />
+                            </div>
+                            <div className="space-y-2">
+                                <h4 className="text-sm font-bold uppercase tracking-widest">VISIBILITY SETTINGS</h4>
+                                <p className="text-[10px] text-white/30 px-8">Choose who can see and join this event across the VUX network.</p>
+                            </div>
+                            <div className="flex bg-white/5 p-1.5 rounded-2xl border border-white/5">
+                                <button 
+                                    onClick={() => setFormData({...formData, visibility: 'public'})}
+                                    className={cn("px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all", formData.visibility === 'public' ? 'bg-white text-black shadow-lg shadow-white/10' : 'text-white/30 hover:text-white')}
+                                >Public</button>
+                                <button 
+                                    onClick={() => setFormData({...formData, visibility: 'private'})}
+                                    className={cn("px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all", formData.visibility === 'private' ? 'bg-white text-black shadow-lg shadow-white/10' : 'text-white/30 hover:text-white')}
+                                >Private</button>
+                            </div>
+                        </div>
+                     </div>
+                  </motion.div>
+                )}
+
+                {step === 3 && (
+                  <motion.div
+                    key="step3"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-10"
+                  >
+                     <div className="space-y-2">
+                        <h3 className="text-3xl font-bold tracking-tighter">FINAL VERIFICATION</h3>
+                        <p className="text-white/40 text-sm">Preview of the visual signal before deployment.</p>
+                     </div>
+
+                     <div className="space-y-8">
+                        <div className="relative aspect-[21/9] rounded-3xl overflow-hidden group shadow-2xl">
+                           <img src={formData.coverImageUrl} className="w-full h-full object-cover" />
+                           <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button variant="secondary" size="sm" className="rounded-full shadow-2xl gap-2 h-10 px-6">
+                                <ImageIcon className="w-4 h-4" />
+                                <span>Change Vector</span>
+                              </Button>
+                           </div>
+                           <div className="absolute bottom-6 left-6 flex items-center gap-2">
+                              <Badge className="bg-purple-600 text-white uppercase text-[8px] font-black tracking-widest py-1 border-none">{formData.category}</Badge>
+                              <Badge className="bg-white/20 backdrop-blur-md text-white uppercase text-[8px] font-black tracking-widest py-1 border-none">{formData.visibility}</Badge>
+                           </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                           <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1.5 overflow-hidden">
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-white/20">Title</p>
+                              <h4 className="text-sm font-bold truncate">{formData.title || 'Untitled Pulse'}</h4>
+                           </div>
+                           <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1.5">
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-white/20">Occupancy</p>
+                              <h4 className="text-sm font-bold">{formData.capacity} Travelers</h4>
+                           </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 text-emerald-500">
+                           <Info className="w-5 h-5 shrink-0" />
+                           <p className="text-[10px] font-bold uppercase tracking-[0.2em]">Ready for grid deployment. All checks passed.</p>
+                        </div>
+                     </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="p-10 md:p-14 border-t border-white/5 flex items-center justify-between bg-black/20">
+                <Button 
+                    variant="ghost" 
+                    onClick={step === 1 ? onClose : handleBack}
+                    className="text-[10px] font-bold uppercase tracking-[0.2em] h-12"
+                >
+                    {step === 1 ? 'Cancel' : 'Back'}
+                </Button>
+                
+                <div className="flex gap-4">
+                    {step < totalSteps ? (
+                        <Button 
+                            onClick={handleNext}
+                            disabled={!formData.title || !formData.date || !formData.location}
+                            className="h-14 px-10 rounded-2xl shadow-xl shadow-purple-500/20 gap-3"
+                        >
+                            <span className="text-xs font-black uppercase tracking-[0.2em]">Next Step</span>
+                            <ArrowRight className="w-5 h-5" />
+                        </Button>
+                    ) : (
+                        <Button 
+                            onClick={handleSubmit}
+                            disabled={loading}
+                            className="h-14 px-10 rounded-2xl shadow-xl shadow-purple-500/20 gap-3 bg-purple-600 hover:bg-purple-500 text-white"
+                        >
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+                            <span className="text-xs font-black uppercase tracking-[0.2em]">
+                                {eventToEdit ? 'Save Changes' : 'Create Event'}
+                            </span>
+                        </Button>
+                    )}
                 </div>
-              </motion.div>
+            </div>
+          </div>
         </div>
       </motion.div>
-    </motion.div>
-  );
-}
-
-function InputField({ label, value, onChange, type = 'text' }: { label: string, value?: string, onChange: (v: string) => void, type?: string }) {
-  return (
-    <div className="space-y-3">
-      <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 px-1">
-        {label}
-      </label>
-      <Input
-        type={type}
-        value={value || ''}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full py-4 bg-white/[0.02] border-white/10 text-sm font-semibold"
-      />
     </div>
   );
 }

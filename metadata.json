@@ -1,6 +1,6 @@
 {
-  "name": "VUX Events",
-  "description": "A minimalist event management platform for hosting and discovering local events with AI-powered creation and seamless RSVPs.",
+  "name": "Vux Events",
+  "description": "A refined event management platform for hosting and discovering local events with technical precision and seamless synchronized RSVPs.",
   "requestFramePermissions": [
     "publickey-credentials-get",
     "publickey-credentials-create",

@@ -23,7 +23,7 @@ export function Footer({ onAuthClick }: { onAuthClick?: () => void }) {
               <ul className="space-y-4">
                 <li><Link to="/discover" className="text-sm font-bold text-white/40 hover:text-white transition-colors cursor-pointer">Discover</Link></li>
                 <li><button onClick={onAuthClick} className="text-sm font-bold text-white/40 hover:text-white transition-colors cursor-pointer text-left">Pricing</button></li>
-                <li><a href="mailto:vuxevents@gmail.com" className="text-sm font-bold text-white/40 hover:text-white transition-colors">Help Center</a></li>
+                <li><Link to="/help" className="text-sm font-bold text-white/40 hover:text-white transition-colors">Help Center</Link></li>
                 <li><a href="#" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-white/40 hover:text-white transition-colors">Careers</a></li>
               </ul>
             </div>

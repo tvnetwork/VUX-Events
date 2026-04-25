@@ -5,25 +5,37 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Calendar, MapPin, Users, CheckCircle2, Loader2, ChevronLeft, Share2, Heart, Clock, Ticket } from 'lucide-react';
+import { X, Calendar, MapPin, Users, CheckCircle2, Loader2, ChevronLeft, Share2, Heart, Clock, Ticket, Copy, QrCode, Globe, Info, Zap, ArrowRight, ShieldCheck, Share, Ghost } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { doc, getDoc, setDoc, query, collection, where, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../AuthContext';
 import { Event, RSVP } from '../types';
 import { formatDate, cn } from '../lib/utils';
 import ReactMarkdown from 'react-markdown';
+import { VUXQRCode } from './VUXQRCode';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
-import { Avatar, AvatarStack } from './ui/Avatar';
+import { Avatar } from './ui/Avatar';
 import { Card } from './ui/Card';
 import { AddToCalendar } from './AddToCalendar';
+import { PulseService } from '../services/PulseService';
 import confetti from 'canvas-confetti';
 
-export function EventDetails({ event, onClose, onManage }: { event: Event, onClose: () => void, onManage?: (e: Event) => void }) {
+export function EventDetails({ event, onClose, onManage, onEdit }: { event: Event, onClose: () => void, onManage?: (e: Event) => void, onEdit?: (e: Event) => void }) {
   const { user, profile } = useAuth();
   const [rsvps, setRsvps] = useState<RSVP[]>([]);
   const [isRSVPLoading, setIsRSVPLoading] = useState(false);
   const [userRSVP, setUserRSVP] = useState<RSVP | null>(null);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const shareUrl = `${window.location.origin}/discover?event=${event.id}`;
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   useEffect(() => {
     const q = query(collection(db, 'events', event.id, 'rsvps'));
@@ -34,6 +46,8 @@ export function EventDetails({ event, onClose, onManage }: { event: Event, onClo
         const found = rsvpList.find(r => r.userId === user.uid);
         setUserRSVP(found || null);
       }
+    }, (error) => {
+      console.error('EventDetails onSnapshot error:', error);
     });
 
     return unsubscribe;
@@ -59,10 +73,11 @@ export function EventDetails({ event, onClose, onManage }: { event: Event, onClo
         createdAt: serverTimestamp()
       });
 
-      // Celebration effect
+      PulseService.sendPulse('RSVP', `${profile.displayName} RSVP'd to ${event.title}`, user.uid, { eventId: event.id, eventTitle: event.title });
+
       confetti({
-        particleCount: 150,
-        spread: 70,
+        particleCount: 200,
+        spread: 160,
         origin: { y: 0.6 },
         colors: ['#a855f7', '#ec4899', '#3b82f6', '#ffffff']
       });
@@ -80,179 +95,289 @@ export function EventDetails({ event, onClose, onManage }: { event: Event, onClo
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-[#0b0b0f] overflow-y-auto custom-scrollbar"
+      className="fixed inset-0 z-[110] bg-[#0b0b0f] overflow-y-auto custom-scrollbar"
     >
-      {/* Background Ambience */}
+      {/* Immersive Backdrop */}
       <div className="fixed inset-0 -z-10 bg-[#0b0b0f]">
-        <div className="absolute top-0 left-0 w-full h-[600px] overflow-hidden opacity-30">
-            <img src={event.coverImageUrl} className="w-full h-full object-cover blur-[100px]" />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0b0b0f]" />
+        <div className="absolute top-0 left-0 w-full h-[800px] overflow-hidden opacity-40">
+            <img src={event.coverImageUrl} className="w-full h-full object-cover blur-[120px] scale-125" />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0b0b0f]/80 to-[#0b0b0f]" />
         </div>
       </div>
 
-      <nav className="sticky top-0 z-50 glass border-b border-white/5 h-16 flex items-center justify-center px-4 lg:px-8 px-6">
-        <div className="max-w-[1280px] w-full flex items-center justify-between">
-           <Button variant="ghost" size="sm" onClick={onClose} className="gap-2">
-                <ChevronLeft className="w-4 h-4" />
-                <span>Back to roadmap</span>
+      <nav className="sticky top-0 z-50 glass border-b border-white/5 h-20 flex items-center justify-center px-4 lg:px-12">
+        <div className="max-w-[1400px] w-full flex items-center justify-between">
+           <Button variant="ghost" size="sm" onClick={onClose} className="gap-3 rounded-2xl h-12 px-6">
+                <ChevronLeft className="w-5 h-5 text-purple-500" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Back to Events</span>
            </Button>
-           <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon"><Share2 className="w-4 h-4" /></Button>
-                <Button variant="ghost" size="icon"><Heart className="w-4 h-4" /></Button>
-           </div>
+           <div className="flex items-center gap-3">
+                <Button variant="ghost" size="icon" onClick={() => setShowShareDialog(true)} className="w-12 h-12 rounded-2xl border border-white/10">
+                    <Share className="w-5 h-5 text-white/40 group-hover:text-white" />
+                </Button>
+                <div className="w-[1px] h-6 bg-white/10 mx-2" />
+                <Badge className="bg-purple-600/10 text-purple-400 border-none font-black italic tracking-widest px-4 py-2 uppercase rounded-xl">
+                    {event.category} EVENT
+                </Badge>
+            </div>
         </div>
       </nav>
 
-      <div className="max-w-[1280px] mx-auto px-6 py-12 md:py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
-          
-          {/* Main Column */}
-          <div className="lg:col-span-8 space-y-16">
-            <div className="space-y-8">
-                <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden glass border border-white/10 shadow-2xl">
-                    <img src={event.coverImageUrl} className="w-full h-full object-cover" />
+      <AnimatePresence>
+        {showShareDialog && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+             <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-md"
+            >
+              <Card className="p-12 border-white/10 bg-[#0b0b0f] space-y-10 rounded-[48px] shadow-[0_0_100px_rgba(0,0,0,0.5)]">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <h3 className="text-3xl font-black italic uppercase tracking-tighter">SHARE EVENT</h3>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Invite friends to this event</p>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => setShowShareDialog(false)} className="w-12 h-12 rounded-2xl">
+                    <X className="w-5 h-5" />
+                  </Button>
                 </div>
 
-                <div className="space-y-6">
-                    <div className="flex flex-wrap items-center gap-3">
-                        <Badge variant="glass" className="bg-purple-500/10 text-purple-400 border-purple-500/10 px-3 py-1">
-                            {event.status === 'published' ? 'Upcoming' : event.status}
-                        </Badge>
-                        <div className="flex items-center gap-2 text-sm text-white/40">
-                             <Clock className="w-4 h-4" />
-                             <span>{new Date(event.date).toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })} at {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                        </div>
+                <div className="flex flex-col items-center gap-8 py-4">
+                  <VUXQRCode value={shareUrl} size={240} className="border-none bg-transparent p-0" />
+                  <div className="flex items-center gap-2 text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em] animate-pulse">
+                     <Zap className="w-3 h-3 fill-emerald-500" />
+                     <span>Live Link</span>
+                  </div>
+                </div>
+
+                <div className="p-6 rounded-[32px] bg-white/[0.02] border border-white/10 flex items-center justify-between gap-4">
+                    <p className="text-[10px] font-bold truncate text-white/20 uppercase tracking-widest pl-2">{shareUrl}</p>
+                    <Button 
+                      variant="ghost" 
+                      onClick={copyToClipboard}
+                      className={cn("h-12 w-12 rounded-2xl transition-all shrink-0", copied ? "text-emerald-400 bg-emerald-500/10" : "text-white/40")}
+                    >
+                      {copied ? <CheckCircle2 className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                    </Button>
+                </div>
+              </Card>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <div className="max-w-[1400px] mx-auto px-6 py-16 lg:px-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
+          
+          <div className="lg:col-span-8 space-y-20">
+            <div className="space-y-12">
+                <div className="relative aspect-[21/9] w-full rounded-[48px] overflow-hidden border border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.5)] group">
+                    <img src={event.coverImageUrl} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
+                    <div className="absolute inset-x-12 bottom-12 flex items-center justify-between">
+                         <div className="flex -space-x-4">
+                            {rsvps.slice(0, 5).map((r, i) => (
+                                <Avatar key={i} src={r.userPhotoURL} size="lg" className="border-4 border-black ring-1 ring-white/10" />
+                            ))}
+                            {rsvps.length > 5 && (
+                                <div className="w-14 h-14 rounded-full glass border border-white/10 flex items-center justify-center text-[10px] font-black text-white/40 z-10">
+                                    +{rsvps.length - 5}
+                                </div>
+                            )}
+                         </div>
+                         <div className="flex items-center gap-3 bg-black/40 backdrop-blur-3xl px-6 py-3 rounded-2xl border border-white/10">
+                            <Users className="w-4 h-4 text-purple-400" />
+                            <span className="text-[10px] font-black text-white uppercase tracking-widest">{rsvps.length} / {event.capacity} GOING</span>
+                         </div>
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1]">{event.title}</h1>
+                </div>
+
+                <div className="space-y-8">
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-3 text-purple-500">
+                           <div className="w-8 h-px bg-purple-500" />
+                           <span className="text-[10px] font-black uppercase tracking-[0.4em]">About this Event</span>
+                        </div>
+                        <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.8] uppercase text-white">{event.title}</h1>
+                    </div>
                 </div>
             </div>
 
-            <div className="prose prose-invert prose-lg max-w-none prose-p:text-white/70 prose-headings:text-white prose-strong:text-white transition-opacity">
+            <div className="prose prose-invert prose-xl max-w-none prose-p:text-white/60 prose-p:italic prose-headings:font-black prose-headings:italic prose-headings:tracking-tighter border-l-4 border-purple-500/20 pl-10">
                 <ReactMarkdown>{event.description}</ReactMarkdown>
             </div>
 
-            {/* Attendees Section */}
-            <section className="space-y-8 pt-8 border-t border-white/5">
+            {/* Participants Grid */}
+            <section className="space-y-12">
                 <div className="flex items-center justify-between">
-                    <div>
-                        <h3 className="text-xl font-bold mb-1">Attendees</h3>
-                        <p className="text-sm text-white/40">{rsvps.filter(r => r.status === 'approved').length} confirmed guests</p>
+                    <div className="space-y-1">
+                        <h3 className="text-3xl font-black italic uppercase tracking-tighter">PARTICIPANTS</h3>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-white/20">Confirmed Guests</p>
                     </div>
-                    {rsvps.length > 0 && <AvatarStack>
-                        {rsvps.slice(0, 5).map(r => (
-                            <Avatar key={r.id} src={r.userPhotoURL} size="md" fallback={`https://api.dicebear.com/7.x/fun-emoji/svg?seed=${r.userId}&backgroundColor=c084fc`} />
-                        ))}
-                    </AvatarStack>}
+                    <div className="w-px h-10 bg-white/5 hidden md:block" />
                 </div>
                 
-                <div className="flex flex-wrap gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     {rsvps.filter(r => r.status === 'approved').map(rsvp => (
-                        <div key={rsvp.id} className="flex items-center gap-2 glass px-3 py-2 rounded-xl border-white/5 transition-all hover:bg-white/5 cursor-default">
-                             <Avatar size="sm" src={rsvp.userPhotoURL} fallback={`https://api.dicebear.com/7.x/fun-emoji/svg?seed=${rsvp.userId}&backgroundColor=c084fc`} />
-                             <span className="text-sm font-semibold">{rsvp.userDisplayName}</span>
-                        </div>
+                        <Card key={rsvp.id} className="p-6 flex items-center gap-4 bg-white/[0.01] border-white/5 rounded-3xl hover:bg-white/[0.03] transition-all group">
+                             <Avatar size="md" src={rsvp.userPhotoURL} className="border-2 border-white/5 group-hover:border-purple-500/40 transition-colors" />
+                             <div className="space-y-0.5 min-w-0">
+                                <span className="text-xs font-black italic uppercase tracking-tighter truncate block text-white">{rsvp.userDisplayName}</span>
+                                <span className="text-[8px] font-black text-emerald-500/60 uppercase tracking-widest leading-none">VERIFIED USER</span>
+                             </div>
+                        </Card>
                     ))}
                     {rsvps.filter(r => r.status === 'approved').length === 0 && (
-                        <p className="text-white/20 italic text-sm">No confirmed attendees yet.</p>
+                        <div className="col-span-full py-16 rounded-[40px] bg-white/[0.01] border border-dashed border-white/5 flex flex-col items-center justify-center text-center space-y-4">
+                            <Ghost className="w-10 h-10 text-white/5" />
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/10 uppercase italic">Awaiting Confirmed guests</p>
+                        </div>
                     )}
                 </div>
             </section>
           </div>
 
-          {/* Sidebar Column */}
-          <div className="lg:col-span-4 space-y-8">
-            <Card className="sticky top-24 p-8 space-y-8 overflow-visible">
-                <div className="space-y-6">
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl glass border border-white/5 flex items-center justify-center shrink-0">
-                                <Calendar className="w-5 h-5 text-purple-400" />
-                            </div>
-                            <div>
-                                <p className="text-xs font-bold text-white/30 uppercase tracking-widest">Date & Time</p>
-                                <p className="text-sm font-semibold">{new Date(event.date).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })}</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl glass border border-white/5 flex items-center justify-center shrink-0">
-                                <MapPin className="w-5 h-5 text-pink-400" />
-                            </div>
-                            <div>
-                                <p className="text-xs font-bold text-white/30 uppercase tracking-widest">Location</p>
-                                <p className="text-sm font-semibold line-clamp-1">{event.location}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="pt-6 border-t border-white/5 space-y-4">
-                        <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Ticket Options</p>
-                        <div className="space-y-2">
-                            {(event.ticketTypes || [{ name: 'Free Admission', price: 0 }]).map((tier, i) => (
-                                <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
-                                    <div className="flex items-center gap-3">
-                                        <Ticket className="w-4 h-4 text-white/20" />
-                                        <span className="text-sm font-semibold">{tier.name}</span>
-                                    </div>
-                                    <span className="text-sm font-bold">{tier.price === 0 ? 'Free' : `$${tier.price}`}</span>
+          {/* Intelligence Sidebar */}
+          <div className="lg:col-span-4">
+            <div className="sticky top-32 space-y-10">
+                <Card className="p-10 space-y-10 border-white/5 bg-white/[0.01] rounded-[48px] shadow-2xl relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent pointer-events-none" />
+                    
+                    <div className="space-y-8">
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-6">
+                                <div className="w-14 h-14 rounded-3xl bg-white/[0.03] border border-white/10 flex items-center justify-center shrink-0 shadow-inner group-hover:border-purple-500/20 transition-all duration-700">
+                                    <Calendar className="w-6 h-6 text-purple-500" />
                                 </div>
-                            ))}
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 leading-none">Date & Time</p>
+                                    <p className="text-lg font-black italic tracking-tighter uppercase text-white">{formatDate(event.date, { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                                    <p className="text-[10px] font-black uppercase text-emerald-500 italic tracking-widest">
+                                      Starts at {(() => {
+                                        if (!event.date || !event.time) return 'TBA';
+                                        const dt = new Date(`${event.date}T${event.time}`);
+                                        return isNaN(dt.getTime()) ? 'TBA' : dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                      })()}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-6">
+                                <div className="w-14 h-14 rounded-3xl bg-white/[0.03] border border-white/10 flex items-center justify-center shrink-0 shadow-inner group-hover:border-pink-500/20 transition-all duration-700">
+                                    <MapPin className="w-6 h-6 text-pink-500" />
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 leading-none">Venue</p>
+                                    <p className="text-lg font-black italic tracking-tighter uppercase text-white truncate max-w-[200px]">{event.location}</p>
+                                    <div className="flex items-center gap-1.5 text-[10px] font-black text-blue-400 italic tracking-widest">
+                                        <Globe className="w-3 h-3" />
+                                        <span>GLOBAL ACCESS</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-10 border-t border-white/5 space-y-6">
+                            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">ENTRY TICKETS</p>
+                            <div className="space-y-3">
+                                {(event.ticketTypes || [{ name: 'Standard Access', price: 0 }]).map((tier, i) => (
+                                    <div key={i} className="flex items-center justify-between p-5 rounded-[24px] bg-white/[0.02] border border-white/5 group/tier hover:bg-white/[0.04] transition-all">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-2xl bg-white/[0.02] flex items-center justify-center text-white/10 group-hover/tier:text-white/40 transition-colors">
+                                                <Ticket className="w-5 h-5" />
+                                            </div>
+                                            <span className="text-xs font-black italic uppercase tracking-widest">{tier.name}</span>
+                                        </div>
+                                        <span className="text-lg font-black italic tracking-tighter text-white">{tier.price === 0 ? 'FREE' : `$${tier.price}`}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="space-y-4">
-                    {userRSVP ? (
-                        <div className={cn(
-                            "p-6 rounded-2xl border flex flex-col items-center gap-3 text-center",
-                            userRSVP.status === 'approved' ? "bg-green-500/10 border-green-500/20" : 
-                            userRSVP.status === 'pending' ? "bg-yellow-500/10 border-yellow-500/20" : 
-                            "bg-red-500/10 border-red-500/20"
-                        )}>
+                    <div className="pt-6">
+                        {userRSVP ? (
                             <div className={cn(
-                                "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
-                                userRSVP.status === 'approved' ? "bg-green-500 shadow-lg shadow-green-500/20" : "bg-white/5"
+                                "p-10 rounded-[40px] border flex flex-col items-center gap-6 text-center relative overflow-hidden transition-all duration-700",
+                                userRSVP.status === 'approved' ? "bg-emerald-500/5 border-emerald-500/10" : 
+                                userRSVP.status === 'pending' ? "bg-amber-500/5 border-amber-500/10" : 
+                                "bg-red-500/5 border-red-500/10"
                             )}>
-                                 {userRSVP.status === 'approved' ? <CheckCircle2 className="w-5 h-5 text-white" /> : <Clock className="w-5 h-5 text-white/20" />}
+                                <div className={cn(
+                                    "w-20 h-20 rounded-[2.5rem] flex items-center justify-center shrink-0 border-2",
+                                    userRSVP.status === 'approved' ? "bg-emerald-500 border-white/10 shadow-2xl shadow-emerald-500/20" : "bg-white/5 border-white/5"
+                                )}>
+                                     {userRSVP.status === 'approved' ? <CheckCircle2 className="w-10 h-10 text-white" /> : <Clock className="w-10 h-10 text-white/20" />}
+                                </div>
+                                <div className="space-y-2">
+                                    <p className="text-2xl font-black italic uppercase tracking-tighter text-white">{userRSVP.status === 'approved' ? "CONFIRMED" : "PENDING APPROVAL"}</p>
+                                    <p className="text-[10px] font-black uppercase text-white/20 tracking-widest">
+                                        {userRSVP.status === 'approved' ? "You are going to this event." : "Wait for host approval."}
+                                    </p>
+                                </div>
+                                {userRSVP.status === 'approved' && (
+                                    <AddToCalendar event={event} className="w-full pt-8 border-t border-white/5" />
+                                )}
                             </div>
-                            <div>
-                                <p className="font-bold">{userRSVP.status === 'approved' ? "You're Going!" : "Registration Sent"}</p>
-                                <p className="text-xs text-white/40 mt-1">
-                                    {userRSVP.status === 'approved' ? "You are on the list for this event." : "Wait for the host to review your request."}
-                                </p>
-                            </div>
-                            {userRSVP.status === 'approved' && (
-                                <AddToCalendar event={event} className="w-full pt-4 border-t border-white/5" />
+                        ) : (
+                            <Button 
+                                onClick={handleRSVP} 
+                                disabled={isRSVPLoading}
+                                className="w-full h-20 rounded-[32px] text-xl font-black italic uppercase tracking-tighter shadow-2xl shadow-purple-500/20 group/reg bg-purple-600 hover:bg-purple-500"
+                            >
+                                {isRSVPLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                                    <div className="flex items-center gap-4">
+                                        <span>RSVP NOW</span>
+                                        <ArrowRight className="w-6 h-6 group-hover/reg:translate-x-2 transition-transform" />
+                                    </div>
+                                )}
+                            </Button>
+                        )}
+                    </div>
+
+                    {isHost && (
+                        <div className="grid grid-cols-2 gap-4">
+                            {onEdit && (
+                                <Button 
+                                    variant="outline" 
+                                    className="w-full h-14 rounded-2xl border-white/5 text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all"
+                                    onClick={(e) => {
+                                        onEdit(event);
+                                        onClose();
+                                    }}
+                                >
+                                    Edit Event
+                                </Button>
+                            )}
+                            {onManage && (
+                                <Button 
+                                    variant="secondary" 
+                                    className="w-full h-14 rounded-2xl border-white/5 text-[10px] font-black uppercase tracking-widest"
+                                    onClick={() => onManage(event)}
+                                >
+                                    Admin View
+                                </Button>
                             )}
                         </div>
-                    ) : (
-                        <Button 
-                            onClick={handleRSVP} 
-                            disabled={isRSVPLoading}
-                            className="w-full py-6 text-lg tracking-tight"
-                        >
-                            {isRSVPLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Register for Event'}
-                        </Button>
                     )}
+                </Card>
 
-                    {isHost && onManage && (
-                        <Button 
-                            variant="secondary" 
-                            className="w-full"
-                            onClick={() => onManage(event)}
-                        >
-                            Manage Event Dashboard
-                        </Button>
-                    )}
-                </div>
-
-                <div className="flex items-center gap-4 pt-4 border-t border-white/5 opacity-60">
-                    <Avatar src={`https://api.dicebear.com/7.x/fun-emoji/svg?seed=${event.hostId}&backgroundColor=c084fc`} />
-                    <div className="min-w-0">
-                        <p className="text-[10px] uppercase font-bold tracking-widest text-white/30">Curated By</p>
-                        <p className="text-sm font-bold truncate">VUX Hub</p>
+                <Card className="p-8 border-white/5 bg-white/[0.01] rounded-[40px] flex items-center gap-6 group hover:bg-white/[0.02] transition-all">
+                    <div className="w-16 h-16 rounded-[2rem] bg-white/[0.03] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-purple-500/20 transition-all duration-700 shadow-inner">
+                        <Avatar src={`https://api.dicebear.com/7.x/fun-emoji/svg?seed=${event.hostId}&backgroundColor=transparent`} size="md" />
                     </div>
+                    <div className="min-w-0 space-y-1">
+                        <p className="text-[10px] uppercase font-black tracking-widest text-white/20 leading-none">EVENT HOST</p>
+                        <p className="text-xl font-black italic tracking-tighter uppercase text-white truncate">{event.hostName}</p>
+                        <div className="flex items-center gap-2">
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500/60" />
+                            <span className="text-[9px] font-black uppercase text-white/10 tracking-widest italic">Verified Host</span>
+                        </div>
+                    </div>
+                </Card>
+
+                <div className="px-8 flex items-center gap-3">
+                   <Info className="w-4 h-4 text-white/10" />
+                   <p className="text-[9px] font-black uppercase tracking-widest text-white/10 italic">Secure transmission. Your data is protected.</p>
                 </div>
-            </Card>
+            </div>
           </div>
         </div>
       </div>

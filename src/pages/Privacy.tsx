@@ -30,23 +30,44 @@ export function Privacy() {
 
         <div className="space-y-12 bg-white/5 glass p-10 rounded-[2.5rem] border border-white/10">
           <section className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">1. Data Architecture</h2>
+            <h2 className="text-xl font-bold text-white tracking-tight">1. Information We Collect</h2>
             <p className="text-white/40 leading-relaxed text-sm">
-              Our privacy framework is built on transparency. We collect only the data necessary to provide a seamless event experience: your name, email, and social identifiers. We do not sell your data to third-party advertisers.
+              We collect information to provide better services to all our users. This includes Information you provide us (your name, email address, and profile picture from Google) and Information we get from your use of our services (event metadata, RSVPs, and usage logs).
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">2. Secure Processing</h2>
+            <h2 className="text-xl font-bold text-white tracking-tight">2. How We Use Information</h2>
             <p className="text-white/40 leading-relaxed text-sm">
-              VUX Events uses state-of-the-art encryption to protect your information both in transit and at rest. Metadata from your events is used solely to improve our intelligent discovery engine and enhance platform utility.
+              We use the information we collect from all our services to provide, maintain, protect and improve them, to develop new ones, and to protect VUX Events and our users. We also use this information to offer you tailored content – like giving you more relevant event recommendations.
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">3. Your Autonomy</h2>
+            <h2 className="text-xl font-bold text-white tracking-tight">3. Information Security</h2>
             <p className="text-white/40 leading-relaxed text-sm">
-              You maintain full control over your digital identity on VUX Events. You may request a full export of your data or complete account deletion through your profile settings at any time. Your right to privacy is non-negotiable.
+              We work hard to protect VUX Events and our users from unauthorized access to or unauthorized alteration, disclosure or destruction of information we hold. In particular: We encrypt many of our services using SSL and we review our information collection, storage and processing practices to guard against unauthorized access to systems.
+            </p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-bold text-white tracking-tight">4. Information You Share</h2>
+            <p className="text-white/40 leading-relaxed text-sm">
+              Our services let you share information with others. When you RSVP to an event, the host and other attendees may see your name and profile picture. Remember that when you share information publicly, it may be indexable by search engines.
+            </p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-bold text-white tracking-tight">5. Accessing & Updating Information</h2>
+            <p className="text-white/40 leading-relaxed text-sm">
+              Whenever you use our services, we aim to provide you with access to your personal information. If that information is wrong, we strive to give you ways to update it quickly or to delete it – unless we have to keep that information for legitimate business or legal purposes.
+            </p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-bold text-white tracking-tight">6. Changes</h2>
+            <p className="text-white/40 leading-relaxed text-sm">
+              Our Privacy Policy may change from time to time. We will not reduce your rights under this Privacy Policy without your explicit consent. We will post any privacy policy changes on this page and, if the changes are significant, we will provide a more prominent notice.
             </p>
           </section>
         </div>

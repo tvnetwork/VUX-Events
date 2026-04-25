@@ -28,6 +28,9 @@ export function ManageAttendees({ event, onClose }: { event: Event, onClose: () 
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as RSVP));
       setRsvps(docs);
       setLoading(false);
+    }, (error) => {
+      console.error('ManageAttendees onSnapshot error:', error);
+      setLoading(false);
     });
     return unsubscribe;
   }, [event.id]);
@@ -56,7 +59,7 @@ export function ManageAttendees({ event, onClose }: { event: Event, onClose: () 
 
   const filteredRSVPs = rsvps
     .filter(r => 
-      (r.userDisplayName.toLowerCase().includes(search.toLowerCase()) || r.userEmail.toLowerCase().includes(search.toLowerCase())) &&
+      ((r.userDisplayName || '').toLowerCase().includes((search || '').toLowerCase()) || (r.userEmail || '').toLowerCase().includes((search || '').toLowerCase())) &&
       (filter === 'all' || 
        (filter === 'pending' && r.status === 'pending') ||
        (filter === 'approved' && r.status === 'approved') ||

@@ -16,6 +16,7 @@ import {
 import { auth, db } from './lib/firebase';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp, arrayUnion } from 'firebase/firestore';
 import { UserProfile, Passkey } from './types';
+import { PulseService } from './services/PulseService';
 
 interface AuthContextType {
   user: User | null;
@@ -110,33 +111,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
-      if (user) {
-        // Sync profile - use email as ID if available for easier lookup
-        const docId = user.email || user.uid;
-        const profileRef = doc(db, 'users', docId);
-        const profileSnap = await getDoc(profileRef);
-        
-        if (!profileSnap.exists()) {
-          const newProfile: UserProfile = {
-            uid: user.uid,
-            email: user.email || (user.uid.includes('@') ? user.uid : ''),
-            displayName: user.displayName || 'Guest',
-            photoURL: user.photoURL || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${user.uid}&backgroundColor=c084fc`,
-            createdAt: new Date().toISOString(),
-          };
-          await setDoc(profileRef, {
-            ...newProfile,
-            createdAt: serverTimestamp()
-          });
-          setProfile(newProfile);
+      try {
+        setUser(user);
+        if (user) {
+          // Sync profile - use email as ID if available for easier lookup
+          const docId = user.email || user.uid;
+          const profileRef = doc(db, 'users', docId);
+          const profileSnap = await getDoc(profileRef);
+          
+          if (!profileSnap.exists()) {
+            const newProfile: UserProfile = {
+              uid: user.uid,
+              email: user.email || (user.uid.includes('@') ? user.uid : ''),
+              displayName: user.displayName || 'Guest',
+              photoURL: user.photoURL || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${user.uid}&backgroundColor=c084fc`,
+              createdAt: new Date().toISOString(),
+              onboardingCompleted: false,
+            };
+            await setDoc(profileRef, {
+              ...newProfile,
+              createdAt: serverTimestamp()
+            });
+            setProfile(newProfile);
+            PulseService.sendPulse('REGISTRATION', `New user registered: ${newProfile.displayName}`, user.uid, { email: newProfile.email });
+          } else {
+            const existingProfile = profileSnap.data() as UserProfile;
+            setProfile(existingProfile);
+            PulseService.sendPulse('LOGIN', `User logged in: ${existingProfile.displayName}`, user.uid);
+          }
         } else {
-          setProfile(profileSnap.data() as UserProfile);
+          setProfile(null);
         }
-      } else {
-        setProfile(null);
+      } catch (error) {
+        console.error('Error syncing user profile:', error);
+        // Still allow the app to load even if profile sync fails
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return unsubscribe;
@@ -152,10 +163,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signInWithPasskey = async (email: string, authenticateWithPasskey: any, credential: any) => {
+  const signInWithPasskey = async (email: string, authenticateWithPasskey: any, _credential: any) => {
     try {
-      // 1. Authenticate with passkey via server to get custom token
-      const token = await authenticateWithPasskey(email, credential);
+      // 1. Authenticate with passkey via server to get custom token (server handles lookup now)
+      const token = await authenticateWithPasskey(email);
       
       // 2. Sign in with the custom token
       if (token) {

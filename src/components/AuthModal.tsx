@@ -53,30 +53,14 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
 
   const handlePasskeyStart = async () => {
     if (!email) {
-      // If no email entered, we could try a generic discovery, 
-      // but for this implementation we'll ask for email first or show an error
       setError('Please enter your email to sign in with passkey');
       return;
     }
     
     setLoading(true);
     try {
-      // 1. Fetch user profile to get their passkey credential
-      const profileRef = doc(db, 'users', email);
-      const profileSnap = await getDoc(profileRef);
-      
-      if (!profileSnap.exists()) {
-        throw new Error('No account found for this email.');
-      }
-      
-      const userData = profileSnap.data() as UserProfile;
-      if (!userData.passkeys || userData.passkeys.length === 0) {
-        throw new Error('No passkey found for this account.');
-      }
-
-      // 2. Perform WebAuthn authentication and Firebase login
-      await signInWithPasskey(email, authWithPasskey, userData.passkeys[0]);
-      
+      // Perform WebAuthn authentication via server (which handles the profile lookup)
+      await signInWithPasskey(email, authWithPasskey, null);
       onClose();
     } catch (err: any) {
       setError(err.message || 'Passkey login failed');

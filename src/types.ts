@@ -16,8 +16,26 @@ export interface UserProfile {
   displayName: string;
   photoURL?: string;
   bio?: string;
+  phoneNumber?: string;
+  dob?: string;
+  isVerified?: boolean;
   createdAt: string;
   passkeys?: Passkey[];
+  preferences?: {
+    emailNotifications: boolean;
+    pushNotifications: boolean;
+    publicProfile: boolean;
+    calendarSync: boolean;
+    theme: 'dark' | 'light' | 'system';
+  };
+  onboardingCompleted?: boolean;
+  connections?: {
+    googleCalendar?: {
+      connected: boolean;
+      email: string;
+      lastSync?: string;
+    };
+  };
 }
 
 export interface TicketType {
@@ -33,7 +51,10 @@ export interface Event {
   title: string;
   description: string;
   date: string;
+  time: string;
   location: string;
+  category: string;
+  visibility: 'public' | 'private';
   coverImageUrl: string;
   status: 'draft' | 'published' | 'completed' | 'cancelled';
   isApprovalRequired: boolean;

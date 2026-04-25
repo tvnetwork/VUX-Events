@@ -50,7 +50,7 @@ export function CommandPalette({ isOpen, onClose, onTabChange, onCreateClick }: 
         const snap = await getDocs(q);
         const events = snap.docs
           .map(doc => ({ id: doc.id, ...doc.data() } as Event))
-          .filter(e => e.title.toLowerCase().includes(search.toLowerCase()));
+          .filter(e => (e.title || '').toLowerCase().includes((search || '').toLowerCase()));
         setResults(events);
       } catch (e) {
         console.error(e);

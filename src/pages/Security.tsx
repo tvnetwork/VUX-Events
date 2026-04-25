@@ -30,23 +30,30 @@ export function Security() {
 
         <div className="space-y-12 bg-white/5 glass p-10 rounded-[2.5rem] border border-white/10">
           <section className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">Zero-Trust Architecture</h2>
+            <h2 className="text-xl font-bold text-white tracking-tight">Security Infrastructure</h2>
             <p className="text-white/40 leading-relaxed text-sm">
-              VUX Events is engineered with a Zero-Trust philosophy. Every request and data access point is verified at every level of our stack. We utilize enterprise-grade infrastructure to anchor our events and data.
+              VUX Events is built on a globally distributed, secure-by-default infrastructure. We leverage industry-leading cloud providers that comply with SOC 2 Type II, ISO 27001, and other major security certifications. Our network is protected by enterprise-grade firewalls and DDoS mitigation layers.
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">Passwordless Verification</h2>
+            <h2 className="text-xl font-bold text-white tracking-tight">Data Encryption</h2>
             <p className="text-white/40 leading-relaxed text-sm">
-              We have eliminated the risk of credential stuffing and password theft by moving to a 100% passwordless environment. Verification is handled via high-entropy secure codes and biometric passkeys tied to your hardware.
+              All data transmitted between your browser and our servers is encrypted using Transport Layer Security (TLS 1.2 or higher). Data at rest in our databases is encrypted using AES-256. We handle authentication through Google's secure OAuth 2.0 implementation, ensuring that your login credentials never touch our servers.
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">Continuous Auditing</h2>
+            <h2 className="text-xl font-bold text-white tracking-tight">Authentication & Access</h2>
             <p className="text-white/40 leading-relaxed text-sm">
-              Our engineering team conducts regular security audits and penetration testing. We monitor for anomalies in real-time to ensure that the VUX Events community remains a safe, high-signal space for everyone.
+              We reinforce account security through multi-factor authentication and token-based session management. Access to our internal systems is strictly controlled using the principle of least privilege (PoLP) and requires hardware-based second-factor authentication for all administrators.
+            </p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-bold text-white tracking-tight">Reporting a Vulnerability</h2>
+            <p className="text-white/40 leading-relaxed text-sm">
+              We welcome reports from security researchers and users. If you believe you have found a security vulnerability in our platform, please contact us immediately at security@vuxevents.com. We investigate all credible reports and strive to fix identified issues promptly.
             </p>
           </section>
         </div>

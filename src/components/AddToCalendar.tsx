@@ -14,6 +14,15 @@ interface AddToCalendarProps {
 
 export function AddToCalendar({ event, className }: AddToCalendarProps) {
   const eventDate = new Date(event.date);
+  
+  if (isNaN(eventDate.getTime())) {
+    return (
+      <div className={className}>
+        <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Date Not Specified</p>
+      </div>
+    );
+  }
+
   // Default duration 1 hour
   const endDate = new Date(eventDate.getTime() + 60 * 60 * 1000);
 

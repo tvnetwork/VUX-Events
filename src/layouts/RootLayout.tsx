@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from '../components/Navbar';
 import { Dashboard } from '../pages/Dashboard';
 import { WatermarkBackground } from '../components/WatermarkBackground';
@@ -14,28 +14,66 @@ import { CommandPalette } from '../components/CommandPalette';
 import { CreateEvent } from '../components/CreateEvent';
 import { EventDetails } from '../components/EventDetails';
 import { ManageAttendees } from '../components/ManageAttendees';
+import { OnboardingWizard } from '../components/OnboardingWizard';
+import { AdminDashboard } from '../pages/AdminDashboard';
 import { AnimatePresence } from 'motion/react';
 import { Event } from '../types';
+import { useAuth } from '../AuthContext';
+import { useSearchParams } from 'react-router-dom';
+import { Footer } from '../components/Footer';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
-export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 'calendars' | 'discover' | 'settings' }) {
-  const [activeTab, setActiveTab] = useState<'events' | 'calendars' | 'discover' | 'settings'>(initialTab);
+export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 'calendars' | 'discover' | 'settings' | 'admin' }) {
+  const { profile } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<'events' | 'calendars' | 'discover' | 'settings' | 'admin'>(initialTab);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [managingEvent, setManagingEvent] = useState<Event | null>(null);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Check for event ID in URL
+  useEffect(() => {
+    const eventId = searchParams.get('event');
+    if (eventId) {
+      const fetchEvent = async () => {
+        const eventDoc = await getDoc(doc(db, 'events', eventId));
+        if (eventDoc.exists()) {
+          setSelectedEvent({ id: eventDoc.id, ...eventDoc.data() } as Event);
+        }
+        // Clear the param after opening
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete('event');
+        setSearchParams(newParams);
+      };
+      fetchEvent();
+    }
+  }, [searchParams, setSearchParams]);
+
+  // Show onboarding if profile exists but onboarding is not completed
+  useEffect(() => {
+    if (profile && profile.onboardingCompleted === false) {
+      setShowOnboarding(true);
+    }
+  }, [profile]);
 
   const renderContent = () => {
     switch (activeTab) {
       case 'events':
-        return <Dashboard onEventClick={setSelectedEvent} onCreateClick={() => setIsCreateModalOpen(true)} />;
+        return <Dashboard onEventClick={setSelectedEvent} onCreateClick={() => setIsCreateModalOpen(true)} onEditEvent={setEditingEvent} />;
       case 'discover':
-        return <Discover onCreateClick={() => setIsCreateModalOpen(true)} />;
+        return <Discover onCreateClick={() => setIsCreateModalOpen(true)} onEventClick={setSelectedEvent} />;
       case 'calendars':
-        return <Calendars />;
+        return <Calendars onEditEvent={setEditingEvent} />;
       case 'settings':
         return <Settings />;
+      case 'admin':
+        return <AdminDashboard />;
       default:
-        return <Dashboard onEventClick={setSelectedEvent} onCreateClick={() => setIsCreateModalOpen(true)} />;
+        return <Dashboard onEventClick={setSelectedEvent} onCreateClick={() => setIsCreateModalOpen(true)} onEditEvent={setEditingEvent} />;
     }
   };
 
@@ -53,6 +91,7 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
         <main className="flex-1 w-full max-w-[1280px] mx-auto px-6 py-12 md:py-16">
           {renderContent()}
         </main>
+        <Footer />
       </div>
 
       <CommandPalette 
@@ -63,8 +102,14 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
       />
 
       <AnimatePresence>
-        {isCreateModalOpen && (
-          <CreateEvent onClose={() => setIsCreateModalOpen(false)} />
+        {(isCreateModalOpen || editingEvent) && (
+          <CreateEvent 
+            eventToEdit={editingEvent} 
+            onClose={() => {
+              setIsCreateModalOpen(false);
+              setEditingEvent(null);
+            }} 
+          />
         )}
         
         {selectedEvent && (
@@ -72,6 +117,7 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
             event={selectedEvent} 
             onClose={() => setSelectedEvent(null)} 
             onManage={setManagingEvent}
+            onEdit={setEditingEvent}
           />
         )}
 
@@ -80,6 +126,10 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
             event={managingEvent} 
             onClose={() => setManagingEvent(null)} 
           />
+        )}
+
+        {showOnboarding && (
+          <OnboardingWizard onComplete={() => setShowOnboarding(false)} />
         )}
       </AnimatePresence>
     </div>

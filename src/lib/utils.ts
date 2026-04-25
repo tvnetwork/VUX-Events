@@ -5,8 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString('en-US', {
+export function formatDate(dateString: string | undefined | null, options?: Intl.DateTimeFormatOptions) {
+  if (!dateString) return 'TBA';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return 'TBA';
+  
+  return date.toLocaleDateString('en-US', options || {
     weekday: 'short',
     month: 'short',
     day: 'numeric',

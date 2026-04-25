@@ -9,7 +9,7 @@ import { cn } from '../../lib/utils';
 
 export interface ButtonProps extends HTMLMotionProps<"button"> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'glass' | 'outline';
-  size?: 'sm' | 'md' | 'lg' | 'icon';
+  size?: 'sm' | 'md' | 'lg' | 'icon' | 'xs';
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -23,6 +23,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizes = {
+      xs: 'px-2 py-1 text-[10px] rounded-lg',
       sm: 'px-3 py-1.5 text-xs rounded-lg',
       md: 'px-4 py-2 text-sm rounded-xl',
       lg: 'px-6 py-3 text-base rounded-2xl',

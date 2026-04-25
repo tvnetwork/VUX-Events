@@ -30,23 +30,44 @@ export function Terms() {
 
         <div className="space-y-12 bg-white/5 glass p-10 rounded-[2.5rem] border border-white/10">
           <section className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">1. Acceptance of Agreement</h2>
+            <h2 className="text-xl font-bold text-white tracking-tight">1. Acceptance of Terms</h2>
             <p className="text-white/40 leading-relaxed text-sm">
-              By accessing the VUX Events platform, you agree to be bound by these Terms of Service. VUX Events provides a modern infrastructure for community gathering and event management. Your use of the service constitutes a legally binding agreement between you and VUX Events Inc.
+              By accessing or using VUX Events (the "Service"), you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this site.
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">2. User Conduct & Content</h2>
+            <h2 className="text-xl font-bold text-white tracking-tight">2. User Accounts & Responsibilities</h2>
             <p className="text-white/40 leading-relaxed text-sm">
-              Users are solely responsible for the content they publish, including event descriptions, images, and community guidelines. VUX Events reserves the right to remove any content that violates our Community Standards or is deemed harmful to the high-signal nature of our platform.
+              To access certain features, you must register for an account using a valid Google Identity. You are responsible for maintaining the confidentiality of your account and for all activities that occur under your account. You must notify us immediately of any unauthorized use or security breach.
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">3. Payments & Tickets</h2>
+            <h2 className="text-xl font-bold text-white tracking-tight">3. Event Hosting & Content</h2>
             <p className="text-white/40 leading-relaxed text-sm">
-              VUX Events facilitates ticket sales between hosts and guests. While we provide the secure infrastructure for these transactions, VUX Events is not a party to the individual ticket purchase agreements. Fees collected by VUX Events are non-refundable unless otherwise specified in the event-specific policy.
+              When you host an event on VUX, you represent that you have the right to organize and promote such an event. You retain ownership of all content you upload, but grant VUX Events a license to host, display, and promote that content. We reserve the right to remove any event that violates our Community Guidelines, including events promoting illegal activities, hate speech, or harassment.
+            </p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-bold text-white tracking-tight">4. Ticketing & Payments</h2>
+            <p className="text-white/40 leading-relaxed text-sm">
+              VUX Events acts as a platform for event organizers to sell tickets to attendees. All payment processing is handled by third-party secure providers. While we facilitate the transaction, we are not responsible for the fulfillment of the event. Refunds are at the sole discretion of the event organizer unless the event is cancelled and not rescheduled.
+            </p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-bold text-white tracking-tight">5. Limitation of Liability</h2>
+            <p className="text-white/40 leading-relaxed text-sm">
+              In no event shall VUX Events Inc. or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on VUX Events, even if VUX Events or a VUX Events authorized representative has been notified orally or in writing of the possibility of such damage.
+            </p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-bold text-white tracking-tight">6. Governing Law</h2>
+            <p className="text-white/40 leading-relaxed text-sm">
+              These terms and conditions are governed by and construed in accordance with the laws of the jurisdiction in which VUX Events operates and you irrevocably submit to the exclusive jurisdiction of the courts in that State or location.
             </p>
           </section>
         </div>

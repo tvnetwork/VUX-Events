@@ -61,7 +61,7 @@ export function usePasskey() {
     }
   };
 
-  const authenticateWithPasskey = async (email: string, credential: any) => {
+  const authenticateWithPasskey = async (email: string) => {
       setIsAuthenticating(true);
       setError(null);
 
@@ -81,15 +81,14 @@ export function usePasskey() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             email,
-            body: assertionResponse,
-            credential
+            body: assertionResponse
           }),
         });
 
         const verification = await verifyResp.json();
 
         if (!verification.verified) {
-           throw new Error("Verification failed on server");
+           throw new Error(verification.error || "Verification failed on server");
         }
 
         return verification.token;

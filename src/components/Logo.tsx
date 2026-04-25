@@ -22,7 +22,7 @@ export function Logo({ className, showText = true, size = 'md' }: LogoProps) {
       )}>
         <img 
           src={logoUrl} 
-          alt="VUX Events" 
+          alt="Vux Events" 
           className="w-full h-full object-contain p-1"
           referrerPolicy="no-referrer"
         />
