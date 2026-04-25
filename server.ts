@@ -93,26 +93,30 @@ export async function createServer() {
   apiRouter.post('/auth/send-otp', async (req, res) => {
     try {
       const email = req.body?.email;
-      console.log('--- Auth Request ---');
-      console.log('Method: POST, URL: /api/auth/send-otp');
-      console.log('Target Email:', email);
+      const rid = Math.random().toString(36).substring(7);
+      console.log(`[OTP][${rid}] Request for: ${email}`);
 
-      if (!email) return res.status(400).json({ error: 'Email is required' });
+      if (!email) {
+        console.warn(`[OTP][${rid}] Email missing`);
+        return res.status(400).json({ error: 'Email is required' });
+      }
 
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       otpStore.set(email, { code, expires: Date.now() + 10 * 60 * 1000 });
+      console.log(`[OTP][${rid}] Code generated`);
 
       const user = process.env.SMTP_USER || 'vuxevents@gmail.com';
       const pass = process.env.SMTP_PASS;
 
       if (!pass) {
-        console.error('CRITICAL: SMTP_PASS is missing in environment variables. Please add it to Secrets.');
+        console.error(`[OTP][${rid}] SMTP_PASS is missing`);
         return res.status(503).json({ 
-          error: 'Email service is not configured. please add SMTP_PASS to Secrets in the Settings menu.' 
+          error: 'Email service is not configured. please add SMTP_PASS to Secrets.',
+          requestId: rid
         });
       }
 
-      console.log('Configuring SMTP transporter for user:', user);
+      console.log(`[OTP][${rid}] Config host=${process.env.SMTP_HOST || 'smtp.gmail.com'}, user=${user}`);
       const transportConfig = {
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
         port: parseInt(process.env.SMTP_PORT || '587'),
@@ -120,16 +124,12 @@ export async function createServer() {
         auth: { user, pass },
       };
       
-      console.log('Sending email to:', email);
-      console.log('Using SMTP User:', user);
-      
       const transporter = nodemailer.createTransport(transportConfig);
 
-      console.log('Attempting to sendMail...');
-      
+      console.log(`[OTP][${rid}] Attempting sendMail...`);
       const logoUrl = 'https://imgcdn.dev/i/YV1TaK';
 
-      await transporter.sendMail({
+      const info = await transporter.sendMail({
         from: process.env.SMTP_FROM || `"VUX Events" <${user}>`,
         to: email,
         subject: `${code} is your VUX Events verification code`,
@@ -244,11 +244,19 @@ export async function createServer() {
           </html>
         `,
       });
-      console.log('Email sent successfully');
+      console.log(`[OTP] Email sent successfully to ${req.body?.email}`);
       return res.json({ success: true });
     } catch (error: any) {
-      console.error('SMTP Error:', error);
-      return res.status(500).json({ error: error.message || 'Failed to send verification email' });
+      console.error(`[OTP] FATAL ERROR for ${req.body?.email}:`, {
+        message: error.message,
+        stack: error.stack,
+        code: error.code
+      });
+      return res.status(500).json({ 
+        error: 'Failed to send verification code',
+        message: error.message,
+        code: error.code
+      });
     }
   });
   
