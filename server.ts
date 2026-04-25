@@ -91,9 +91,9 @@ export async function createServer() {
   // --- OTP Endpoints (on apiRouter) ---
 
   apiRouter.post('/auth/send-otp', async (req, res) => {
+    const rid = Math.random().toString(36).substring(7);
     try {
       const email = req.body?.email;
-      const rid = Math.random().toString(36).substring(7);
       console.log(`[OTP][${rid}] Request for: ${email}`);
 
       if (!email) {
@@ -244,10 +244,11 @@ export async function createServer() {
           </html>
         `,
       });
-      console.log(`[OTP] Email sent successfully to ${req.body?.email}`);
-      return res.json({ success: true });
+      console.log(`[OTP][${rid}] Email sent successfully to ${email}`);
+      return res.json({ success: true, requestId: rid });
     } catch (error: any) {
-      console.error(`[OTP] FATAL ERROR for ${req.body?.email}:`, {
+      console.error(`[OTP][${rid}] FATAL ERROR:`, {
+        email: req.body?.email,
         message: error.message,
         stack: error.stack,
         code: error.code
@@ -255,7 +256,7 @@ export async function createServer() {
       return res.status(500).json({ 
         error: 'Failed to send verification code',
         message: error.message,
-        code: error.code
+        requestId: rid
       });
     }
   });
@@ -705,9 +706,9 @@ export async function createServer() {
         expectedChallenge,
         expectedOrigin: [...new Set(expectedOrigin)],
         expectedRPID: rpID,
-        credential: {
-          id: passkey.credentialId,
-          publicKey: Buffer.from(passkey.publicKey, 'base64'),
+        authenticator: {
+          credentialID: passkey.credentialId,
+          credentialPublicKey: Buffer.from(passkey.publicKey, 'base64'),
           counter: passkey.counter || 0,
         },
       });

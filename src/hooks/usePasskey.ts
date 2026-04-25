@@ -32,7 +32,7 @@ export function usePasskey() {
       if (options.error) throw new Error(options.error);
 
       // 2. Start browser registration
-      const attestationResponse = await startRegistration({ optionsJSON: options });
+      const attestationResponse = await startRegistration(options);
 
       // 3. Verify on server
       const verifyResp = await fetch('/api/auth/verify-registration', {
@@ -104,7 +104,7 @@ export function usePasskey() {
         if (options.error) throw new Error(options.error);
 
         // 2. Start browser authentication
-        const assertionResponse = await startAuthentication({ optionsJSON: options });
+        const assertionResponse = await startAuthentication(options);
 
         // 3. Verify on server
         const verifyResp = await fetch('/api/auth/verify-authentication', {
