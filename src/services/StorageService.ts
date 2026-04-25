@@ -3,15 +3,20 @@ import { supabase } from '../lib/supabase';
 export class StorageService {
   private static BUCKET_NAME = 'vux-assets';
 
+  /**
+   * Uploads an image to Supabase storage and returns the public URL
+   */
   static async uploadImage(file: File, path: string): Promise<string> {
     if (!supabase.storage) {
-      throw new Error('Supabase Storage is not initialized');
+      throw new Error('Supabase Storage is not initialized properly. Check your environment variables.');
     }
 
     const fileExt = file.name.split('.').pop();
     const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
     const filePath = `${path}/${fileName}`;
 
+    // Note: If you get "new row violates row-level security policy", 
+    // you must add an INSERT policy to your bucket in the Supabase Dashboard.
     const { error: uploadError } = await supabase.storage
       .from(this.BUCKET_NAME)
       .upload(filePath, file, {
@@ -20,7 +25,8 @@ export class StorageService {
       });
 
     if (uploadError) {
-      throw uploadError;
+      console.error('Supabase Upload Error:', uploadError);
+      throw new Error(`Upload failed: ${uploadError.message}`);
     }
 
     const { data } = supabase.storage
