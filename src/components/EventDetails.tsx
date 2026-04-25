@@ -185,12 +185,12 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
 
       <AnimatePresence>
         {showShareDialog && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md overflow-y-auto custom-scrollbar">
              <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-md"
+              className="w-full max-w-md my-auto"
             >
-              <Card className="p-12 border-white/10 bg-[#0b0b0f] space-y-10 rounded-[48px] shadow-[0_0_100px_rgba(0,0,0,0.5)]">
+              <Card className="p-12 border-white/10 bg-[#0b0b0f] space-y-10 rounded-[48px] shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-y-auto max-h-[90vh] custom-scrollbar">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <h3 className="text-3xl font-black italic uppercase tracking-tighter">SHARE EVENT</h3>
