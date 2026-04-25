@@ -28,6 +28,12 @@ async function startServer() {
   app.use(cors());
   app.use(express.json());
   app.use(cookieParser());
+  
+  // Request logger
+  app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+  });
 
   // In-memory store for WebAuthn challenges and OTPs
   const challenges = new Map<string, string>();
@@ -305,6 +311,7 @@ async function startServer() {
   // --- WebAuthn Endpoints ---
 
   app.get('/api/auth/register-options', async (req, res) => {
+    console.log('GET /api/auth/register-options hit', req.query);
     try {
       const { email, displayName } = req.query;
       const hostname = req.hostname;
@@ -372,6 +379,7 @@ async function startServer() {
   });
 
   app.get('/api/auth/login-options', async (req, res) => {
+    console.log('GET /api/auth/login-options hit', req.query);
     try {
       const { email } = req.query;
       const hostname = req.hostname;
@@ -448,6 +456,16 @@ async function startServer() {
       console.error('Passkey Auth Verification Error:', error);
       res.status(400).json({ error: error.message });
     }
+  });
+
+  // Final API fallback to prevent falling through to HTML index for missing API routes
+  app.use('/api', (req, res, next) => {
+    // If we are here, it means no /api route matched above
+    console.log(`[API 404 Fallback] ${req.method} ${req.url}`);
+    res.status(404).json({ 
+      error: 'Not Found', 
+      message: `API endpoint ${req.method} ${req.url} does not exist.` 
+    });
   });
 
   // --- Vite Middleware ---
