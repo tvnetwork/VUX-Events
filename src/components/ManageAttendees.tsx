@@ -9,7 +9,7 @@ import { X, Users, CheckCircle2, XCircle, Search, Mail, Loader2, QrCode, Filter,
 import { db } from '../lib/firebase';
 import { collection, query, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { RSVP, Event } from '../types';
-import { cn } from '../lib/utils';
+import { cn, getAvatarUrl } from '../lib/utils';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
 import { Avatar } from './ui/Avatar';
@@ -161,7 +161,7 @@ export function ManageAttendees({ event, onClose }: { event: Event, onClose: () 
                     <div className="flex items-center gap-5 w-full sm:w-auto">
                       <Avatar 
                         src={rsvp.userPhotoURL} 
-                        fallback={`https://api.dicebear.com/7.x/fun-emoji/svg?seed=${rsvp.userId}&backgroundColor=c084fc`}
+                        fallback={getAvatarUrl(rsvp.userId)}
                         size="xl"
                         className="w-14 h-14"
                       />

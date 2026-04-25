@@ -11,6 +11,7 @@ import { Button } from './ui/Button';
 import { Avatar } from './ui/Avatar';
 import { cn } from '../lib/utils';
 import { Logo } from './Logo';
+import { getAvatarUrl } from '../lib/utils';
 
 export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, onLoginClick }: { 
   activeTab: string; 
@@ -97,7 +98,7 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
                   </div>
                   <div className="relative">
                       <Avatar 
-                        src={profile?.photoURL || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${profile?.uid}&backgroundColor=c084fc`} 
+                        src={profile?.photoURL || getAvatarUrl(profile?.uid)} 
                         size="md"
                         className="ring-2 ring-white/5 group-hover:ring-purple-500/50 transition-all duration-300"
                       />

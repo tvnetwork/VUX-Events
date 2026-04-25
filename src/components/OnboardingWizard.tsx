@@ -13,7 +13,7 @@ import { Switch } from './ui/Switch';
 import { useAuth } from '../AuthContext';
 import { db } from '../lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-import { cn } from '../lib/utils';
+import { cn, getAvatarUrl } from '../lib/utils';
 
 export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
   const { user, profile } = useAuth();
@@ -118,7 +118,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                     <div className="flex items-center gap-6">
                         <div className="relative group">
                             <div className="w-20 h-20 rounded-full glass border border-white/10 overflow-hidden ring-4 ring-white/5">
-                                <img src={`https://api.dicebear.com/7.x/fun-emoji/svg?seed=${user?.uid}&backgroundColor=c084fc`} className="w-full h-full object-cover" />
+                                <img src={getAvatarUrl(user?.uid)} className="w-full h-full object-cover" />
                             </div>
                             <button className="absolute -bottom-1 -right-1 p-2 bg-white text-black rounded-full shadow-lg">
                                 <Camera className="w-3 h-3" />

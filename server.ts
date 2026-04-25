@@ -39,6 +39,15 @@ async function startServer() {
   const challenges = new Map<string, string>();
   const otpStore = new Map<string, { code: string; expires: number }>();
 
+  // Use a router for all API routes to ensure they are handled as a group
+  const apiRouter = express.Router();
+
+  // Request logger for API specifically
+  apiRouter.use((req, res, next) => {
+    console.log(`[API Request] ${req.method} ${req.url}`);
+    next();
+  });
+
   // Initialize Firebase Admin
   if (admin.apps.length === 0) {
     const saVar = process.env.FIREBASE_SERVICE_ACCOUNT;
@@ -69,14 +78,12 @@ async function startServer() {
     return hostname;
   };
 
-  // API routes FIRST
-  app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString(), env: process.env.NODE_ENV });
-  });
+  // Register the API router
+  app.use('/api', apiRouter);
 
-  // --- OTP Endpoints ---
+  // --- OTP Endpoints (on apiRouter) ---
 
-  app.post('/api/auth/send-otp', async (req, res) => {
+  apiRouter.post('/auth/send-otp', async (req, res) => {
     try {
       console.log('--- Auth Request ---');
       console.log('Method: POST, URL: /api/auth/send-otp');
@@ -235,15 +242,27 @@ async function startServer() {
     }
   });
   
-  app.post('/api/email/welcome', async (req, res) => {
+  apiRouter.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString(), env: process.env.NODE_ENV });
+  });
+
+  apiRouter.post('/email/welcome', async (req, res) => {
     try {
       const { email, displayName } = req.body;
       if (!email) return res.status(400).json({ error: 'Email is required' });
 
+      console.log(`[SMTP] Sending welcome email to: ${email}`);
+
+      const welcomes = ['👋', '🎉', '🚀', '🌟', '💎', '🤘', '🎈'];
+      const randomWelcome = welcomes[Math.floor(Math.random() * welcomes.length)];
+
       const userSmtp = process.env.SMTP_USER || 'coolshotsystemsofficial@gmail.com';
       const pass = process.env.SMTP_PASS;
 
-      if (!pass) return res.status(503).json({ error: 'SMTP_PASS not configured' });
+      if (!pass) {
+        console.error('[SMTP] ERROR: SMTP_PASS not configured');
+        return res.status(503).json({ error: 'SMTP_PASS not configured' });
+      }
 
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -253,43 +272,53 @@ async function startServer() {
       });
 
       const logoUrl = 'https://imgcdn.dev/i/YV1TaK';
+      const htmlContent = `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0f; color: white; padding: 40px; border-radius: 24px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <img src="${logoUrl}" width="80" height="80" style="border-radius: 20px;" />
+            <h1 style="font-style: italic; text-transform: uppercase;">VUX Events</h1>
+          </div>
+          <h2>Welcome aboard! ${randomWelcome}</h2>
+          <p>Hi ${displayName || 'Explorer'}, we're thrilled to have you in the VUX ecosystem.</p>
+          <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; margin: 20px 0;">
+            <p>Explore the network, connect with creators, and secure your spot at the most exclusive gatherings.</p>
+          </div>
+          <p style="color: #a855f7;">See you at the next pulse.</p>
+        </div>
+      `;
 
       await transporter.sendMail({
         from: process.env.SMTP_FROM || `"VUX Events" <${userSmtp}>`,
         to: email,
-        subject: `Welcome to VUX Events, ${displayName || 'Explorer'}!`,
-        html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0f; color: white; padding: 40px; border-radius: 24px;">
-            <div style="text-align: center; margin-bottom: 30px;">
-              <img src="${logoUrl}" width="80" height="80" style="border-radius: 20px;" />
-              <h1 style="font-style: italic; text-transform: uppercase;">VUX Events</h1>
-            </div>
-            <h2>Welcome aboard!</h2>
-            <p>We're thrilled to have you in the VUX ecosystem. Get ready to discover and host immersive events like never before.</p>
-            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; margin: 20px 0;">
-              <p>Explore the network, connect with creators, and secure your spot at the most exclusive gatherings.</p>
-            </div>
-            <p style="color: #a855f7;">See you at the next pulse.</p>
-          </div>
-        `
+        subject: `${randomWelcome} Welcome to VUX Events, ${displayName || 'Explorer'}!`,
+        html: htmlContent
       });
 
+      console.log('[SMTP] Welcome email sent successfully');
       res.json({ success: true });
     } catch (error: any) {
-      console.error('Welcome Email Error:', error);
+      console.error('[SMTP] Welcome Email Error:', error);
       res.status(500).json({ error: error.message });
     }
   });
 
-  app.post('/api/email/rsvp-confirmation', async (req, res) => {
+  apiRouter.post('/email/rsvp-confirmation', async (req, res) => {
     try {
       const { email, displayName, eventTitle, eventDate, eventLocation, rsvpId } = req.body;
       if (!email || !eventTitle) return res.status(400).json({ error: 'Missing required fields' });
 
+      console.log(`[SMTP] Sending ticket email to: ${email} for ${eventTitle}`);
+
+      const tickets = ['🎟️', '🎫', '✨', '⚡', '🔥', '🎭', '🎬'];
+      const randomTicket = tickets[Math.floor(Math.random() * tickets.length)];
+
       const userSmtp = process.env.SMTP_USER || 'coolshotsystemsofficial@gmail.com';
       const pass = process.env.SMTP_PASS;
 
-      if (!pass) return res.status(503).json({ error: 'SMTP_PASS not configured' });
+      if (!pass) {
+        console.error('[SMTP] ERROR: SMTP_PASS not configured');
+        return res.status(503).json({ error: 'SMTP_PASS not configured' });
+      }
 
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -299,62 +328,72 @@ async function startServer() {
       });
 
       const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${rsvpId}&color=a855f7&bgcolor=0b0b0f`;
+      const htmlContent = `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0f; color: white; padding: 40px; border-radius: 48px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
+          <div style="margin-bottom: 30px;">
+              <p style="font-[10px] font-bold uppercase tracking-[0.3em] text-purple-400">RSVP CONFIRMED ${randomTicket}</p>
+              <h1 style="font-style: italic; text-transform: uppercase; font-size: 32px; margin: 10px 0;">${eventTitle}</h1>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1); border-radius: 32px; padding: 30px; margin-bottom: 30px;">
+              <img src="${qrUrl}" width="150" height="150" style="margin-bottom: 20px; border-radius: 12px; border: 4px solid rgba(168, 85, 247, 0.2);" />
+              <p style="font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 5px;">TICKET ID</p>
+              <code style="font-size: 14px; color: #a855f7;">${rsvpId}</code>
+          </div>
+
+          <div style="text-align: left; padding: 0 20px;">
+              <p style="font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 20px;">Hi ${displayName || 'Guest'}, you're all set! Present this ticket at the entrance.</p>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                  <div>
+                      <p style="font-size: 10px; color: rgba(255,255,255,0.3); font-weight: bold; text-transform: uppercase;">DATE</p>
+                      <p style="font-size: 14px; color: white;">${eventDate}</p>
+                  </div>
+                  <div>
+                      <p style="font-size: 10px; color: rgba(255,255,255,0.3); font-weight: bold; text-transform: uppercase;">LOCATION</p>
+                      <p style="font-size: 14px; color: white;">${eventLocation}</p>
+                  </div>
+              </div>
+          </div>
+
+          <p style="font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+              Operated by VUX Network. Digital Ticket #VUX-${Math.floor(Math.random()*100000)}
+          </p>
+        </div>
+      `;
 
       await transporter.sendMail({
         from: process.env.SMTP_FROM || `"VUX Events" <${userSmtp}>`,
         to: email,
-        subject: `🎟️ Your Ticket: ${eventTitle}`,
-        html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0f; color: white; padding: 40px; border-radius: 48px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
-            <div style="margin-bottom: 30px;">
-                <p style="font-[10px] font-bold uppercase tracking-[0.3em] text-purple-400">RSVP CONFIRMED</p>
-                <h1 style="font-style: italic; text-transform: uppercase; font-size: 32px; margin: 10px 0;">${eventTitle}</h1>
-            </div>
-
-            <div style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1); border-radius: 32px; padding: 30px; margin-bottom: 30px;">
-                <img src="${qrUrl}" width="150" height="150" style="margin-bottom: 20px; border-radius: 12px; border: 4px solid rgba(168, 85, 247, 0.2);" />
-                <p style="font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 5px;">TICKET ID</p>
-                <code style="font-size: 14px; color: #a855f7;">${rsvpId}</code>
-            </div>
-
-            <div style="text-align: left; padding: 0 20px;">
-                <p style="font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 20px;">Hi ${displayName || 'Guest'}, you're all set! Present this ticket at the entrance.</p>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-                    <div>
-                        <p style="font-size: 10px; color: rgba(255,255,255,0.3); font-weight: bold; text-transform: uppercase;">DATE</p>
-                        <p style="font-size: 14px; color: white;">${eventDate}</p>
-                    </div>
-                    <div>
-                        <p style="font-size: 10px; color: rgba(255,255,255,0.3); font-weight: bold; text-transform: uppercase;">LOCATION</p>
-                        <p style="font-size: 14px; color: white;">${eventLocation}</p>
-                    </div>
-                </div>
-            </div>
-
-            <p style="font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
-                Operated by VUX Network. Digital Ticket #VUX-${Math.floor(Math.random()*100000)}
-            </p>
-          </div>
-        `
+        subject: `${randomTicket} Your Ticket: ${eventTitle}`,
+        html: htmlContent
       });
 
+      console.log('[SMTP] Ticket email sent successfully');
       res.json({ success: true });
     } catch (error: any) {
-      console.error('RSVP Email Error:', error);
+      console.error('[SMTP] Ticket Email Error:', error);
       res.status(500).json({ error: error.message });
     }
   });
 
-  app.post('/api/email/login-notification', async (req, res) => {
+  apiRouter.post('/email/login-notification', async (req, res) => {
     try {
       const { email, displayName, timestamp } = req.body;
       if (!email) return res.status(400).json({ error: 'Email is required' });
 
+      console.log(`[SMTP] Sending login notification to: ${email}`);
+
+      const alerts = ['🔒', '🛡️', '⚠️', '🚨', '👤', '🔐', '🤫'];
+      const randomAlert = alerts[Math.floor(Math.random() * alerts.length)];
+
       const userSmtp = process.env.SMTP_USER || 'coolshotsystemsofficial@gmail.com';
       const pass = process.env.SMTP_PASS;
 
-      if (!pass) return res.status(503).json({ error: 'SMTP_PASS not configured' });
+      if (!pass) {
+        console.error('[SMTP] ERROR: SMTP_PASS not configured');
+        return res.status(503).json({ error: 'SMTP_PASS not configured' });
+      }
 
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -366,10 +405,10 @@ async function startServer() {
       await transporter.sendMail({
         from: process.env.SMTP_FROM || `"VUX Security" <${userSmtp}>`,
         to: email,
-        subject: `New Login Detected - VUX Events`,
+        subject: `${randomAlert} New Login Detected - VUX Events`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0f; color: white; padding: 40px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1);">
-            <h2 style="color: #a855f7;">New Login Logged</h2>
+            <h2 style="color: #a855f7;">New Login Logged ${randomAlert}</h2>
             <p>Hi ${displayName || 'User'},</p>
             <p>A new login was detected for your VUX Events account.</p>
             <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin: 20px 0;">
@@ -381,14 +420,15 @@ async function startServer() {
         `
       });
 
+      console.log('[SMTP] Login notification sent successfully');
       res.json({ success: true });
     } catch (error: any) {
-      console.error('Login Email Error:', error);
+      console.error('[SMTP] Login Email Error:', error);
       res.status(500).json({ error: error.message });
     }
   });
 
-  app.post('/api/admin/broadcast', async (req, res) => {
+  apiRouter.post('/admin/broadcast', async (req, res) => {
     try {
       const { recipients, subject, body } = req.body;
       
@@ -396,10 +436,13 @@ async function startServer() {
         return res.status(400).json({ error: 'Recipients list is required' });
       }
 
+      console.log(`[SMTP] Starting broadcast to ${recipients.length} recipients...`);
+
       const user = process.env.SMTP_USER || 'coolshotsystemsofficial@gmail.com';
       const pass = process.env.SMTP_PASS;
 
       if (!pass) {
+        console.error('[SMTP] ERROR: SMTP_PASS is not configured');
         return res.status(503).json({ error: 'SMTP_PASS is not configured' });
       }
 
@@ -412,10 +455,7 @@ async function startServer() {
       
       const transporter = nodemailer.createTransport(transportConfig);
 
-      console.log(`Starting broadcast to ${recipients.length} recipients...`);
-
       const results = [];
-      // We send emails in chunks or sequential for simplicity here
       for (const email of recipients) {
         try {
           await transporter.sendMail({
@@ -426,19 +466,20 @@ async function startServer() {
           });
           results.push({ email, status: 'sent' });
         } catch (err: any) {
-          console.error(`Failed to send to ${email}:`, err);
+          console.error(`[SMTP] Failed to send to ${email}:`, err);
           results.push({ email, status: 'failed', error: err.message });
         }
       }
 
+      console.log(`[SMTP] Broadcast complete. Success: ${results.filter(r => r.status === 'sent').length}, Failed: ${results.filter(r => r.status === 'failed').length}`);
       return res.json({ success: true, count: recipients.length, results });
     } catch (error: any) {
-      console.error('Broadcast Error:', error);
+      console.error('[SMTP] Broadcast Error:', error);
       return res.status(500).json({ error: error.message || 'Broadcast failed' });
     }
   });
 
-  app.post('/api/auth/verify-otp', async (req, res) => {
+  apiRouter.post('/auth/verify-otp', async (req, res) => {
     try {
       const { email, code } = req.body;
       const stored = otpStore.get(email);
@@ -461,9 +502,9 @@ async function startServer() {
 
   const origin = process.env.APP_URL || `http://localhost:${PORT}`;
 
-  // --- WebAuthn Endpoints ---
+  // --- WebAuthn Endpoints (on apiRouter) ---
 
-  app.get('/api/auth/register-options', async (req, res) => {
+  apiRouter.get('/auth/register-options', async (req, res) => {
     console.log('GET /api/auth/register-options hit', req.query);
     try {
       const { email, displayName } = req.query;
@@ -496,7 +537,7 @@ async function startServer() {
     }
   });
 
-  app.post('/api/auth/verify-registration', async (req, res) => {
+  apiRouter.post('/auth/verify-registration', async (req, res) => {
     const { email, body } = req.body;
     const hostname = req.hostname;
     const rpID = getRpID(hostname);
@@ -549,7 +590,7 @@ async function startServer() {
     }
   });
 
-  app.get('/api/auth/login-options', async (req, res) => {
+  apiRouter.get('/auth/login-options', async (req, res) => {
     console.log('GET /api/auth/login-options hit', req.query);
     try {
       const { email } = req.query;
@@ -571,7 +612,7 @@ async function startServer() {
     }
   });
 
-  app.post('/api/auth/verify-authentication', async (req, res) => {
+  apiRouter.post('/auth/verify-authentication', async (req, res) => {
     const { email, body } = req.body;
     const hostname = req.hostname;
     const rpID = getRpID(hostname);
@@ -664,13 +705,12 @@ async function startServer() {
     }
   });
 
-  // Final API fallback to prevent falling through to HTML index for missing API routes
-  app.use('/api', (req, res, next) => {
-    // If we are here, it means no /api route matched above
-    console.log(`[API 404 Fallback] ${req.method} ${req.url}`);
+  // API 404 handler for any unmatched routes inside the apiRouter
+  apiRouter.use((req, res) => {
+    console.log(`[API 404] ${req.method} ${req.url}`);
     res.status(404).json({ 
       error: 'Not Found', 
-      message: `API endpoint ${req.method} ${req.url} does not exist.` 
+      message: `API endpoint ${req.method} ${req.originalUrl} does not exist.` 
     });
   });
 

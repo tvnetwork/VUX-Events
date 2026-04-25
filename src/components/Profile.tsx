@@ -9,6 +9,7 @@ import { X, User as UserIcon, Mail, Info, Loader2, Save, Camera } from 'lucide-r
 import { useAuth } from '../AuthContext';
 import { db } from '../lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
+import { getAvatarUrl } from '../lib/utils';
 
 export function Profile({ onClose }: { onClose: () => void }) {
   const { profile, user } = useAuth();
@@ -59,7 +60,7 @@ export function Profile({ onClose }: { onClose: () => void }) {
           <div className="text-center space-y-4">
             <div className="relative inline-block">
               <img 
-                src={formData.photoURL || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${profile?.uid}&backgroundColor=c084fc`} 
+                src={formData.photoURL || getAvatarUrl(profile?.uid)} 
                 className="w-24 h-24 rounded-full border-4 border-white/10 mx-auto" 
               />
               <button className="absolute bottom-0 right-0 p-2 bg-white rounded-full text-slate-900 border-4 border-slate-950">

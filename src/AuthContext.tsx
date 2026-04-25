@@ -17,6 +17,7 @@ import { auth, db } from './lib/firebase';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp, arrayUnion } from 'firebase/firestore';
 import { UserProfile, Passkey } from './types';
 import { PulseService } from './services/PulseService';
+import { getAvatarUrl } from './lib/utils';
 
 interface AuthContextType {
   user: User | null;
@@ -124,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               uid: user.uid,
               email: user.email || (user.uid.includes('@') ? user.uid : ''),
               displayName: user.displayName || 'Guest',
-              photoURL: user.photoURL || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${user.uid}&backgroundColor=c084fc`,
+              photoURL: user.photoURL || getAvatarUrl(user.uid),
               createdAt: new Date().toISOString(),
               onboardingCompleted: false,
             };

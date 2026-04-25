@@ -10,7 +10,7 @@ import { db } from '../lib/firebase';
 import { doc, getDoc, setDoc, query, collection, where, onSnapshot, serverTimestamp, deleteDoc } from 'firebase/firestore';
 import { useAuth } from '../AuthContext';
 import { Event, RSVP } from '../types';
-import { formatDate, cn } from '../lib/utils';
+import { formatDate, cn, getAvatarUrl } from '../lib/utils';
 import ReactMarkdown from 'react-markdown';
 import { VUXQRCode } from './VUXQRCode';
 import { Button } from './ui/Button';
@@ -81,7 +81,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
         userId: isGuest ? rsvpId : user!.uid,
         userEmail: isGuest ? guestInfo.email : user!.email || '',
         userDisplayName: isGuest ? guestInfo.name : profile!.displayName,
-        userPhotoURL: isGuest ? `https://api.dicebear.com/7.x/initials/svg?seed=${guestInfo.name}` : profile!.photoURL,
+        userPhotoURL: isGuest ? getAvatarUrl(guestInfo.email) : profile!.photoURL,
         status: event.isApprovalRequired ? 'pending' : 'approved',
         customFields: { ...customFields },
         createdAt: new Date().toISOString(),
@@ -546,7 +546,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
 
                 <Card className="p-8 border-white/5 bg-white/[0.01] rounded-[40px] flex items-center gap-6 group hover:bg-white/[0.02] transition-all">
                     <div className="w-16 h-16 rounded-[2rem] bg-white/[0.03] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-purple-500/20 transition-all duration-700 shadow-inner">
-                        <Avatar src={`https://api.dicebear.com/7.x/fun-emoji/svg?seed=${event.hostId}&backgroundColor=transparent`} size="md" />
+                        <Avatar src={getAvatarUrl(event.hostId)} size="md" />
                     </div>
                     <div className="min-w-0 space-y-1">
                         <p className="text-[10px] uppercase font-black tracking-widest text-white/20 leading-none">EVENT HOST</p>

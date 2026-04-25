@@ -14,7 +14,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Avatar, AvatarStack } from '../components/ui/Avatar';
 import { Badge } from '../components/ui/Badge';
-import { formatDate, cn } from '../lib/utils';
+import { formatDate, cn, getAvatarUrl } from '../lib/utils';
 import { PixelAssembly } from '../components/effects/PixelAssembly';
 
 function StatItem({ label, value, icon }: { label: string, value: string | number, icon: React.ReactNode }) {
@@ -126,7 +126,7 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
                 <div className="hidden sm:flex -space-x-4">
                     {[1, 2, 3, 4].map(i => (
                         <div key={i} className="w-14 h-14 rounded-full border-4 border-black overflow-hidden bg-white/5 ring-1 ring-white/10">
-                            <img src={`https://api.dicebear.com/7.x/fun-emoji/svg?seed=${i + featuredEvent.hostId}&backgroundColor=transparent`} className="w-full h-full" />
+                            <img src={getAvatarUrl(i + featuredEvent.hostId)} className="w-full h-full" />
                         </div>
                     ))}
                 </div>
@@ -399,7 +399,7 @@ function TimelineItem({ event, onClick, onEdit, isManageMode }: { event: Event, 
                                     key={i} 
                                     size="md" 
                                     src={a.userPhotoURL} 
-                                    fallback={`https://api.dicebear.com/7.x/fun-emoji/svg?seed=${a.userId}&backgroundColor=transparent`} 
+                                    fallback={getAvatarUrl(a.userId)} 
                                     className="border-4 border-[#0b0b0f] shadow-lg"
                                 />
                             ))}

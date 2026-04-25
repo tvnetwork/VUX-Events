@@ -11,7 +11,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Switch } from '../components/ui/Switch';
 import { useAuth } from '../AuthContext';
-import { cn } from '../lib/utils';
+import { cn, getAvatarUrl } from '../lib/utils';
 import { updateDoc, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { VUXQRCode } from '../components/VUXQRCode';
@@ -173,7 +173,7 @@ export function Settings() {
                       <div className="relative group">
                          <div className="w-32 h-32 rounded-[3rem] overflow-hidden border-2 border-white/5 group-hover:border-purple-500/50 transition-all duration-700">
                              <img 
-                                src={formData.photoURL || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${profile?.uid}&backgroundColor=transparent`} 
+                                src={formData.photoURL || getAvatarUrl(profile?.uid)} 
                                 className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000"
                              />
                          </div>
