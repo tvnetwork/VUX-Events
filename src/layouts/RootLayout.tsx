@@ -86,6 +86,7 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
           onTabChange={setActiveTab} 
           onSearchClick={() => setIsCommandPaletteOpen(true)}
           onCreateClick={() => setIsCreateModalOpen(true)}
+          onLoginClick={() => {}}
         />
         
         <main className="flex-1 w-full max-w-[1280px] mx-auto px-6 py-12 md:py-16">

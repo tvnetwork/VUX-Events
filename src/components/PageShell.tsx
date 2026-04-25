@@ -28,16 +28,13 @@ export function PageShell({ children }: PageShellProps) {
     <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-[#0b0b0f] via-[#1a1023] to-[#0b0b0f]">
       <WatermarkBackground />
       <div className="relative z-10 flex flex-col min-h-screen">
-        {user ? (
-          <Navbar 
-            activeTab="" 
-            onTabChange={handleTabChange}
-            onSearchClick={() => navigate('/')}
-            onCreateClick={() => navigate('/')}
-          />
-        ) : (
-          <LandingNavbar onAuthClick={() => setIsAuthOpen(true)} />
-        )}
+        <Navbar 
+          activeTab="" 
+          onTabChange={handleTabChange}
+          onSearchClick={() => navigate('/')}
+          onCreateClick={() => user ? navigate('/') : setIsAuthOpen(true)}
+          onLoginClick={() => setIsAuthOpen(true)}
+        />
         
         <main className="flex-1">
           {children}

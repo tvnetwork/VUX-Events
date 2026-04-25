@@ -58,6 +58,7 @@ export interface Event {
   coverImageUrl: string;
   status: 'draft' | 'published' | 'completed' | 'cancelled';
   isApprovalRequired: boolean;
+  registrationFields?: { label: string; type: 'text' | 'email' | 'longtext'; required: boolean }[];
   capacity?: number;
   ticketTypes?: TicketType[];
   createdAt: string;
@@ -72,6 +73,7 @@ export interface RSVP {
   userDisplayName: string;
   userPhotoURL?: string;
   status: 'pending' | 'approved' | 'declined';
+  customFields?: Record<string, string>;
   checkedIn?: boolean;
   ticketType?: string;
   createdAt: string;

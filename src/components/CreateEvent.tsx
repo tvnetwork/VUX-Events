@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Loader2, Plus, Check, ArrowRight, Calendar as CalendarIcon, Clock, MapPin, Globe2, Info, Image as ImageIcon } from 'lucide-react';
+import { X, Loader2, Plus, Check, ArrowRight, Calendar as CalendarIcon, Clock, MapPin, Globe2, Info, Image as ImageIcon, Trash2, ListChecks } from 'lucide-react';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../AuthContext';
@@ -31,6 +31,7 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
     category: 'Workshop',
     visibility: 'public',
     capacity: 50,
+    registrationFields: [],
     coverImageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2670&auto=format&fit=crop',
   });
 
@@ -78,7 +79,7 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
     }
   };
 
-  const totalSteps = 3;
+  const totalSteps = 4;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -108,7 +109,8 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                 {[
                   { step: 1, label: 'Details' },
                   { step: 2, label: 'Location' },
-                  { step: 3, label: 'Preview' }
+                  { step: 3, label: 'Form' },
+                  { step: 4, label: 'Preview' }
                 ].map((s) => (
                   <div key={s.step} className="flex items-center gap-4">
                     <div className={cn(
@@ -281,6 +283,95 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                 {step === 3 && (
                   <motion.div
                     key="step3"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-10"
+                  >
+                     <div className="space-y-2">
+                        <h3 className="text-3xl font-bold tracking-tighter">REGISTRATION FORM</h3>
+                        <p className="text-white/40 text-sm">Add custom fields you want attendees to fill out.</p>
+                     </div>
+
+                     <div className="space-y-6">
+                        <div className="space-y-4">
+                           {formData.registrationFields?.map((field, idx) => (
+                              <div key={idx} className="flex gap-4 p-6 rounded-2xl bg-white/[0.03] border border-white/5 items-start">
+                                 <div className="flex-1 space-y-4">
+                                    <Input 
+                                      value={field.label}
+                                      onChange={(e) => {
+                                        const newFields = [...(formData.registrationFields || [])];
+                                        newFields[idx].label = e.target.value;
+                                        setFormData({...formData, registrationFields: newFields});
+                                      }}
+                                      placeholder="Field Label (e.g., Job Title)"
+                                      className="bg-transparent border-white/10 h-12"
+                                    />
+                                    <div className="flex gap-4">
+                                      <select 
+                                        value={field.type}
+                                        onChange={(e) => {
+                                          const newFields = [...(formData.registrationFields || [])];
+                                          newFields[idx].type = e.target.value as any;
+                                          setFormData({...formData, registrationFields: newFields});
+                                        }}
+                                        className="bg-white/5 border border-white/10 rounded-xl h-10 px-3 text-[10px] font-bold uppercase tracking-widest focus:outline-none"
+                                      >
+                                        <option value="text">Text</option>
+                                        <option value="email">Email</option>
+                                        <option value="longtext">Long Text</option>
+                                      </select>
+                                      <label className="flex items-center gap-2 cursor-pointer">
+                                        <input 
+                                          type="checkbox"
+                                          checked={field.required}
+                                          onChange={(e) => {
+                                            const newFields = [...(formData.registrationFields || [])];
+                                            newFields[idx].required = e.target.checked;
+                                            setFormData({...formData, registrationFields: newFields});
+                                          }}
+                                          className="w-4 h-4 rounded border-white/10 bg-white/5"
+                                        />
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Required</span>
+                                      </label>
+                                    </div>
+                                 </div>
+                                 <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={() => {
+                                      const newFields = (formData.registrationFields || []).filter((_, i) => i !== idx);
+                                      setFormData({...formData, registrationFields: newFields});
+                                    }}
+                                    className="text-white/20 hover:text-red-400"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                 </Button>
+                              </div>
+                           ))}
+                        </div>
+
+                        <Button 
+                          variant="outline" 
+                          onClick={() => {
+                            setFormData({
+                              ...formData, 
+                              registrationFields: [...(formData.registrationFields || []), { label: '', type: 'text', required: false }]
+                            });
+                          }}
+                          className="w-full h-16 rounded-2xl border-dashed border-white/10 hover:border-purple-500/50 gap-3"
+                        >
+                          <Plus className="w-5 h-5 text-purple-500" />
+                          <span className="text-[10px] font-black uppercase tracking-widest">Add Custom Field</span>
+                        </Button>
+                     </div>
+                  </motion.div>
+                )}
+
+                {step === 4 && (
+                  <motion.div
+                    key="step4"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}

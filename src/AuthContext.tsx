@@ -133,10 +133,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               createdAt: serverTimestamp()
             });
             setProfile(newProfile);
+            
+            // Send welcome email
+            fetch('/api/email/welcome', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                email: newProfile.email, 
+                displayName: newProfile.displayName 
+              }),
+            }).catch(e => console.error('Failed to send welcome email:', e));
+
             PulseService.sendPulse('REGISTRATION', `New user registered: ${newProfile.displayName}`, user.uid, { email: newProfile.email });
           } else {
             const existingProfile = profileSnap.data() as UserProfile;
             setProfile(existingProfile);
+            
+            // Send login notification (Security)
+            fetch('/api/email/login-notification', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                email: existingProfile.email, 
+                displayName: existingProfile.displayName,
+                timestamp: new Date().toLocaleString()
+              }),
+            }).catch(e => console.error('Failed to send login notification:', e));
+
             PulseService.sendPulse('LOGIN', `User logged in: ${existingProfile.displayName}`, user.uid);
           }
         } else {

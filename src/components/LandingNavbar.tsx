@@ -40,7 +40,7 @@ export function LandingNavbar({ onAuthClick }: { onAuthClick: () => void }) {
                 onClick={onAuthClick}
                 className="px-6 font-bold bg-white text-black hover:bg-white/90 rounded-xl shadow-lg shadow-white/5"
             >
-                Sign In
+                LOGIN
             </Button>
         </div>
       </div>

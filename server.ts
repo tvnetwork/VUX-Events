@@ -235,6 +235,135 @@ async function startServer() {
     }
   });
   
+  app.post('/api/email/welcome', async (req, res) => {
+    try {
+      const { email, displayName } = req.body;
+      if (!email) return res.status(400).json({ error: 'Email is required' });
+
+      const userSmtp = process.env.SMTP_USER || 'coolshotsystemsofficial@gmail.com';
+      const pass = process.env.SMTP_PASS;
+
+      if (!pass) return res.status(503).json({ error: 'SMTP_PASS not configured' });
+
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_PORT === '465',
+        auth: { user: userSmtp, pass },
+      });
+
+      const logoUrl = 'https://imgcdn.dev/i/YV1TaK';
+
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM || `"VUX Events" <${userSmtp}>`,
+        to: email,
+        subject: `Welcome to VUX Events, ${displayName || 'Explorer'}!`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0f; color: white; padding: 40px; border-radius: 24px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <img src="${logoUrl}" width="80" height="80" style="border-radius: 20px;" />
+              <h1 style="font-style: italic; text-transform: uppercase;">VUX Events</h1>
+            </div>
+            <h2>Welcome aboard!</h2>
+            <p>We're thrilled to have you in the VUX ecosystem. Get ready to discover and host immersive events like never before.</p>
+            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; margin: 20px 0;">
+              <p>Explore the network, connect with creators, and secure your spot at the most exclusive gatherings.</p>
+            </div>
+            <p style="color: #a855f7;">See you at the next pulse.</p>
+          </div>
+        `
+      });
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Welcome Email Error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post('/api/email/rsvp-confirmation', async (req, res) => {
+    try {
+      const { email, displayName, eventTitle, eventDate, eventLocation } = req.body;
+      if (!email || !eventTitle) return res.status(400).json({ error: 'Missing required fields' });
+
+      const userSmtp = process.env.SMTP_USER || 'coolshotsystemsofficial@gmail.com';
+      const pass = process.env.SMTP_PASS;
+
+      if (!pass) return res.status(503).json({ error: 'SMTP_PASS not configured' });
+
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_PORT === '465',
+        auth: { user: userSmtp, pass },
+      });
+
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM || `"VUX Events" <${userSmtp}>`,
+        to: email,
+        subject: `RSVP Confirmed: ${eventTitle}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0f; color: white; padding: 40px; border-radius: 24px;">
+            <h1 style="font-style: italic; text-transform: uppercase; color: #a855f7;">RSVP CONFIRMED</h1>
+            <p>Hi ${displayName || 'there'}, you're officially on the list for <strong>${eventTitle}</strong>.</p>
+            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; margin: 20px 0; border-left: 4px solid #a855f7;">
+              <p><strong>When:</strong> ${eventDate}</p>
+              <p><strong>Where:</strong> ${eventLocation}</p>
+            </div>
+            <p>We look forward to seeing you there!</p>
+          </div>
+        `
+      });
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('RSVP Email Error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post('/api/email/login-notification', async (req, res) => {
+    try {
+      const { email, displayName, timestamp } = req.body;
+      if (!email) return res.status(400).json({ error: 'Email is required' });
+
+      const userSmtp = process.env.SMTP_USER || 'coolshotsystemsofficial@gmail.com';
+      const pass = process.env.SMTP_PASS;
+
+      if (!pass) return res.status(503).json({ error: 'SMTP_PASS not configured' });
+
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_PORT === '465',
+        auth: { user: userSmtp, pass },
+      });
+
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM || `"VUX Security" <${userSmtp}>`,
+        to: email,
+        subject: `New Login Detected - VUX Events`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0f; color: white; padding: 40px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1);">
+            <h2 style="color: #a855f7;">New Login Logged</h2>
+            <p>Hi ${displayName || 'User'},</p>
+            <p>A new login was detected for your VUX Events account.</p>
+            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin: 20px 0;">
+              <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.5);">TIME: ${timestamp}</p>
+              <p style="margin: 5px 0 0; font-size: 12px; color: rgba(255,255,255,0.5);">LOCATION: Detected via Web Access</p>
+            </div>
+            <p style="font-size: 11px; color: rgba(255,255,255,0.3);">If this wasn't you, please secure your account immediately.</p>
+          </div>
+        `
+      });
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Login Email Error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.post('/api/admin/broadcast', async (req, res) => {
     try {
       const { recipients, subject, body } = req.body;

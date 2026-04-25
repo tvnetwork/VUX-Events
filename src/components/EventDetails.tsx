@@ -28,6 +28,9 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
   const [userRSVP, setUserRSVP] = useState<RSVP | null>(null);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showGuestForm, setShowGuestForm] = useState(false);
+  const [guestInfo, setGuestInfo] = useState({ name: '', email: '' });
+  const [customFields, setCustomFields] = useState<Record<string, string>>({});
 
   const shareUrl = `${window.location.origin}/discover?event=${event.id}`;
 
@@ -42,9 +45,18 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const rsvpList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as RSVP));
       setRsvps(rsvpList);
+      
+      // If we have a user, find their RSVP
       if (user) {
         const found = rsvpList.find(r => r.userId === user.uid);
         setUserRSVP(found || null);
+      } else {
+        // If guest, try to find by email in localStorage if we previously RSVP'd as guest
+        const guestEmail = localStorage.getItem(`guest_rsvp_${event.id}`);
+        if (guestEmail) {
+          const found = rsvpList.find(r => r.userEmail === guestEmail);
+          setUserRSVP(found || null);
+        }
       }
     }, (error) => {
       console.error('EventDetails onSnapshot error:', error);
@@ -53,27 +65,52 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
     return unsubscribe;
   }, [event.id, user]);
 
-  const handleRSVP = async () => {
-    if (!user || !profile || !event) return;
+  const handleRSVP = async (isGuest = false) => {
+    if (!event) return;
+    if (!isGuest && (!user || !profile)) {
+      setShowGuestForm(true);
+      return;
+    }
+
     setIsRSVPLoading(true);
     try {
-      const rsvpId = user.uid;
+      const rsvpId = isGuest ? `guest_${Date.now()}` : user!.uid;
       const rsvpData: RSVP = {
         id: rsvpId,
         eventId: event.id,
-        userId: user.uid,
-        userEmail: user.email || '',
-        userDisplayName: profile.displayName,
-        userPhotoURL: profile.photoURL,
+        userId: isGuest ? rsvpId : user!.uid,
+        userEmail: isGuest ? guestInfo.email : user!.email || '',
+        userDisplayName: isGuest ? guestInfo.name : profile!.displayName,
+        userPhotoURL: isGuest ? `https://api.dicebear.com/7.x/initials/svg?seed=${guestInfo.name}` : profile!.photoURL,
         status: event.isApprovalRequired ? 'pending' : 'approved',
+        customFields: { ...customFields },
         createdAt: new Date().toISOString(),
       };
+      
       await setDoc(doc(db, 'events', event.id, 'rsvps', rsvpId), {
         ...rsvpData,
         createdAt: serverTimestamp()
       });
 
-      PulseService.sendPulse('RSVP', `${profile.displayName} RSVP'd to ${event.title}`, user.uid, { eventId: event.id, eventTitle: event.title });
+      if (isGuest) {
+        localStorage.setItem(`guest_rsvp_${event.id}`, guestInfo.email);
+        setShowGuestForm(false);
+      }
+
+      // Send RSVP confirmation email
+      fetch('/api/email/rsvp-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: rsvpData.userEmail,
+          displayName: rsvpData.userDisplayName,
+          eventTitle: event.title,
+          eventDate: formatDate(event.date, { month: 'long', day: 'numeric', year: 'numeric' }),
+          eventLocation: event.location
+        }),
+      }).catch(e => console.error('Failed to send RSVP email:', e));
+
+      PulseService.sendPulse('RSVP', `${rsvpData.userDisplayName} RSVP'd to ${event.title}`, rsvpData.userId, { eventId: event.id, eventTitle: event.title, isGuest });
 
       confetti({
         particleCount: 200,
@@ -159,6 +196,108 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                       {copied ? <CheckCircle2 className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
                     </Button>
                 </div>
+              </Card>
+            </motion.div>
+          </div>
+        )}
+
+        {showGuestForm && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-2xl"
+            >
+              <Card className="p-12 border-white/10 bg-[#0b0b0f] space-y-10 rounded-[48px] shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-y-auto max-h-[90vh] custom-scrollbar">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <h3 className="text-3xl font-black italic uppercase tracking-tighter">REGISTRATION</h3>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Complete your entry details</p>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => setShowGuestForm(false)} className="w-12 h-12 rounded-2xl">
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleRSVP(!user);
+                  }}
+                  className="space-y-10"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {!user && (
+                      <>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-white/20 ml-2">Full Name</label>
+                          <input
+                            required
+                            type="text"
+                            value={guestInfo.name}
+                            onChange={(e) => setGuestInfo(prev => ({ ...prev, name: e.target.value }))}
+                            className="w-full h-14 bg-white/[0.03] border border-white/10 rounded-2xl px-6 text-white text-sm focus:outline-none focus:border-purple-500/50 transition-colors"
+                            placeholder="Enter your name"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-white/20 ml-2">Email Address</label>
+                          <input
+                            required
+                            type="email"
+                            value={guestInfo.email}
+                            onChange={(e) => setGuestInfo(prev => ({ ...prev, email: e.target.value }))}
+                            className="w-full h-14 bg-white/[0.03] border border-white/10 rounded-2xl px-6 text-white text-sm focus:outline-none focus:border-purple-500/50 transition-colors"
+                            placeholder="your@email.com"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {event.registrationFields && event.registrationFields.length > 0 && (
+                    <div className="space-y-8 pt-6 border-t border-white/5">
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-purple-400">Additional Information</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {event.registrationFields.map((field, idx) => (
+                          <div key={idx} className={cn("space-y-2", field.type === 'longtext' ? "md:col-span-2" : "")}>
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-white/20 ml-2">
+                              {field.label} {field.required && <span className="text-pink-500 font-black">*</span>}
+                            </label>
+                            {field.type === 'longtext' ? (
+                              <textarea
+                                required={field.required}
+                                value={customFields[field.label] || ''}
+                                onChange={(e) => setCustomFields(prev => ({ ...prev, [field.label]: e.target.value }))}
+                                className="w-full h-32 bg-white/[0.03] border border-white/10 rounded-2xl p-6 text-white text-sm focus:outline-none focus:border-purple-500/50 transition-colors resize-none"
+                                placeholder={`Enter ${field.label.toLowerCase()}`}
+                              />
+                            ) : (
+                              <input
+                                required={field.required}
+                                type={field.type}
+                                value={customFields[field.label] || ''}
+                                onChange={(e) => setCustomFields(prev => ({ ...prev, [field.label]: e.target.value }))}
+                                className="w-full h-14 bg-white/[0.03] border border-white/10 rounded-2xl px-6 text-white text-sm focus:outline-none focus:border-purple-500/50 transition-colors"
+                                placeholder={`Enter ${field.label.toLowerCase()}`}
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <Button 
+                    type="submit"
+                    disabled={isRSVPLoading}
+                    className="w-full h-20 rounded-[32px] bg-purple-600 hover:bg-purple-500 text-sm font-black italic uppercase tracking-[0.2em] shadow-2xl shadow-purple-500/20"
+                  >
+                    {isRSVPLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : "COMPLETE RSVP"}
+                  </Button>
+                </form>
               </Card>
             </motion.div>
           </div>
@@ -312,13 +451,26 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                                         {userRSVP.status === 'approved' ? "You are going to this event." : "Wait for host approval."}
                                     </p>
                                 </div>
+                                {userRSVP.customFields && Object.keys(userRSVP.customFields).length > 0 && (
+                                  <div className="w-full space-y-4 pt-6 border-t border-white/5 text-left">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/20">Your Registration Info</p>
+                                    <div className="space-y-3">
+                                      {Object.entries(userRSVP.customFields).map(([label, value]) => (
+                                        <div key={label} className="space-y-1">
+                                          <p className="text-[8px] font-black uppercase text-white/40 tracking-wider">{label}</p>
+                                          <p className="text-xs text-white/80 font-medium break-words">{value}</p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                                 {userRSVP.status === 'approved' && (
                                     <AddToCalendar event={event} className="w-full pt-8 border-t border-white/5" />
                                 )}
                             </div>
                         ) : (
                             <Button 
-                                onClick={handleRSVP} 
+                                onClick={() => handleRSVP()} 
                                 disabled={isRSVPLoading}
                                 className="w-full h-20 rounded-[32px] text-xl font-black italic uppercase tracking-tighter shadow-2xl shadow-purple-500/20 group/reg bg-purple-600 hover:bg-purple-500"
                             >

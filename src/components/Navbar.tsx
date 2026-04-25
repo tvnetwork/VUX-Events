@@ -12,11 +12,12 @@ import { Avatar } from './ui/Avatar';
 import { cn } from '../lib/utils';
 import { Logo } from './Logo';
 
-export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick }: { 
+export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, onLoginClick }: { 
   activeTab: string; 
   onTabChange: (tab: any) => void;
   onSearchClick: () => void;
   onCreateClick: () => void;
+  onLoginClick?: () => void;
 }) {
   const { profile, logout } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -84,76 +85,89 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick }:
           </Button>
 
           <div className="relative pl-2 sm:pl-4 border-l border-white/5 h-10 flex items-center">
-            <button 
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="focus:outline-none transition-transform active:scale-95 flex items-center gap-3 group"
-            >
-              <div className="hidden xl:block text-right">
-                  <p className="text-xs font-bold leading-none mb-1 group-hover:text-purple-300 transition-colors">{profile?.displayName?.split(' ')[0]}</p>
-                  <p className="text-[10px] font-bold text-white/20 tracking-widest leading-none">VERIFIED</p>
-              </div>
-              <div className="relative">
-                  <Avatar 
-                    src={profile?.photoURL || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${profile?.uid}&backgroundColor=c084fc`} 
-                    size="md"
-                    className="ring-2 ring-white/5 group-hover:ring-purple-500/50 transition-all duration-300"
-                  />
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-[#0b0b0f] rounded-full" />
-              </div>
-            </button>
+            {profile ? (
+              <>
+                <button 
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  className="focus:outline-none transition-transform active:scale-95 flex items-center gap-3 group"
+                >
+                  <div className="hidden xl:block text-right">
+                      <p className="text-xs font-bold leading-none mb-1 group-hover:text-purple-300 transition-colors">{profile?.displayName?.split(' ')[0]}</p>
+                      <p className="text-[10px] font-bold text-white/20 tracking-widest leading-none">VERIFIED</p>
+                  </div>
+                  <div className="relative">
+                      <Avatar 
+                        src={profile?.photoURL || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${profile?.uid}&backgroundColor=c084fc`} 
+                        size="md"
+                        className="ring-2 ring-white/5 group-hover:ring-purple-500/50 transition-all duration-300"
+                      />
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-[#0b0b0f] rounded-full" />
+                  </div>
+                </button>
 
-            <AnimatePresence>
-              {showProfileMenu && (
-                <>
-                  <div className="fixed inset-0" onClick={() => setShowProfileMenu(false)} />
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute right-0 mt-3 w-56 glass border border-white/10 rounded-2xl p-2 shadow-2xl overflow-hidden"
-                  >
-                    <div className="px-3 py-2 mb-2 border-b border-white/5">
-                      <p className="text-sm font-bold truncate">{profile?.displayName}</p>
-                      <p className="text-xs text-white/40 truncate">{profile?.email}</p>
-                    </div>
-                    
-                    <button 
-                      onClick={() => { onTabChange('settings'); setShowProfileMenu(false); }}
-                      className="w-full flex items-center gap-3 p-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
-                    >
-                      <User className="w-4 h-4" />
-                      <span>Profile</span>
-                    </button>
-                    
-                    <button 
-                      onClick={() => { onTabChange('settings'); setShowProfileMenu(false); }}
-                      className="w-full flex items-center gap-3 p-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
-                    >
-                      <SettingsIcon className="w-4 h-4" />
-                      <span>Settings</span>
-                    </button>
-                    
-                    {isAdmin && (
-                      <button 
-                        onClick={() => { onTabChange('admin'); setShowProfileMenu(false); }}
-                        className="w-full flex items-center gap-3 p-2 text-sm text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-xl transition-colors mt-1 border-t border-white/5"
+                <AnimatePresence>
+                  {showProfileMenu && (
+                    <>
+                      <div className="fixed inset-0" onClick={() => setShowProfileMenu(false)} />
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute right-0 mt-3 w-56 glass border border-white/10 rounded-2xl p-2 shadow-2xl overflow-hidden"
                       >
-                        <Shield className="w-4 h-4" />
-                        <span>Admin Station</span>
-                      </button>
-                    )}
-                    
-                    <button 
-                      onClick={() => { logout(); setShowProfileMenu(false); }}
-                      className="w-full flex items-center gap-3 p-2 text-sm text-pink-400 hover:bg-pink-500/5 rounded-xl transition-colors mt-1"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span>Sign Out</span>
-                    </button>
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
+                        <div className="px-3 py-2 mb-2 border-b border-white/5">
+                          <p className="text-sm font-bold truncate">{profile?.displayName}</p>
+                          <p className="text-xs text-white/40 truncate">{profile?.email}</p>
+                        </div>
+                        
+                        <button 
+                          onClick={() => { onTabChange('settings'); setShowProfileMenu(false); }}
+                          className="w-full flex items-center gap-3 p-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                        >
+                          <User className="w-4 h-4" />
+                          <span>Profile</span>
+                        </button>
+                        
+                        <button 
+                          onClick={() => { onTabChange('settings'); setShowProfileMenu(false); }}
+                          className="w-full flex items-center gap-3 p-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                        >
+                          <SettingsIcon className="w-4 h-4" />
+                          <span>Settings</span>
+                        </button>
+                        
+                        {isAdmin && (
+                          <button 
+                            onClick={() => { onTabChange('admin'); setShowProfileMenu(false); }}
+                            className="w-full flex items-center gap-3 p-2 text-sm text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-xl transition-colors mt-1 border-t border-white/5"
+                          >
+                            <Shield className="w-4 h-4" />
+                            <span>Admin Station</span>
+                          </button>
+                        )}
+                        
+                        <button 
+                          onClick={() => { logout(); setShowProfileMenu(false); }}
+                          className="w-full flex items-center gap-3 p-2 text-sm text-pink-400 hover:bg-pink-500/5 rounded-xl transition-colors mt-1"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>Sign Out</span>
+                        </button>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </>
+            ) : (
+              <Button 
+                variant="primary" 
+                size="sm" 
+                onClick={onLoginClick} 
+                className="h-10 rounded-xl px-6 text-xs font-bold shadow-lg shadow-purple-500/10"
+              >
+                LOGIN
+              </Button>
+            )}
           </div>
         </div>
       </div>
