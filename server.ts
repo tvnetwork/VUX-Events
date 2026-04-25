@@ -73,8 +73,16 @@ async function startServer() {
   }
 
   const getRpID = (hostname: string) => {
-    if (hostname.includes('vuxevents.zone.id')) return 'vuxevents.zone.id';
-    if (hostname.includes('firebaseapp.com')) return 'ultra-badge-470321-a1.firebaseapp.com';
+    // Dynamic RpID extraction - use the base domain
+    const parts = hostname.split('.');
+    if (parts.length >= 2) {
+      // If it's a subdomain or www, take the last two parts (e.g. vuxevents.zone.id)
+      // Special case for triple-part domains like .name.ng or .zone.id
+      if (hostname.endsWith('.name.ng') || hostname.endsWith('.zone.id') || hostname.endsWith('.id.au')) {
+         return parts.slice(-3).join('.');
+      }
+      return parts.slice(-2).join('.');
+    }
     return hostname;
   };
 

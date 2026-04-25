@@ -1,5 +1,5 @@
 import { cn } from '../lib/utils';
-import logoUrl from '../assets/logo.jpg';
+const logoUrl = 'https://imgcdn.dev/i/YV1TaK';
 
 interface LogoProps {
   className?: string;
@@ -23,8 +23,12 @@ export function Logo({ className, showText = true, size = 'md' }: LogoProps) {
         <img 
           src={logoUrl} 
           alt="Vux Events" 
-          className="w-full h-full object-contain p-1"
+          className="w-full h-full object-cover p-1"
           referrerPolicy="no-referrer"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = '/assets/logo.jpg'; // Fallback to local
+          }}
         />
       </div>
       {showText && (
