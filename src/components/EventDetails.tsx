@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Calendar, MapPin, Users, CheckCircle2, Loader2, ChevronLeft, Share2, Heart, Clock, Ticket, Copy, QrCode, Globe, Info, Zap, ArrowRight, ShieldCheck, Share, Ghost } from 'lucide-react';
 import { db } from '../lib/firebase';
-import { doc, getDoc, setDoc, query, collection, where, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, query, collection, where, onSnapshot, serverTimestamp, deleteDoc } from 'firebase/firestore';
 import { useAuth } from '../AuthContext';
 import { Event, RSVP } from '../types';
 import { formatDate, cn } from '../lib/utils';
@@ -106,7 +106,8 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
           displayName: rsvpData.userDisplayName,
           eventTitle: event.title,
           eventDate: formatDate(event.date, { month: 'long', day: 'numeric', year: 'numeric' }),
-          eventLocation: event.location
+          eventLocation: event.location,
+          rsvpId: rsvpData.id
         }),
       }).catch(e => console.error('Failed to send RSVP email:', e));
 
@@ -120,6 +121,28 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
       });
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsRSVPLoading(false);
+    }
+  };
+
+  const handleCancelRSVP = async () => {
+    if (!userRSVP || !event) return;
+    
+    setIsRSVPLoading(true);
+    try {
+      await deleteDoc(doc(db, 'events', event.id, 'rsvps', userRSVP.id));
+      setUserRSVP(null);
+      
+      // Clear localStorage if guest
+      if (!user) {
+        const guestEmail = localStorage.getItem(`guest_rsvp_${event.id}`);
+        if (guestEmail) localStorage.removeItem(`guest_rsvp_${event.id}`);
+      }
+      
+      PulseService.sendPulse('CANCEL_RSVP', `${userRSVP.userDisplayName} cancelled RSVP for ${event.title}`, userRSVP.userId, { eventId: event.id });
+    } catch (error) {
+      console.error('Cancel RSVP Error:', error);
     } finally {
       setIsRSVPLoading(false);
     }
@@ -467,6 +490,16 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                                 {userRSVP.status === 'approved' && (
                                     <AddToCalendar event={event} className="w-full pt-8 border-t border-white/5" />
                                 )}
+                                
+                                <Button 
+                                  variant="ghost" 
+                                  onClick={handleCancelRSVP}
+                                  disabled={isRSVPLoading}
+                                  className="mt-4 text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-red-400 transition-colors gap-2"
+                                >
+                                  {isRSVPLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />}
+                                  CANCEL RSVP
+                                </Button>
                             </div>
                         ) : (
                             <Button 

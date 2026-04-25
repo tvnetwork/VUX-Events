@@ -7,6 +7,7 @@ export interface Passkey {
   credentialId: string;
   publicKey: string;
   name: string;
+  counter: number;
   createdAt: string;
 }
 

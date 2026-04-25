@@ -283,7 +283,7 @@ async function startServer() {
 
   app.post('/api/email/rsvp-confirmation', async (req, res) => {
     try {
-      const { email, displayName, eventTitle, eventDate, eventLocation } = req.body;
+      const { email, displayName, eventTitle, eventDate, eventLocation, rsvpId } = req.body;
       if (!email || !eventTitle) return res.status(400).json({ error: 'Missing required fields' });
 
       const userSmtp = process.env.SMTP_USER || 'coolshotsystemsofficial@gmail.com';
@@ -298,19 +298,43 @@ async function startServer() {
         auth: { user: userSmtp, pass },
       });
 
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${rsvpId}&color=a855f7&bgcolor=0b0b0f`;
+
       await transporter.sendMail({
         from: process.env.SMTP_FROM || `"VUX Events" <${userSmtp}>`,
         to: email,
-        subject: `RSVP Confirmed: ${eventTitle}`,
+        subject: `🎟️ Your Ticket: ${eventTitle}`,
         html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0f; color: white; padding: 40px; border-radius: 24px;">
-            <h1 style="font-style: italic; text-transform: uppercase; color: #a855f7;">RSVP CONFIRMED</h1>
-            <p>Hi ${displayName || 'there'}, you're officially on the list for <strong>${eventTitle}</strong>.</p>
-            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; margin: 20px 0; border-left: 4px solid #a855f7;">
-              <p><strong>When:</strong> ${eventDate}</p>
-              <p><strong>Where:</strong> ${eventLocation}</p>
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0f; color: white; padding: 40px; border-radius: 48px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
+            <div style="margin-bottom: 30px;">
+                <p style="font-[10px] font-bold uppercase tracking-[0.3em] text-purple-400">RSVP CONFIRMED</p>
+                <h1 style="font-style: italic; text-transform: uppercase; font-size: 32px; margin: 10px 0;">${eventTitle}</h1>
             </div>
-            <p>We look forward to seeing you there!</p>
+
+            <div style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1); border-radius: 32px; padding: 30px; margin-bottom: 30px;">
+                <img src="${qrUrl}" width="150" height="150" style="margin-bottom: 20px; border-radius: 12px; border: 4px solid rgba(168, 85, 247, 0.2);" />
+                <p style="font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 5px;">TICKET ID</p>
+                <code style="font-size: 14px; color: #a855f7;">${rsvpId}</code>
+            </div>
+
+            <div style="text-align: left; padding: 0 20px;">
+                <p style="font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 20px;">Hi ${displayName || 'Guest'}, you're all set! Present this ticket at the entrance.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                    <div>
+                        <p style="font-size: 10px; color: rgba(255,255,255,0.3); font-weight: bold; text-transform: uppercase;">DATE</p>
+                        <p style="font-size: 14px; color: white;">${eventDate}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 10px; color: rgba(255,255,255,0.3); font-weight: bold; text-transform: uppercase;">LOCATION</p>
+                        <p style="font-size: 14px; color: white;">${eventLocation}</p>
+                    </div>
+                </div>
+            </div>
+
+            <p style="font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+                Operated by VUX Network. Digital Ticket #VUX-${Math.floor(Math.random()*100000)}
+            </p>
           </div>
         `
       });
@@ -487,11 +511,29 @@ async function startServer() {
       const protocol = req.headers['x-forwarded-proto'] || req.protocol;
       const host = req.get('host');
       const origin = `${protocol}://${host}`;
+      const headerOrigin = req.get('origin');
+      const referer = req.get('referer');
+      
+      const expectedOrigin = [origin, `http://${host}`, `https://${host}`];
+      if (headerOrigin) expectedOrigin.push(headerOrigin);
+      if (referer) {
+        try {
+          const refUrl = new URL(referer);
+          expectedOrigin.push(refUrl.origin);
+        } catch (e) {}
+      }
+
+      console.log('Verifying registration with:', { 
+        rpID, 
+        expectedOrigin: [...new Set(expectedOrigin)],
+        actualOrigin: origin,
+        host
+      });
 
       const verification = await verifyRegistrationResponse({
         response: body as RegistrationResponseJSON,
         expectedChallenge,
-        expectedOrigin: [origin, `http://${host}`, `https://${host}`],
+        expectedOrigin: [...new Set(expectedOrigin)],
         expectedRPID: rpID,
       });
 
@@ -541,27 +583,49 @@ async function startServer() {
     }
 
     try {
-      // Fetch user profile from Firestore to get their stored passkey
+      // Fetch user profile from Firestore to get their stored passkeys
       const profileSnap = await admin.firestore().collection('users').doc(email).get();
       if (!profileSnap.exists) {
         throw new Error('User not found');
       }
 
       const userData = profileSnap.data();
-      const passkey = userData?.passkeys?.[0]; // Get the first passkey
+      const passkeys = userData?.passkeys || [];
+
+      // Find the specific passkey being used
+      const passkey = passkeys.find((k: any) => k.credentialId === body.id);
 
       if (!passkey) {
-        throw new Error('No passkey found for this account');
+        throw new Error('Passkey not recognized for this account');
       }
 
       const protocol = req.headers['x-forwarded-proto'] || req.protocol;
       const host = req.get('host');
       const origin = `${protocol}://${host}`;
+      const headerOrigin = req.get('origin');
+      const referer = req.get('referer');
+      
+      const expectedOrigin = [origin, `http://${host}`, `https://${host}`];
+      if (headerOrigin) expectedOrigin.push(headerOrigin);
+      if (referer) {
+        try {
+          const refUrl = new URL(referer);
+          expectedOrigin.push(refUrl.origin);
+        } catch (e) {}
+      }
+
+      console.log('Verifying authentication with:', { 
+        rpID, 
+        expectedOrigin: [...new Set(expectedOrigin)],
+        actualOrigin: origin,
+        host,
+        email
+      });
 
       const verification = await verifyAuthenticationResponse({
         response: body as AuthenticationResponseJSON,
         expectedChallenge,
-        expectedOrigin: [origin, `http://${host}`, `https://${host}`],
+        expectedOrigin: [...new Set(expectedOrigin)],
         expectedRPID: rpID,
         credential: {
           id: passkey.credentialId,
@@ -572,6 +636,19 @@ async function startServer() {
 
       if (verification.verified) {
         challenges.delete(key);
+
+        // Update the counter in Firestore
+        const updatedPasskeys = passkeys.map((k: any) => {
+          if (k.credentialId === body.id) {
+            return { ...k, counter: verification.authenticationInfo.newCounter };
+          }
+          return k;
+        });
+
+        await admin.firestore().collection('users').doc(email).update({
+          passkeys: updatedPasskeys
+        });
+
         // Generate custom token for Firebase login
         const customToken = await admin.auth().createCustomToken(email, {
           email: email,

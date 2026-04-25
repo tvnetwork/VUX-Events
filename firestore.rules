@@ -52,8 +52,7 @@ service cloud.firestore {
       match /rsvps/{rsvpId} {
         allow read: if true;
         allow create: if true; // Allow guest RSVPs
-        allow update: if isSignedIn() && (request.auth.uid == rsvpId || request.auth.token.email == resource.data.userEmail);
-        allow delete: if isSignedIn() && (request.auth.uid == rsvpId || request.auth.token.email == resource.data.userEmail);
+        allow update, delete: if isSignedIn() && (request.auth.uid == rsvpId || request.auth.token.email == resource.data.userEmail);
       }
     }
   }

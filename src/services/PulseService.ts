@@ -6,7 +6,7 @@
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
-export type PulseType = 'REGISTRATION' | 'RSVP' | 'EVENT_CREATED' | 'EVENT_UPDATED' | 'PROFILE_UPDATED' | 'LOGIN';
+export type PulseType = 'REGISTRATION' | 'RSVP' | 'CANCEL_RSVP' | 'EVENT_CREATED' | 'EVENT_UPDATED' | 'PROFILE_UPDATED' | 'LOGIN';
 
 export const PulseService = {
   async sendPulse(type: PulseType, message: string, userId: string, metadata?: any) {

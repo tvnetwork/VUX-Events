@@ -64,6 +64,7 @@ export function usePasskey() {
       return {
         credentialId: attestationResponse.id,
         publicKey: btoa(String.fromCharCode(...new Uint8Array(verification.registrationInfo.credentialPublicKey))),
+        counter: verification.registrationInfo.counter || 0,
         name: navigator.userAgent.includes("Mac") ? "MacPasskey" : "MobilePasskey",
         createdAt: new Date().toISOString()
       };
