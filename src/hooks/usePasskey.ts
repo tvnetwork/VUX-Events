@@ -16,7 +16,17 @@ export function usePasskey() {
 
     try {
       // 1. Get registration options from server
-      const resp = await fetch(`/api/auth/register-options?email=${encodeURIComponent(userEmail)}&displayName=${encodeURIComponent(displayName)}`);
+      const resp = await fetch(`/api/auth/register-options?email=${encodeURIComponent(userEmail)}&displayName=${encodeURIComponent(displayName)}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      
+      const contentType = resp.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await resp.text();
+        console.error('Expected JSON but got:', text.substring(0, 500));
+        throw new Error(`Server returned non-JSON response (${resp.status}). Please check server logs.`);
+      }
+      
       const options = await resp.json();
 
       if (options.error) throw new Error(options.error);
@@ -27,12 +37,22 @@ export function usePasskey() {
       // 3. Verify on server
       const verifyResp = await fetch('/api/auth/verify-registration', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({
           email: userEmail,
           body: attestationResponse
         }),
       });
+
+      const verifyContentType = verifyResp.headers.get('content-type');
+      if (!verifyContentType || !verifyContentType.includes('application/json')) {
+        const text = await verifyResp.text();
+        console.error('Expected JSON but got:', text.substring(0, 500));
+        throw new Error(`Server verification non-JSON response (${verifyResp.status})`);
+      }
 
       const verification = await verifyResp.json();
 
@@ -67,7 +87,17 @@ export function usePasskey() {
 
       try {
         // 1. Get auth options from server
-        const resp = await fetch(`/api/auth/login-options?email=${encodeURIComponent(email)}`);
+        const resp = await fetch(`/api/auth/login-options?email=${encodeURIComponent(email)}`, {
+          headers: { 'Accept': 'application/json' }
+        });
+        
+        const contentType = resp.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await resp.text();
+          console.error('Expected JSON but got:', text.substring(0, 500));
+          throw new Error(`Server returned non-JSON response (${resp.status})`);
+        }
+        
         const options = await resp.json();
 
         if (options.error) throw new Error(options.error);
@@ -78,12 +108,22 @@ export function usePasskey() {
         // 3. Verify on server
         const verifyResp = await fetch('/api/auth/verify-authentication', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
           body: JSON.stringify({
             email,
             body: assertionResponse
           }),
         });
+
+        const verifyContentType = verifyResp.headers.get('content-type');
+        if (!verifyContentType || !verifyContentType.includes('application/json')) {
+          const text = await verifyResp.text();
+          console.error('Expected JSON but got:', text.substring(0, 500));
+          throw new Error(`Server verification non-JSON response (${verifyResp.status})`);
+        }
 
         const verification = await verifyResp.json();
 

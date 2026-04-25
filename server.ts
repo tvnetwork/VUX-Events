@@ -305,30 +305,35 @@ async function startServer() {
   // --- WebAuthn Endpoints ---
 
   app.get('/api/auth/register-options', async (req, res) => {
-    const { email, displayName } = req.query;
-    const hostname = req.hostname;
-    const rpID = getRpID(hostname);
+    try {
+      const { email, displayName } = req.query;
+      const hostname = req.hostname;
+      const rpID = getRpID(hostname);
 
-    if (!email) {
-       return res.status(400).json({ error: 'Email is required' });
+      if (!email) {
+         return res.status(400).json({ error: 'Email is required' });
+      }
+
+      const options = await generateRegistrationOptions({
+        rpName: 'VUX Events',
+        rpID,
+        userID: Buffer.from(email as string),
+        userName: email as string,
+        userDisplayName: (displayName as string) || (email as string),
+        attestationType: 'none',
+        authenticatorSelection: {
+          residentKey: 'preferred',
+          userVerification: 'preferred',
+          authenticatorAttachment: 'platform'
+        },
+      });
+
+      challenges.set(`reg_${email}`, options.challenge);
+      res.json(options);
+    } catch (error: any) {
+      console.error('Register Options Error:', error);
+      res.status(500).json({ error: error.message });
     }
-
-    const options = await generateRegistrationOptions({
-      rpName: 'VUX Events',
-      rpID,
-      userID: Buffer.from(email as string),
-      userName: email as string,
-      userDisplayName: (displayName as string) || (email as string),
-      attestationType: 'none',
-      authenticatorSelection: {
-        residentKey: 'preferred',
-        userVerification: 'preferred',
-        authenticatorAttachment: 'platform'
-      },
-    });
-
-    challenges.set(`reg_${email}`, options.challenge);
-    res.json(options);
   });
 
   app.post('/api/auth/verify-registration', async (req, res) => {
@@ -342,10 +347,15 @@ async function startServer() {
     }
 
     try {
+      // Get the origin dynamically, supporting both http and https (useful for proxies)
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+      const host = req.get('host');
+      const origin = `${protocol}://${host}`;
+
       const verification = await verifyRegistrationResponse({
         response: body as RegistrationResponseJSON,
         expectedChallenge,
-        expectedOrigin: [`${req.protocol}://${req.get('host')}`],
+        expectedOrigin: [origin, `http://${host}`, `https://${host}`],
         expectedRPID: rpID,
       });
 
@@ -356,25 +366,30 @@ async function startServer() {
         res.status(400).json({ error: 'Verification failed' });
       }
     } catch (error: any) {
-      console.error(error);
+      console.error('Verify Registration Error:', error);
       res.status(400).json({ error: error.message });
     }
   });
 
   app.get('/api/auth/login-options', async (req, res) => {
-    const { email } = req.query;
-    const hostname = req.hostname;
-    const rpID = getRpID(hostname);
+    try {
+      const { email } = req.query;
+      const hostname = req.hostname;
+      const rpID = getRpID(hostname);
 
-    const options = await generateAuthenticationOptions({
-      rpID,
-      userVerification: 'preferred',
-    });
+      const options = await generateAuthenticationOptions({
+        rpID,
+        userVerification: 'preferred',
+      });
 
-    // We store the challenge by email if provided, or a generic one if not (autofill support)
-    const key = email ? `auth_${email}` : 'auth_generic';
-    challenges.set(key, options.challenge);
-    res.json(options);
+      // We store the challenge by email if provided, or a generic one if not (autofill support)
+      const key = email ? `auth_${email as string}` : 'auth_generic';
+      challenges.set(key, options.challenge);
+      res.json(options);
+    } catch (error: any) {
+      console.error('Login Options Error:', error);
+      res.status(500).json({ error: error.message });
+    }
   });
 
   app.post('/api/auth/verify-authentication', async (req, res) => {
@@ -402,10 +417,14 @@ async function startServer() {
         throw new Error('No passkey found for this account');
       }
 
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+      const host = req.get('host');
+      const origin = `${protocol}://${host}`;
+
       const verification = await verifyAuthenticationResponse({
         response: body as AuthenticationResponseJSON,
         expectedChallenge,
-        expectedOrigin: [`${req.protocol}://${req.get('host')}`, `https://${req.get('host')}`],
+        expectedOrigin: [origin, `http://${host}`, `https://${host}`],
         expectedRPID: rpID,
         credential: {
           id: passkey.credentialId,
