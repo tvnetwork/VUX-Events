@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User, Settings as SettingsIcon, CreditCard, ChevronRight, Globe, Twitter, Instagram, Link as LinkIcon, Camera, Bell, Shield, Calendar, Mail, Smartphone, Globe2, Check, ArrowRight, Info, ShieldCheck, Box, QrCode } from 'lucide-react';
+import { User, Settings as SettingsIcon, CreditCard, ChevronRight, Globe, X, Share2, Link as LinkIcon, Camera, Bell, Shield, Calendar, Mail, Smartphone, Globe2, Check, ArrowRight, Info, ShieldCheck, Box, QrCode } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -283,8 +283,8 @@ export function Settings() {
                     </div>
                     <Card className="p-8 space-y-6 border-white/5 bg-white/[0.01] rounded-[40px]">
                         {[
-                            { icon: <Twitter className="w-4 h-4" />, label: 'X (Twitter)' },
-                            { icon: <Instagram className="w-4 h-4" />, label: 'Instagram' },
+                            { icon: <X className="w-4 h-4" />, label: 'X (Twitter)' },
+                            { icon: <Share2 className="w-4 h-4" />, label: 'Instagram' },
                             { icon: <Globe2 className="w-4 h-4" />, label: 'Portfolio' },
                         ].map((soc, i) => (
                             <div key={i} className="space-y-3">

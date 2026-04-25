@@ -56,6 +56,14 @@ export async function createServer() {
   app.use(express.json());
   app.use(cookieParser());
 
+  // Request logger for debugging path issues on Vercel
+  app.use((req, res, next) => {
+    if (process.env.VERCEL) {
+      console.log(`[Express Debug] ${req.method} ${req.url} (mount: ${req.baseUrl}, original: ${req.originalUrl})`);
+    }
+    next();
+  });
+
   // In-memory store for WebAuthn challenges and OTPs
   const challenges = new Map<string, string>();
   const otpStore = new Map<string, { code: string; expires: number }>();
@@ -63,8 +71,6 @@ export async function createServer() {
   // Use a router for all API routes to ensure they are handled as a group
   const apiRouter = express.Router();
   
-  // Request logger removed to reduce clutter as requested by user
-
   const getRpID = (hostname: string) => {
     // Dynamic RpID extraction - use the base domain
     const parts = hostname.split('.');
@@ -118,16 +124,6 @@ export async function createServer() {
       console.log('Using SMTP User:', user);
       
       const transporter = nodemailer.createTransport(transportConfig);
-
-      // Verify connection configuration
-      try {
-        console.log('Verifying SMTP connection...');
-        await transporter.verify();
-        console.log('SMTP connection verified.');
-      } catch (verifyError: any) {
-        console.error('SMTP Verification Error:', verifyError);
-        throw new Error(`SMTP configuration invalid: ${verifyError.message}`);
-      }
 
       console.log('Attempting to sendMail...');
       

@@ -1,4 +1,4 @@
-import { Mail, Instagram, Twitter, Smartphone, Apple, Facebook } from 'lucide-react';
+import { Mail, Share2, X, Smartphone, Apple, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Logo } from './Logo';
 
@@ -42,10 +42,10 @@ export function Footer({ onAuthClick }: { onAuthClick?: () => void }) {
           <div className="md:col-span-4 space-y-8 md:text-right">
             <h4 className="text-[10px] uppercase tracking-[0.2em] font-black text-white/20">Connect</h4>
             <div className="flex flex-wrap md:justify-end gap-6">
-                <a href="mailto:vuxevents@gmail.com" className="text-white/40 hover:text-white transition-colors"><Mail className="w-5 h-5" /></a>
-                <a href="https://x.com/vuxevents" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white transition-colors"><Twitter className="w-5 h-5" /></a>
-                <a href="https://instagram.com/vuxevents" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white transition-colors"><Instagram className="w-5 h-5" /></a>
-                <a href="https://facebook.com/vuxevents" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white transition-colors"><Facebook className="w-5 h-5" /></a>
+                <a href="mailto:vuxevents@gmail.com" className="text-white/40 hover:text-white transition-colors" title="Email"><Mail className="w-5 h-5" /></a>
+                <a href="https://x.com/vuxevents" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white transition-colors" title="X (Twitter)"><X className="w-5 h-5" /></a>
+                <a href="https://instagram.com/vuxevents" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white transition-colors" title="Instagram"><Share2 className="w-5 h-5" /></a>
+                <a href="https://vuxevents.com" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white transition-colors" title="Website"><Globe className="w-5 h-5" /></a>
             </div>
           </div>
         </div>

@@ -34,11 +34,11 @@
 }
 
 @utility text-muted {
-  color: var(--color-white / 40%);
+  @apply text-white/40;
 }
 
 @utility text-body {
-  color: var(--color-white / 70%);
+  @apply text-white/70;
 }
 
 @utility scrollbar-hide {
@@ -57,14 +57,10 @@
     background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background-color: var(--color-white / 10%);
-    border-radius: 9999px;
-    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
+    @apply bg-white/10 rounded-full transition-colors;
     
     &:hover {
-      background-color: var(--color-white / 20%);
+      @apply bg-white/20;
     }
   }
 }
