@@ -3,7 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createServer as createViteServer } from 'vite';
+// import { createServer as createViteServer } from 'vite'; -- Moved to dynamic import inside block
 import admin from 'firebase-admin';
 import nodemailer from 'nodemailer';
 import fs from 'fs';
@@ -21,6 +21,30 @@ import type {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Initialize Firebase Admin globally
+if (admin.apps.length === 0) {
+  const saVar = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (saVar) {
+    try {
+      const serviceAccount = JSON.parse(saVar);
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        projectId: serviceAccount.project_id
+      });
+      console.log('Firebase Admin initialized with service account certificate from environment.');
+    } catch (e) {
+      console.error('Failed to initialize with FIREBASE_SERVICE_ACCOUNT secret. Falling back to default credentials.', e);
+      admin.initializeApp({
+        projectId: 'ultra-badge-470321-a1',
+      });
+    }
+  } else {
+    admin.initializeApp({
+      projectId: 'ultra-badge-470321-a1',
+    });
+  }
+}
+
 export async function createServer() {
   const app = express();
   const PORT = 3000;
@@ -31,12 +55,6 @@ export async function createServer() {
   app.use(cors());
   app.use(express.json());
   app.use(cookieParser());
-  
-  // Request logger
-  app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-    next();
-  });
 
   // In-memory store for WebAuthn challenges and OTPs
   const challenges = new Map<string, string>();
@@ -44,36 +62,12 @@ export async function createServer() {
 
   // Use a router for all API routes to ensure they are handled as a group
   const apiRouter = express.Router();
-
-  // Request logger for API specifically
-  apiRouter.use((req, res, next) => {
-    console.log(`[API Request] ${req.method} ${req.url}`);
+  
+  // Request logger
+  app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     next();
   });
-
-  // Initialize Firebase Admin
-  if (admin.apps.length === 0) {
-    const saVar = process.env.FIREBASE_SERVICE_ACCOUNT;
-    if (saVar) {
-      try {
-        const serviceAccount = JSON.parse(saVar);
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
-          projectId: serviceAccount.project_id
-        });
-        console.log('Firebase Admin initialized with service account certificate from environment.');
-      } catch (e) {
-        console.error('Failed to initialize with FIREBASE_SERVICE_ACCOUNT secret. Falling back to default credentials.', e);
-        admin.initializeApp({
-          projectId: 'ultra-badge-470321-a1',
-        });
-      }
-    } else {
-      admin.initializeApp({
-        projectId: 'ultra-badge-470321-a1',
-      });
-    }
-  }
 
   const getRpID = (hostname: string) => {
     // Dynamic RpID extraction - use the base domain
@@ -745,6 +739,7 @@ export async function createServer() {
   // On Vercel, we don't serve static files through Express because vercel.json handles it
   if (!process.env.VERCEL) {
     if (process.env.NODE_ENV !== 'production') {
+      const { createServer: createViteServer } = await import('vite');
       const vite = await createViteServer({
         server: { middlewareMode: true },
         appType: 'spa',

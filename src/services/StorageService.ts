@@ -15,13 +15,12 @@ export class StorageService {
     const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
     const filePath = `${path}/${fileName}`;
 
-    // Note: If you get "new row violates row-level security policy", 
-    // you must add an INSERT policy to your bucket in the Supabase Dashboard.
+    // Enable upsert to allow overwriting existing files (vital for profile pictures)
     const { error: uploadError } = await supabase.storage
       .from(this.BUCKET_NAME)
       .upload(filePath, file, {
         cacheControl: '3600',
-        upsert: false
+        upsert: true
       });
 
     if (uploadError) {
