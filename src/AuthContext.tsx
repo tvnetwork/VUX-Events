@@ -195,11 +195,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
+    // Add custom parameters to force account selection if needed
+    provider.setCustomParameters({ prompt: 'select_account' });
+    
     try {
       await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error('Login failed', error);
-      throw error;
+    } catch (error: any) {
+      console.error('Google Sign-In Error:', error);
+      
+      // Handle specific protocol or popup errors
+      if (error.code === 'auth/popup-blocked') {
+        throw new Error('Sign-in popup was blocked. Please enable popups for this site.');
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        throw new Error('Sign-in window was closed before completion.');
+      } else if (error.message && error.message.includes('ERR_QUIC_PROTOCOL_ERROR')) {
+        throw new Error('Network protocol error (QUIC). Please try opening the app in a new browser tab or disabling browser extensions.');
+      }
+      
+      throw new Error(error.message || 'Authentication failed. Please try opening the application in a new tab.');
     }
   };
 
