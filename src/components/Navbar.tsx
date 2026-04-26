@@ -118,7 +118,7 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
             </div>
           </div>
 
-          <Button variant="primary" size="sm" onClick={onCreateClick} className="hidden lg:flex gap-2 h-9 rounded-xl text-xs font-bold px-5 shadow-xl shadow-purple-500/10">
+          <Button variant="vux" size="sm" onClick={onCreateClick} className="hidden lg:flex gap-2 h-9 rounded-xl text-xs font-black italic px-5 shadow-xl shadow-purple-500/20">
             <Plus className="w-4 h-4" />
             <span>CREATE</span>
           </Button>
@@ -161,11 +161,11 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
                         
                         <div className="space-y-1">
                           <button 
-                            onClick={() => { onTabChange('settings'); setShowProfileMenu(false); }}
+                            onClick={() => { onTabChange('profile'); setShowProfileMenu(false); }}
                             className="w-full flex items-center gap-3 p-3 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/5 rounded-xl transition-all"
                           >
                             <User className="w-4 h-4" />
-                            <span>PROFILE CENTER</span>
+                            <span>PROFILE STATION</span>
                           </button>
                           
                           <button 
@@ -173,7 +173,7 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
                             className="w-full flex items-center gap-3 p-3 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/5 rounded-xl transition-all"
                           >
                             <SettingsIcon className="w-4 h-4" />
-                            <span>SYSTEM SETTINGS</span>
+                            <span>SYSTEM CONFIG</span>
                           </button>
                           
                           {isAdmin && (
@@ -201,10 +201,10 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
               </>
             ) : (
               <Button 
-                variant="primary" 
+                variant="vux" 
                 size="sm" 
                 onClick={onLoginClick} 
-                className="h-10 rounded-xl px-6 text-xs font-bold shadow-lg shadow-purple-500/10"
+                className="h-9 rounded-xl px-6 text-xs font-black italic shadow-lg shadow-purple-500/20"
               >
                 LOGIN
               </Button>

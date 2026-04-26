@@ -77,12 +77,12 @@ export function OTPInput({ value, onChange, length = 6, disabled, isError, isSuc
           onChange={(e) => handleChange(e, i)}
           onKeyDown={(e) => handleKeyDown(e, i)}
           disabled={disabled}
-          className={`w-12 h-14 text-center text-2xl font-bold bg-white/5 border rounded-xl text-white focus:outline-none transition-all disabled:opacity-50 ${
+          className={`w-12 h-15 text-center text-2xl font-black bg-white/[0.03] border-2 rounded-2xl text-white focus:outline-none transition-all disabled:opacity-50 ${
             isSuccess 
-              ? 'border-green-500 bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.2)]' 
+              ? 'border-green-500/50 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.15)]' 
               : isError 
-                ? 'border-red-500 bg-red-500/10 focus:border-red-500' 
-                : 'border-white/10 focus:border-purple-500'
+                ? 'border-red-500/50 bg-red-500/10 focus:border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.15)]' 
+                : 'border-white/[0.05] focus:border-indigo-500/50 focus:bg-white/[0.06] focus:shadow-[0_0_20px_rgba(99,102,241,0.1)]'
           }`}
         />
       ))}

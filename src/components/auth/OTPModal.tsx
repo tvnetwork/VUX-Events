@@ -74,18 +74,21 @@ export function OTPModal({ email, onBack, onVerify, onResend }: OTPModalProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 py-6">
       <div className="text-center">
-        <div className="w-16 h-16 bg-purple-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <Mail className="w-8 h-8 text-purple-400" />
+        <div className="relative w-20 h-20 mx-auto mb-8">
+          <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full animate-pulse" />
+          <div className="relative w-full h-full bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-[2rem] flex items-center justify-center shadow-xl shadow-indigo-500/20">
+            <Mail className="w-10 h-10 text-white" />
+          </div>
         </div>
-        <h3 className="text-2xl font-bold text-white mb-2">Check your email</h3>
-        <p className="text-white/50 text-sm">
-          We've sent a 6-digit code to <span className="text-white">{email}</span>
+        <h3 className="text-2xl font-black text-white italic tracking-tight uppercase mb-2">Check your inbox</h3>
+        <p className="text-white/40 text-sm font-medium leading-relaxed px-6">
+          Paste the 6-digit verification code we've sent to <span className="text-white font-black">{email}</span>
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div className="relative group">
           <OTPInput 
             value={code} 
@@ -97,7 +100,7 @@ export function OTPModal({ email, onBack, onVerify, onResend }: OTPModalProps) {
           <button
             type="button"
             onClick={handlePasteCode}
-            className="absolute -right-12 top-1/2 -translate-y-1/2 p-2 text-white/30 hover:text-purple-400 transition-colors bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex"
+            className="absolute -right-14 top-1/2 -translate-y-1/2 p-2.5 text-white/20 hover:text-indigo-400 transition-all bg-white/[0.03] hover:bg-white/[0.08] rounded-xl opacity-0 group-hover:opacity-100 hidden md:flex border border-white/[0.03]"
             title="Paste from clipboard"
           >
             <ClipboardCheck className="w-5 h-5" />
@@ -107,34 +110,36 @@ export function OTPModal({ email, onBack, onVerify, onResend }: OTPModalProps) {
         <button
           type="button"
           onClick={handlePasteCode}
-          className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium mx-auto md:hidden"
+          className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition-colors text-xs font-black uppercase tracking-widest mx-auto md:hidden"
         >
           <ClipboardCheck className="w-4 h-4" />
           Paste code from clipboard
         </button>
 
         {error && (
-          <p className="text-red-400 text-sm text-center font-medium bg-red-400/10 py-2 rounded-lg">
+          <p className="text-red-400 text-[10px] text-center font-black uppercase tracking-[0.2em] bg-red-400/5 py-3 rounded-xl border border-red-400/10 animate-shake">
             {error}
           </p>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <div className="space-y-6">
           <Button
             type="submit"
+            onClick={(e) => handleSubmit(e)}
+            variant="email"
             disabled={code.length !== 6 || loading}
-            className="w-full h-12 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold"
+            className="w-full h-15 text-lg font-black rounded-2xl shadow-2xl shadow-indigo-500/10"
           >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Verify Code'}
+            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Verify Account'}
           </Button>
 
-          <div className="flex items-center justify-between px-1">
+          <div className="flex items-center justify-between px-2">
             <button
               type="button"
               onClick={onBack}
-              className="flex items-center gap-2 text-white/50 hover:text-white transition-colors text-sm"
+              className="flex items-center gap-2 text-white/20 hover:text-white/40 transition-colors text-[10px] font-black uppercase tracking-widest"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-3 h-3" />
               Change email
             </button>
 
@@ -142,13 +147,13 @@ export function OTPModal({ email, onBack, onVerify, onResend }: OTPModalProps) {
               type="button"
               onClick={handleResendClick}
               disabled={resending}
-              className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors text-sm disabled:opacity-50"
+              className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition-colors text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
             >
-              {resending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCcw className="w-4 h-4" />}
+              {resending ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCcw className="w-3 h-3" />}
               Resend code
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

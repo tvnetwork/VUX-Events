@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { ArrowRight, Sparkles, Calendar, Users, Globe } from 'lucide-react';
+import { ArrowRight, Sparkles, Calendar, Users, Globe, ShieldCheck } from 'lucide-react';
 import { Button } from './ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { Logo } from './Logo';
@@ -8,62 +8,62 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
   const navigate = useNavigate();
 
   return (
-    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
+    <section className="relative min-h-screen flex items-center pt-24 pb-32 overflow-hidden">
       {/* Background radial glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full -z-10">
-        <div className="absolute top-1/4 left-1/4 w-[50%] h-[50%] bg-purple-600/20 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-[40%] h-[40%] bg-pink-600/10 blur-[100px] rounded-full" />
+        <div className="absolute top-1/4 left-1/4 w-[60%] h-[60%] bg-indigo-600/10 blur-[150px] rounded-full animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-[50%] h-[50%] bg-purple-600/5 blur-[120px] rounded-full delay-700" />
       </div>
 
-      <div className="max-w-[1280px] mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+      <div className="max-w-[1400px] mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-32 items-center">
         {/* Left Side */}
-        <div className="space-y-8 text-left max-w-2xl">
+        <div className="space-y-10 text-left max-w-2xl relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-purple-400"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="inline-flex items-center gap-3 px-4 py-1.5 rounded-2xl bg-indigo-500/5 border border-indigo-500/20 text-[10px] font-black uppercase tracking-[0.4em] text-indigo-400 shadow-2xl shadow-indigo-500/10"
           >
-            <Sparkles className="w-3 h-3" />
-            <span>The new standard for community</span>
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Modern Event Management</span>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="space-y-4"
+            transition={{ duration: 0.8, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
+            className="space-y-6"
           >
-            <h1 className="text-6xl md:text-8xl font-black leading-[0.9] tracking-tight">
-              Delightful events <br />
-              <span className="bg-gradient-to-r from-purple-400 to-pink-500 text-transparent bg-clip-text">
-                start here.
-              </span>
+            <h1 className="text-7xl md:text-9xl font-black leading-[0.8] tracking-tighter italic uppercase group">
+              Simple <br />
+              <span className="text-white">Events </span>
+              <span className="text-indigo-500 inline-block">Made Easy.</span>
             </h1>
-            <p className="text-xl text-white/40 leading-relaxed font-medium max-w-lg">
-              Create event pages, invite guests, and sell tickets with the modern toolkit for high-impact communities.
+            <p className="text-xl md:text-2xl text-white/60 leading-relaxed font-bold italic uppercase tracking-wider max-w-lg border-l-4 border-indigo-500/40 pl-8">
+              The modern toolkit for organizers to create, promote, and manage high-impact community events and ticketing.
             </p>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex flex-col sm:flex-row items-center gap-4 pt-4"
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="flex flex-col sm:flex-row items-center gap-6 pt-6"
           >
             <Button
+              variant="vux"
               onClick={onStartClick}
-              className="w-full sm:w-auto px-10 py-8 text-xl font-bold rounded-2xl bg-white text-black hover:bg-white/90 shadow-[0_0_50px_rgba(168,85,247,0.3)] transition-all hover:scale-[1.02]"
+              className="w-full sm:w-auto h-24 px-16 text-2xl font-black italic tracking-widest uppercase rounded-3xl shadow-2xl shadow-indigo-600/30 transition-all hover:scale-110 active:scale-95 group"
             >
-              Create Your First Event
+              <span>Get Started</span>
+              <ArrowRight className="w-8 h-8 group-hover:translate-x-3 transition-transform" />
             </Button>
             <Button 
               variant="ghost" 
               onClick={() => navigate('/discover')}
-              className="text-white/40 hover:text-white font-bold group"
+              className="text-white/40 hover:text-white font-black uppercase tracking-[0.3em] italic text-sm group h-16 px-8 rounded-2xl border border-transparent hover:border-white/5"
             >
-                Discover Events
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                Explore Events
             </Button>
           </motion.div>
 
@@ -71,88 +71,107 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 0.8 }}
-            className="flex items-center gap-8 pt-12 grayscale opacity-30 select-none hidden md:flex"
+            className="flex items-center gap-12 pt-16 hidden md:flex"
           >
-            <span className="text-sm font-black tracking-widest">TRUSTED BY THE BEST</span>
-            <div className="flex gap-8">
-                <Globe className="w-6 h-6" />
-                <Users className="w-6 h-6" />
-                <Calendar className="w-6 h-6" />
+            <span className="text-[10px] font-black tracking-[0.5em] text-white/30 uppercase italic">Trusted by Leading Platforms</span>
+            <div className="flex gap-10 text-white/5">
+                <Globe className="w-8 h-8 hover:text-indigo-500/40 transition-colors" />
+                <Users className="w-8 h-8 hover:text-indigo-500/40 transition-colors" />
+                <Calendar className="w-8 h-8 hover:text-indigo-500/40 transition-colors" />
             </div>
           </motion.div>
         </div>
 
         {/* Right Side - Floating UI */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, x: 20 }}
+          initial={{ opacity: 0, scale: 0.95, x: 40 }}
           animate={{ opacity: 1, scale: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
+          transition={{ duration: 1, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
           className="relative group hidden lg:block"
         >
           <motion.div
-            animate={{ y: [0, -20, 0] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            animate={{ 
+              y: [0, -30, 0],
+              rotateZ: [0, 1, 0]
+            }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
             className="relative z-10"
           >
-            {/* Main Mockup Card */}
-            <div className="bg-[#1a1a24] rounded-[2.5rem] border border-white/10 p-4 shadow-2xl overflow-hidden aspect-[4/5] w-[440px] mx-auto">
-               <div className="h-48 w-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl mb-6 relative overflow-hidden flex items-center justify-center">
-                    <Logo size="lg" showText={false} className="opacity-20" />
-                    <div className="absolute inset-x-0 bottom-0 p-6">
-                        <div className="h-4 w-24 bg-white/10 rounded-full mb-3" />
-                        <div className="h-8 w-48 bg-white/20 rounded-lg" />
+            {/* Main Mockup Card - High fidelity upgrade */}
+            <div className="bg-black/40 backdrop-blur-3xl rounded-[4rem] border border-white/[0.03] p-6 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden aspect-[4/5.5] w-[480px] mx-auto relative group-hover:border-indigo-500/20 transition-all duration-700">
+               {/* Inner glow */}
+               <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.02] to-transparent pointer-events-none" />
+               
+               <div className="h-64 w-full bg-indigo-500/5 rounded-[3rem] mb-10 relative overflow-hidden flex items-center justify-center group/img">
+                    <Logo size="lg" showText={false} className="opacity-10 scale-150 transition-transform duration-1000 group-hover/img:scale-[1.7]" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 p-10">
+                        <div className="h-5 w-32 bg-indigo-500/40 mb-4 rounded-full" />
+                        <div className="h-12 w-64 bg-white rounded-2xl" />
                     </div>
                </div>
-               <div className="space-y-6 px-4">
-                  <div className="flex gap-4 items-center">
-                    <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10" />
-                    <div className="space-y-2">
-                        <div className="h-4 w-32 bg-white/10 rounded-full" />
-                        <div className="h-3 w-48 bg-white/5 rounded-full" />
+               
+               <div className="space-y-10 px-6">
+                  <div className="flex gap-6 items-center">
+                    <div className="w-16 h-16 rounded-3xl bg-white/[0.02] border border-white/5 flex items-center justify-center">
+                        <Users className="w-8 h-8 text-indigo-500/40" />
+                    </div>
+                    <div className="space-y-3">
+                        <div className="h-5 w-40 bg-white/10 rounded-full" />
+                        <div className="h-3 w-56 bg-white/5 rounded-full" />
                     </div>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <div className="h-3 w-full bg-white/5 rounded-full" />
-                    <div className="h-3 w-full bg-white/5 rounded-full" />
-                    <div className="h-3 w-2/3 bg-white/5 rounded-full" />
+                    <div className="h-3 w-4/5 bg-white/5 rounded-full" />
                   </div>
-                  <div className="pt-4 flex gap-2">
-                    <div className="h-10 flex-1 bg-white/[0.03] border border-white/5 rounded-xl" />
-                    <div className="h-10 flex-1 bg-white text-black font-bold rounded-xl flex items-center justify-center text-xs">RSVP</div>
+                  <div className="pt-8 flex gap-4">
+                    <div className="h-16 flex-1 bg-white/[0.02] border border-white/5 rounded-[2rem] flex items-center justify-center">
+                        <div className="h-4 w-12 bg-white/20 rounded-full" />
+                    </div>
+                    <div className="h-16 flex-[1.5] bg-white text-black font-black uppercase tracking-widest rounded-[2rem] flex items-center justify-center text-sm shadow-2xl shadow-indigo-500/20">
+                        INITIALIZE RSVP
+                    </div>
                   </div>
                </div>
             </div>
 
-            {/* Secondary Floating Elements */}
+            {/* Decorative Tags/Status */}
             <motion.div 
-               animate={{ y: [0, 10, 0] }}
-               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-               className="absolute -top-12 -right-8 glass p-4 rounded-2xl border border-white/10 shadow-xl"
+               animate={{ x: [0, 15, 0], y: [0, 10, 0] }}
+               transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+               className="absolute -top-16 -right-12 glass p-6 py-4 rounded-[1.5rem] border border-white/10 shadow-2xl backdrop-blur-2xl bg-black/60"
             >
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
-                        <Users className="w-4 h-4 text-green-400" />
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-indigo-500/20 rounded-[1rem] flex items-center justify-center">
+                        <Users className="w-6 h-6 text-indigo-400" />
                     </div>
-                    <div className="text-xs font-bold">+128 Guests</div>
+                    <div className="space-y-1">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Node Population</div>
+                        <div className="text-xl font-black italic tracking-tighter">1,248 GUESTS</div>
+                    </div>
                 </div>
             </motion.div>
 
             <motion.div 
-               animate={{ y: [0, -15, 0] }}
-               transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-               className="absolute -bottom-8 -left-8 glass p-4 rounded-2xl border border-white/10 shadow-xl"
+               animate={{ x: [0, -15, 0], y: [0, -10, 0] }}
+               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+               className="absolute -bottom-12 -left-16 glass p-6 py-4 rounded-[1.5rem] border border-white/10 shadow-2xl backdrop-blur-2xl bg-black/60"
             >
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center">
-                        <Calendar className="w-4 h-4 text-purple-400" />
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-emerald-500/20 rounded-[1rem] flex items-center justify-center">
+                        <ShieldCheck className="w-6 h-6 text-emerald-400" />
                     </div>
-                    <div className="text-xs font-bold">12 Active Events</div>
+                    <div className="space-y-1">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Security Index</div>
+                        <div className="text-xl font-black italic tracking-tighter">VERIFIED SYNC</div>
+                    </div>
                 </div>
             </motion.div>
           </motion.div>
 
-          {/* Decorative halo */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-purple-500/5 blur-[120px] rounded-full -z-10" />
+          {/* Immersive background aura */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-indigo-500/5 blur-[150px] rounded-full -z-10 animate-pulse" />
         </motion.div>
       </div>
     </section>

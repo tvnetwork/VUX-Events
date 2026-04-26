@@ -14,17 +14,21 @@ interface PasskeyButtonProps {
 export function PasskeyButton({ onClick, loading }: PasskeyButtonProps) {
   return (
     <Button 
-      variant="glass"
+      variant="vux"
       onClick={onClick}
       disabled={loading}
-      className="w-full h-12 justify-center gap-3 border-white/5 bg-white/2 hover:bg-white/5 text-white/70 hover:text-white rounded-xl group"
+      className="w-full h-16 justify-center gap-4 rounded-2xl group relative overflow-hidden shadow-xl shadow-amber-500/10"
     >
+      <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
       {loading ? (
-        <Loader2 className="w-4 h-4 animate-spin" />
+        <Loader2 className="w-6 h-6 animate-spin" />
       ) : (
-        <Key className="w-4 h-4 transition-transform group-hover:rotate-12" />
+        <div className="relative shrink-0">
+          <Key className="w-6 h-6 text-amber-400 transition-transform group-hover:rotate-12 group-hover:scale-110" />
+          <div className="absolute inset-0 blur-[4px] bg-amber-400/40 group-hover:bg-amber-400/60" />
+        </div>
       )}
-      <span className="font-bold">Sign in with Passkey</span>
+      <span className="font-black uppercase tracking-widest relative z-10 text-sm">AUTHENTICATE WITH PASSKEY</span>
     </Button>
   );
 }

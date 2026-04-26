@@ -10,6 +10,7 @@ import { WatermarkBackground } from '../components/WatermarkBackground';
 import { Discover } from '../pages/Discover';
 import { Calendars } from '../pages/Calendars';
 import { Settings } from '../pages/Settings';
+import { Profile } from '../pages/Profile';
 import { CommandPalette } from '../components/CommandPalette';
 import { CreateEvent } from '../components/CreateEvent';
 import { EventDetails } from '../components/EventDetails';
@@ -24,10 +25,10 @@ import { Footer } from '../components/Footer';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
-export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 'calendars' | 'discover' | 'settings' | 'admin' }) {
-  const { profile } = useAuth();
+export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 'calendars' | 'discover' | 'settings' | 'profile' | 'admin' }) {
+  const { profile: userProfile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<'events' | 'calendars' | 'discover' | 'settings' | 'admin'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'events' | 'calendars' | 'discover' | 'settings' | 'profile' | 'admin'>(initialTab);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -60,10 +61,10 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
 
   // Show onboarding if profile exists but onboarding is not completed
   useEffect(() => {
-    if (profile && profile.onboardingCompleted === false) {
+    if (userProfile && userProfile.onboardingCompleted === false) {
       setShowOnboarding(true);
     }
-  }, [profile]);
+  }, [userProfile]);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -75,6 +76,8 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
         return <Calendars onEditEvent={setEditingEvent} onTabChange={setActiveTab} />;
       case 'settings':
         return <Settings />;
+      case 'profile':
+        return <Profile />;
       case 'admin':
         return <AdminDashboard />;
       default:

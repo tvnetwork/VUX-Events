@@ -47,8 +47,9 @@ export function AdminDashboard() {
   const [sendingBroadcast, setSendingBroadcast] = useState(false);
   const [showTemplateEditor, setShowTemplateEditor] = useState(false);
   const [templates, setTemplates] = useState([
-    { id: 'default', name: 'Standard Protocol', body: '<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0b0b0f; border: 1px solid #222; border-radius: 24px; overflow: hidden;"><div style="background: #111; padding: 30px; text-align: center; border-bottom: 1px solid #222;"><h1 style="color: white; margin: 0; font-style: italic; text-transform: uppercase; letter-spacing: -1px;">VUX Broadcast</h1></div><div style="padding: 40px; color: #ccc; line-height: 1.6; font-size: 16px;">{{message}}</div><div style="padding: 30px; background: #080808; text-align: center; border-top: 1px solid #222;"><p style="color: #444; font-size: 11px; text-transform: uppercase; margin: 0;">Sent via Secure Admin Interface</p></div></div>' },
-    { id: 'urgent', name: 'Urgent Dispatch', body: '<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0b0b0f; border: 1px solid #ff000033; border-radius: 24px; overflow: hidden;"><div style="background: #ff000033; padding: 30px; text-align: center; border-bottom: 1px solid #ff000055;"><h1 style="color: #ff4444; margin: 0; font-style: italic; text-transform: uppercase;">URGENT SIGNAL</h1></div><div style="padding: 40px; color: #fff; line-height: 1.6; font-size: 16px;">{{message}}</div><div style="padding: 30px; background: #080808; text-align: center;"><p style="color: #ff4444; font-size: 11px; text-transform: uppercase; margin: 0;">IMMEDIATE ATTENTION REQUIRED</p></div></div>' }
+    { id: 'default', name: 'Official Notice', body: '<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0b0b0f; border: 1px solid #222; border-radius: 24px; overflow: hidden;"><div style="background: #111; padding: 30px; text-align: center; border-bottom: 1px solid #222;"><h1 style="color: white; margin: 0; font-style: italic; text-transform: uppercase; letter-spacing: -1px;">VUX Broadcast</h1></div><div style="padding: 40px; color: #ccc; line-height: 1.6; font-size: 16px;">{{message}}</div><div style="padding: 30px; background: #080808; text-align: center; border-top: 1px solid #222;"><p style="color: #444; font-size: 11px; text-transform: uppercase; margin: 0;">System Notification</p></div></div>' },
+    { id: 'upgrade', name: 'Upgrade Signal', body: '<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0b0b0f; border: 2px solid #6366f1; border-radius: 32px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5);"><div style="background: linear-gradient(to right, #6366f1, #a855f7); padding: 40px; text-align: center;"><h1 style="color: white; margin: 0; font-style: italic; text-transform: uppercase; letter-spacing: -2px; font-size: 42px;">SYSTEM UPGRADE</h1><p style="color: rgba(255,255,255,0.8); margin-top: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;">Version 2.0 Synchronized</p></div><div style="padding: 50px; color: #fff; line-height: 1.8; font-size: 18px; background: rgba(255,255,255,0.02);">{{message}}</div><div style="padding: 30px; background: #050505; text-align: center; border-top: 1px solid #222;"><a href="https://vuxevents.zone.id" style="color: #6366f1; text-decoration: none; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">Access Update Details &rarr;</a></div></div>' },
+    { id: 'urgent', name: 'Emergency Alert', body: '<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0b0b0f; border: 1px solid #ff000033; border-radius: 24px; overflow: hidden;"><div style="background: #ff000033; padding: 30px; text-align: center; border-bottom: 1px solid #ff000055;"><h1 style="color: #ff4444; margin: 0; font-style: italic; text-transform: uppercase;">URGENT MESSAGE</h1></div><div style="padding: 40px; color: #fff; line-height: 1.6; font-size: 16px;">{{message}}</div><div style="padding: 30px; background: #080808; text-align: center;"><p style="color: #ff4444; font-size: 11px; text-transform: uppercase; margin: 0;">Priority Delivery</p></div></div>' }
   ]);
   const [activeTemplateId, setActiveTemplateId] = useState('default');
 
@@ -115,15 +116,15 @@ export function AdminDashboard() {
       });
 
       if (response.ok) {
-        alert('Broadcast successfully dispatched to grid.');
+        alert('Broadcast message sent successfully.');
         setBroadcastMessage('');
       } else {
         const err = await response.json();
-        alert(`Broadcast failure: ${err.error || 'Unknown error'}`);
+        alert(`Failed to send broadcast: ${err.error || 'Unknown error'}`);
       }
     } catch (e) {
       console.error(e);
-      alert('Broadcast delivery failed.');
+      alert('Broadcast delivery encountered an error.');
     } finally {
       setSendingBroadcast(false);
     }
@@ -153,8 +154,8 @@ const handleVerifyUser = async (userId: string) => {
   const handleDirectMail = (email: string) => {
     setActiveView('broadcast');
     setSelectedRecipients([email]);
-    setBroadcastSubject(`Personal Dispatch for ${email}`);
-    setBroadcastMessage('Greetings traveler,\n\n');
+    setBroadcastSubject(`Personal notification for ${email}`);
+    setBroadcastMessage('Hello,\n\n');
   };
 
   const handleDeleteUser = async (userId: string) => {
@@ -187,7 +188,7 @@ const handleVerifyUser = async (userId: string) => {
         </div>
         <div className="space-y-2">
             <h2 className="text-4xl font-black italic tracking-tighter uppercase mb-2">ADMIN ACCESS ONLY</h2>
-            <p className="text-white/40 max-w-sm uppercase text-[10px] font-black tracking-[0.4em] leading-relaxed">
+            <p className="text-white/60 max-w-sm uppercase text-[10px] font-black tracking-[0.4em] leading-relaxed">
               This area is restricted to authorized VUX administrators only.
             </p>
         </div>
@@ -200,20 +201,20 @@ const handleVerifyUser = async (userId: string) => {
     <div className="space-y-16 animate-in fade-in slide-in-from-bottom-12 duration-1000 pb-32">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-10 px-4">
         <div className="space-y-4">
-          <div className="flex items-center gap-3 text-purple-500">
-            <div className="w-10 h-px bg-purple-500" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em]">Admin Control</span>
+          <div className="flex items-center gap-3 text-indigo-500">
+            <div className="w-10 h-px bg-indigo-500" />
+            <span className="text-[10px] font-black uppercase tracking-[0.4em]">Admin Management</span>
           </div>
-          <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter uppercase leading-[0.8] text-white">ADMIN<br/>CENTER</h1>
+          <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter uppercase leading-[0.8] text-white">ADMIN<br/>DASHBOARD</h1>
         </div>
         
-        <div className="flex items-center gap-2 bg-white/[0.03] p-1.5 rounded-[2rem] border border-white/10 shadow-2xl">
+        <div className="flex items-center gap-2 bg-white/[0.03] p-2 rounded-[2rem] border border-white/5 shadow-2xl backdrop-blur-xl">
             {[
-                { id: 'overview', label: 'Dashboard', icon: <BarChart3 className="w-4 h-4" /> },
+                { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
                 { id: 'broadcast', label: 'Broadcast', icon: <Mail className="w-4 h-4" /> },
-                { id: 'pulses', label: 'Pulses', icon: <Activity className="w-4 h-4" /> },
-                { id: 'users', label: 'Users', icon: <Users className="w-4 h-4" /> },
-                { id: 'events', label: 'Events', icon: <Calendar className="w-4 h-4" /> }
+                { id: 'pulses', label: 'Recent Activity', icon: <Activity className="w-4 h-4" /> },
+                { id: 'users', label: 'All Users', icon: <Users className="w-4 h-4" /> },
+                { id: 'events', label: 'All Events', icon: <Calendar className="w-4 h-4" /> }
             ].map((tab) => (
                 <Button 
                     key={tab.id}
@@ -222,7 +223,7 @@ const handleVerifyUser = async (userId: string) => {
                     onClick={() => setActiveView(tab.id as any)}
                     className={cn(
                         "text-[10px] font-black uppercase tracking-widest h-12 px-8 rounded-2xl transition-all gap-3 whitespace-nowrap",
-                        activeView === tab.id ? "shadow-2xl shadow-purple-500/20" : "text-white/40"
+                        activeView === tab.id ? "bg-indigo-600 shadow-2xl shadow-indigo-500/20" : "text-white/40 hover:text-white"
                     )}
                 >
                     {tab.icon}
@@ -235,19 +236,19 @@ const handleVerifyUser = async (userId: string) => {
       {activeView === 'overview' && (
         <section className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
            {[
-             { label: 'Total Users', value: stats.users, icon: <Users className="w-6 h-6 text-purple-400" />, trend: '+14.2%', trendUp: true },
-             { label: 'Total Events', value: stats.events, icon: <Calendar className="w-6 h-6 text-blue-400" />, trend: '+8.1%', trendUp: true },
-             { label: 'System Status', value: '99.9%', icon: <RefreshCcw className="w-6 h-6 text-emerald-400" />, trend: 'OPTIMAL', trendUp: true },
+             { label: 'Total active users', value: stats.users, icon: <Users className="w-6 h-6 text-indigo-400" />, trend: '+14.2%', trendUp: true, color: 'indigo' },
+             { label: 'Published events', value: stats.events, icon: <Calendar className="w-6 h-6 text-indigo-400" />, trend: '+8.1%', trendUp: true, color: 'indigo' },
+             { label: 'Server Availability', value: '99.9%', icon: <RefreshCcw className="w-6 h-6 text-emerald-400" />, trend: 'HEALTHY', trendUp: true, color: 'emerald' },
            ].map((stat, i) => (
              <Card key={i} className="p-10 border-white/5 bg-white/[0.01] space-y-8 rounded-[40px] relative overflow-hidden group hover:bg-white/[0.03] transition-all duration-700">
-                <div className="absolute -top-20 -right-20 w-48 h-48 bg-purple-500/5 blur-3xl rounded-full group-hover:bg-purple-500/15 transition-colors duration-700" />
+                <div className={cn("absolute -top-20 -right-20 w-48 h-48 blur-3xl rounded-full transition-colors duration-700", i === 2 ? "bg-emerald-500/5 group-hover:bg-emerald-500/15" : "bg-indigo-500/5 group-hover:bg-indigo-500/15")} />
                 <div className="flex items-center justify-between">
                     <div className="w-14 h-14 rounded-3xl bg-white/[0.03] border border-white/10 flex items-center justify-center shadow-inner">
                         {stat.icon}
                     </div>
                 </div>
                 <div className="space-y-1">
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">{stat.label}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">{stat.label}</p>
                     <h3 className="text-6xl font-black italic tracking-tighter uppercase">{stat.value}</h3>
                 </div>
                 <div className="flex items-center gap-2">
@@ -264,33 +265,33 @@ const handleVerifyUser = async (userId: string) => {
       {activeView === 'broadcast' && (
         <section className="max-w-4xl mx-auto px-4 space-y-12 animate-in fade-in slide-in-from-bottom-8">
             <div className="text-center space-y-4">
-                <h2 className="text-4xl font-black italic tracking-tighter uppercase">Broadcast Protocol</h2>
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Send encrypted signal to all travelers in the grid</p>
+                <h2 className="text-4xl font-black italic tracking-tighter uppercase">Global Communications</h2>
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-500/40">Send official notifications to all platform members</p>
             </div>
 
             <Card className="p-12 border-white/5 bg-white/[0.01] rounded-[48px] space-y-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                     <div className="space-y-4">
-                        <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 px-1">Subject Header</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 px-1">Message Subject</label>
                         <Input 
                             value={broadcastSubject}
                             onChange={(e) => setBroadcastSubject(e.target.value)}
-                            className="bg-white/5 border-white/5 h-16 rounded-2xl font-black italic text-xl px-6"
+                            className="bg-white/5 border-white/5 h-16 rounded-2xl font-black italic text-xl px-6 focus:border-indigo-500/40"
                         />
                     </div>
                     <div className="space-y-4">
-                        <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 px-1">Email Template</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 px-1">Email Template</label>
                         <div className="flex gap-2">
                              <select 
                                 value={activeTemplateId}
                                 onChange={(e) => setActiveTemplateId(e.target.value)}
-                                className="flex-1 bg-white/[0.02] border border-white/5 rounded-2xl h-16 px-6 text-sm italic font-bold focus:outline-none focus:border-purple-500/40 appearance-none"
+                                className="flex-1 bg-white/[0.02] border border-white/5 rounded-2xl h-16 px-6 text-sm italic font-bold focus:outline-none focus:border-indigo-500/40 appearance-none"
                              >
-                                 {templates.map(t => <option key={t.id} value={t.id} className="bg-[#0b0b0f]">{t.name}</option>)}
+                                 {templates.map(t => <option key={t.id} value={t.id} className="bg-[#0b0b0f]">{t.name === 'Urgent Dispatch' ? 'Emergency Alert' : (t.name === 'Standard Protocol' || t.name === 'Official Notice' ? 'Official Announcement' : t.name)}</option>)}
                              </select>
                              <Button 
                                 variant="outline" 
-                                className="w-16 h-16 rounded-2xl border-white/5"
+                                className="w-16 h-16 rounded-2xl border-white/5 hover:border-indigo-500/40"
                                 onClick={() => setShowTemplateEditor(!showTemplateEditor)}
                              >
                                 <Settings className="w-5 h-5 text-white/40" />
@@ -306,8 +307,8 @@ const handleVerifyUser = async (userId: string) => {
                     className="space-y-4 pt-4 border-t border-white/5"
                   >
                     <div className="flex items-center justify-between">
-                         <label className="text-[10px] font-black uppercase tracking-[0.4em] text-purple-500 px-1">Template Code (HTML)</label>
-                         <div className="text-[8px] text-white/20 uppercase font-bold tracking-widest italic">Use {"{{message}}"} as placeholder</div>
+                         <label className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-500 px-1">Template HTML Content</label>
+                         <div className="text-[8px] text-white/20 uppercase font-bold tracking-widest italic">Use {"{{message}}"} for content mapping</div>
                     </div>
                     <textarea 
                         value={templates.find(t => t.id === activeTemplateId)?.body || ''}
@@ -317,44 +318,45 @@ const handleVerifyUser = async (userId: string) => {
                             );
                             setTemplates(newTemplates);
                         }}
-                        className="w-full h-48 bg-black/50 border border-white/10 rounded-2xl p-6 font-mono text-xs focus:outline-none focus:border-purple-500/40"
+                        className="w-full h-48 bg-black/50 border border-white/10 rounded-2xl p-6 font-mono text-xs focus:outline-none focus:border-indigo-500/40"
                     />
                     <div className="flex justify-end">
                         <Button 
                             variant="ghost" 
                             size="sm" 
                             onClick={() => saveTemplate(activeTemplateId, templates.find(t => t.id === activeTemplateId)?.body || '')}
-                            className="text-[10px] font-black uppercase tracking-widest gap-2"
+                            className="text-[10px] font-black uppercase tracking-widest gap-2 hover:text-indigo-400"
                         >
                             <RefreshCcw className="w-3 h-3" />
-                            Sync to Database
+                            Save to Database
                         </Button>
                     </div>
                   </motion.div>
                 )}
 
                 <div className="space-y-4">
-                    <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 px-1">Signal Payload (Message)</label>
+                    <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 px-1">Message Announcement</label>
                     <textarea 
                         value={broadcastMessage}
                         onChange={(e) => setBroadcastMessage(e.target.value)}
-                        placeholder="Initiate grid-wide communication..."
-                        className="w-full min-h-[300px] bg-white/[0.01] border border-white/5 rounded-[40px] p-10 focus:outline-none focus:border-purple-500/40 transition-all font-medium italic text-lg resize-none"
+                        placeholder="Type your announcement here..."
+                        className="w-full min-h-[300px] bg-white/[0.01] border border-white/5 rounded-[40px] p-10 focus:outline-none focus:border-indigo-500/40 transition-all font-medium italic text-lg resize-none"
                     />
                 </div>
 
                 <div className="flex items-center justify-between pt-6">
                     <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-white/20 italic">
-                         <Shield className="w-4 h-4 text-emerald-500" />
-                         Transmission via Secure SMTP Bridge
+                         <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                         Authorized Secure Delivery Channel
                     </div>
                     <Button 
+                        variant="vux"
                         onClick={handleSendBroadcast}
                         disabled={sendingBroadcast || !broadcastMessage}
-                        className="h-16 px-12 rounded-2xl bg-white text-black hover:bg-white/90 gap-4 shadow-2xl shadow-white/5"
+                        className="h-20 px-16 rounded-3xl gap-6 shadow-2xl shadow-indigo-600/30 group"
                     >
-                        <span className="font-black uppercase tracking-widest">Discharge Signal</span>
-                        <RefreshCcw className={cn("w-4 h-4", sendingBroadcast && "animate-spin")} />
+                        <span className="font-black uppercase tracking-widest text-lg">Send Broadcast</span>
+                        <RefreshCcw className={cn("w-6 h-6", sendingBroadcast && "animate-spin")} />
                     </Button>
                 </div>
             </Card>
@@ -402,17 +404,17 @@ const handleVerifyUser = async (userId: string) => {
                     <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>
                             <tr className="border-b border-white/5 bg-white/[0.02]">
-                                <th className="p-8 text-[10px] font-black uppercase tracking-[0.4em] text-white/20">
-                                  {activeView === 'pulses' ? 'TIME' : 'NAME'}
+                                <th className="p-8 text-[10px] font-black uppercase tracking-[0.4em] text-indigo-500/40">
+                                  {activeView === 'pulses' ? 'Log Time' : 'Name'}
                                 </th>
-                                <th className="p-8 text-[10px] font-black uppercase tracking-[0.4em] text-white/20">
-                                  {activeView === 'pulses' ? 'TYPE' : 'STATUS'}
+                                <th className="p-8 text-[10px] font-black uppercase tracking-[0.4em] text-indigo-500/40">
+                                  {activeView === 'pulses' ? 'Action' : 'Status'}
                                 </th>
-                                <th className="p-8 text-[10px] font-black uppercase tracking-[0.4em] text-white/20">
-                                  {activeView === 'pulses' ? 'MESSAGE' : (activeView === 'users' ? 'JOINED' : 'DATE')}
+                                <th className="p-8 text-[10px] font-black uppercase tracking-[0.4em] text-indigo-500/40">
+                                  {activeView === 'pulses' ? 'Details' : (activeView === 'users' ? 'Joined On' : 'Event Date')}
                                 </th>
-                                <th className="p-8 text-[10px] font-black uppercase tracking-[0.4em] text-white/20 text-right">
-                                  {activeView === 'pulses' ? 'METADATA' : 'ACTIONS'}
+                                <th className="p-8 text-[10px] font-black uppercase tracking-[0.4em] text-indigo-500/40 text-right">
+                                  {activeView === 'pulses' ? 'Technical Data' : 'Actions'}
                                 </th>
                             </tr>
                         </thead>
@@ -424,33 +426,33 @@ const handleVerifyUser = async (userId: string) => {
                                             <div className="flex items-center gap-5">
                                                 <Avatar src={u.photoURL} size="lg" className="border-2 border-white/10" />
                                                 <div className="space-y-1">
-                                                    <p className="font-black italic text-lg tracking-tighter uppercase text-white group-hover:text-purple-400 transition-colors">{u.displayName}</p>
-                                                    <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest">{u.email}</p>
+                                                <p className="font-black italic text-lg tracking-tighter uppercase text-white group-hover:text-indigo-400 transition-colors">{u.displayName}</p>
+                                                    <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">{u.email}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="p-8">
                                             {u.isVerified ? (
-                                                <Badge className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[9px] uppercase font-black tracking-widest px-3 py-1 italic">VERIFIED</Badge>
+                                                <Badge className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] uppercase font-black tracking-widest px-3 py-1 italic">OFFICIAL</Badge>
                                             ) : (
-                                                <Badge className="bg-white/5 border border-white/10 text-white/40 text-[9px] uppercase font-black tracking-widest px-3 py-1 italic">UNVERIFIED</Badge>
+                                                <Badge className="bg-white/5 border border-white/10 text-white/40 text-[9px] uppercase font-black tracking-widest px-3 py-1 italic">STANDARD</Badge>
                                             )}
                                         </td>
-                                        <td className="p-8 text-[11px] text-white/40 font-mono italic tracking-tighter">
-                                            {u.createdAt ? formatDate(u.createdAt) : 'UNKNOWN'}
+                                        <td className="p-8 text-[11px] text-white/60 font-mono italic tracking-tighter">
+                                            {u.createdAt ? formatDate(u.createdAt) : 'JOINED: N/A'}
                                         </td>
                                         <td className="p-8 text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 {!u.isVerified && (
-                                                    <Button variant="ghost" size="icon" onClick={() => handleVerifyUser(u.id)} className="text-white/10 hover:text-emerald-500 hover:bg-emerald-500/10 h-12 w-12 rounded-2xl transition-all">
-                                                        <ShieldCheck className="w-5 h-5" />
+                                                    <Button variant="ghost" size="icon" title="Assign Official Status" onClick={() => handleVerifyUser(u.id)} className="text-white/10 hover:text-emerald-500 hover:bg-emerald-500/10 h-14 w-14 rounded-2xl transition-all">
+                                                        <ShieldCheck className="w-6 h-6" />
                                                     </Button>
                                                 )}
-                                                <Button variant="ghost" size="icon" onClick={() => handleDirectMail(u.email)} className="text-white/10 hover:text-blue-500 hover:bg-blue-500/10 h-12 w-12 rounded-2xl transition-all">
-                                                    <Mail className="w-5 h-5" />
+                                                <Button variant="ghost" size="icon" title="Contact Member" onClick={() => handleDirectMail(u.email)} className="text-white/10 hover:text-indigo-500 hover:bg-indigo-500/10 h-14 w-14 rounded-2xl transition-all">
+                                                    <Mail className="w-6 h-6" />
                                                 </Button>
-                                                <Button variant="ghost" size="icon" onClick={() => handleDeleteUser(u.id)} className="text-white/10 hover:text-red-500 hover:bg-red-500/10 h-12 w-12 rounded-2xl transition-all">
-                                                    <Trash2 className="w-5 h-5" />
+                                                <Button variant="ghost" size="icon" title="Remove Member" onClick={() => handleDeleteUser(u.id)} className="text-white/20 hover:text-red-500 hover:bg-red-500/10 h-14 w-14 rounded-2xl transition-all">
+                                                    <Trash2 className="w-6 h-6" />
                                                 </Button>
                                             </div>
                                         </td>
@@ -469,7 +471,7 @@ const handleVerifyUser = async (userId: string) => {
                                                     <img src={e.coverImageUrl} className="w-full h-full object-cover" />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <p className="font-black italic text-lg tracking-tighter uppercase text-white group-hover:text-blue-400 transition-colors leading-none">{e.title}</p>
+                                                    <p className="font-black italic text-lg tracking-tighter uppercase text-white group-hover:text-indigo-400 transition-colors leading-none">{e.title}</p>
                                                     <p className="text-[9px] text-white/20 font-bold uppercase tracking-[0.2em]">{e.category}</p>
                                                 </div>
                                             </div>
@@ -480,10 +482,10 @@ const handleVerifyUser = async (userId: string) => {
                                                     "text-[9px] uppercase font-black tracking-widest px-3 py-1 italic w-fit",
                                                     e.status === 'published' ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" :
                                                     e.status === 'draft' ? "bg-white/5 text-white/40 border border-white/10" :
-                                                    e.status === 'completed' ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" :
+                                                    e.status === 'completed' ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20" :
                                                     "bg-red-500/10 text-red-400 border border-red-500/20"
                                                 )}>
-                                                    {e.status}
+                                                    {e.status.toUpperCase()}
                                                 </Badge>
                                                 <span className="text-[10px] text-white/20 font-bold uppercase tracking-widest italic">{e.location}</span>
                                             </div>
@@ -492,8 +494,8 @@ const handleVerifyUser = async (userId: string) => {
                                             {formatDate(e.date)}
                                         </td>
                                         <td className="p-8 text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => handleDeleteEvent(e.id)} className="text-white/10 hover:text-red-500 hover:bg-red-500/10 h-12 w-12 rounded-2xl transition-all">
-                                                <Trash2 className="w-5 h-5" />
+                                            <Button variant="ghost" size="icon" title="Delete Management Record" onClick={() => handleDeleteEvent(e.id)} className="text-white/20 hover:text-red-500 hover:bg-red-500/10 h-14 w-14 rounded-2xl transition-all">
+                                                <Trash2 className="w-6 h-6" />
                                             </Button>
                                         </td>
                                     </tr>
@@ -507,11 +509,11 @@ const handleVerifyUser = async (userId: string) => {
                                         <td className="p-8">
                                             <Badge className={cn(
                                               "text-[9px] uppercase font-black tracking-widest px-3 py-1 italic",
-                                              p.type === 'REGISTRATION' ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" :
-                                              p.type === 'RSVP' ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" :
+                                              p.type === 'REGISTRATION' ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20" :
+                                              p.type === 'RSVP' ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
                                               "bg-white/5 text-white/40 border border-white/10"
                                             )}>
-                                              {p.type}
+                                              {p.type.replace('_', ' ')}
                                             </Badge>
                                         </td>
                                         <td className="p-8 text-sm font-bold italic tracking-tight text-white/80 group-hover:text-white transition-colors">

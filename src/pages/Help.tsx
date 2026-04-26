@@ -89,42 +89,44 @@ export function Help() {
 
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="space-y-6 max-w-2xl">
-              <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
-                <HelpCircle className="w-8 h-8 text-purple-400" />
+              <div className="w-20 h-20 rounded-[2.5rem] bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shadow-2xl shadow-indigo-500/20 relative group">
+                <div className="absolute inset-0 bg-indigo-400/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full" />
+                <HelpCircle className="w-10 h-10 text-indigo-400 relative z-10" />
               </div>
-              <div className="space-y-2">
-                <h1 className="text-6xl font-black tracking-tight text-white uppercase italic leading-[0.9]">Help Center</h1>
-                <p className="text-white/40 text-lg font-medium italic">Everything you need to know about hosting and attending events on VUX.</p>
+              <div className="space-y-4">
+                <h1 className="text-7xl md:text-9xl font-black tracking-tighter text-white uppercase italic leading-[0.8]">HELP<br/>CENTER</h1>
+                <p className="text-white/40 text-sm font-bold uppercase tracking-[0.3em] italic">Omni-Channel Protocol Assistance</p>
               </div>
             </div>
 
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+            <div className="relative w-full md:w-96 group">
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 group-focus-within:text-white transition-colors" />
               <Input 
-                placeholder="Search help topics..."
+                placeholder="Query System Database..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 bg-white/5 border-white/10 rounded-2xl h-14 italic"
+                className="pl-14 bg-white/[0.02] border-white/5 focus:border-indigo-500/40 rounded-3xl h-16 italic font-bold text-lg transition-all"
               />
             </div>
           </div>
         </div>
 
         {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
-            { icon: <BookOpen className="w-6 h-6 text-blue-400" />, title: 'User Guides', desc: 'Step-by-step tutorials for hosts and guests.' },
-            { icon: <Zap className="w-6 h-6 text-yellow-400" />, title: 'Best Practices', desc: 'How to make your community event stand out.' },
-            { icon: <Shield className="w-6 h-6 text-emerald-400" />, title: 'Privacy & Trust', desc: 'Understanding how we keep your data safe.' }
+            { icon: <BookOpen className="w-7 h-7 text-indigo-400" />, title: 'User Manuals', desc: 'Step-by-step cryptographic tutorials.' },
+            { icon: <Zap className="w-7 h-7 text-amber-500" />, title: 'Prime Protocol', desc: 'Maximize your community engagement.' },
+            { icon: <Shield className="w-7 h-7 text-emerald-400" />, title: 'Trust Matrix', desc: 'Understanding your data sovereignty.' }
           ].map((item, i) => (
-            <Card key={i} className="p-8 border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all rounded-[32px] group cursor-pointer">
-              <div className="space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <Card key={i} className="p-10 border-white/[0.03] bg-white/[0.01] hover:bg-white/[0.03] transition-all rounded-[40px] group cursor-pointer relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="space-y-6">
+                <div className="w-14 h-14 rounded-2xl bg-white/[0.01] border border-white/5 flex items-center justify-center group-hover:scale-110 group-hover:border-indigo-500/40 transition-all duration-500">
                   {item.icon}
                 </div>
-                <div className="space-y-1">
-                  <h3 className="text-xl font-black italic uppercase tracking-tighter">{item.title}</h3>
-                  <p className="text-xs text-white/30 font-medium italic leading-relaxed">{item.desc}</p>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black italic uppercase tracking-tighter transition-colors group-hover:text-indigo-400">{item.title}</h3>
+                  <p className="text-[10px] text-white/20 font-black uppercase tracking-widest leading-relaxed italic">{item.desc}</p>
                 </div>
               </div>
             </Card>
@@ -132,37 +134,40 @@ export function Help() {
         </div>
 
         {/* FAQ Section */}
-        <div className="space-y-8">
-          <div className="flex items-center gap-4">
-            <h2 className="text-2xl font-black italic uppercase tracking-tighter">Frequently Asked Questions</h2>
-            <div className="h-px flex-1 bg-white/5" />
+        <div className="space-y-10">
+          <div className="flex items-center gap-6">
+             <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+            <h2 className="text-3xl font-black italic uppercase tracking-tighter">Query Results</h2>
+            <div className="h-px flex-1 bg-white/[0.03]" />
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
             {filteredFaqs.length > 0 ? (
               filteredFaqs.map((faq, i) => (
                 <div 
                   key={i}
                   className={cn(
-                    "rounded-[2rem] border border-white/5 transition-all overflow-hidden",
-                    expandedIndex === i ? "bg-white/[0.03] border-white/10" : "bg-white/[0.01] hover:bg-white/[0.02]"
+                    "rounded-[2.5rem] border transition-all overflow-hidden relative",
+                    expandedIndex === i 
+                      ? "bg-white/[0.03] border-indigo-500/20 shadow-2xl shadow-indigo-500/10" 
+                      : "bg-white/[0.01] border-white/5 hover:bg-white/[0.02]"
                   )}
                 >
                   <button 
                     onClick={() => setExpandedIndex(expandedIndex === i ? null : i)}
-                    className="w-full p-8 flex items-center justify-between text-left group"
+                    className="w-full p-10 flex items-center justify-between text-left group"
                   >
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">{faq.category}</span>
-                      <h4 className="text-lg font-bold italic tracking-tight text-white/80 group-hover:text-white transition-colors">
+                    <div className="space-y-2">
+                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-500/60 font-mono">{faq.category}</span>
+                      <h4 className="text-xl font-black italic tracking-tight text-white group-hover:text-indigo-300 transition-colors uppercase">
                         {faq.question}
                       </h4>
                     </div>
                     <div className={cn(
-                      "w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center transition-transform",
-                      expandedIndex === i ? "rotate-180 bg-purple-500/20 text-purple-400" : "text-white/20"
+                      "w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center transition-all duration-500",
+                      expandedIndex === i ? "rotate-180 bg-indigo-600 text-white shadow-xl shadow-indigo-500/40" : "text-white/20"
                     )}>
-                      <ChevronDown className="w-5 h-5" />
+                      <ChevronDown className="w-6 h-6" />
                     </div>
                   </button>
                   <AnimatePresence>
@@ -171,9 +176,9 @@ export function Help() {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                        transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
                       >
-                        <div className="px-8 pb-8 text-white/40 leading-relaxed italic text-sm border-t border-white/5 pt-6">
+                        <div className="px-10 pb-10 text-white/40 leading-relaxed font-bold italic text-lg border-t border-white/[0.03] pt-8 bg-black/20">
                           {faq.answer}
                         </div>
                       </motion.div>
@@ -182,45 +187,45 @@ export function Help() {
                 </div>
               ))
             ) : (
-              <div className="py-20 text-center space-y-4 bg-white/[0.01] rounded-[40px] border border-dashed border-white/5">
-                <Search className="w-8 h-8 text-white/10 mx-auto" />
-                <p className="text-sm italic text-white/20">No matching questions found for "{searchQuery}"</p>
+              <div className="py-32 text-center space-y-6 bg-white/[0.01] rounded-[48px] border border-dashed border-white/[0.05]">
+                <Search className="w-12 h-12 text-white/5 mx-auto" />
+                <p className="text-[10px] italic font-black uppercase tracking-[0.4em] text-white/10">No protocol match for query: "{searchQuery}"</p>
               </div>
             )}
           </div>
         </div>
 
         {/* Contact Section */}
-        <section className="bg-gradient-to-br from-purple-500/[0.05] to-transparent p-12 md:p-16 rounded-[3rem] border border-white/10 space-y-8 text-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 blur-[100px] rounded-full -mr-32 -mt-32" />
-          <div className="space-y-4 relative">
-             <div className="w-20 h-20 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-purple-500/20">
-                <MessageCircle className="w-10 h-10 text-purple-400" />
+        <section className="bg-gradient-to-br from-indigo-600/[0.08] via-purple-600/[0.03] to-transparent p-16 md:p-24 rounded-[4rem] border border-white/10 space-y-12 text-center relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-indigo-600/10 blur-[150px] rounded-full -mr-80 -mt-80 group-hover:bg-indigo-600/15 transition-all duration-1000" />
+          <div className="space-y-6 relative">
+             <div className="w-24 h-24 bg-indigo-500/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 border border-indigo-500/20 shadow-2xl shadow-indigo-500/10 ring-4 ring-indigo-500/5">
+                <MessageCircle className="w-12 h-12 text-indigo-400" />
              </div>
-             <h2 className="text-4xl font-black italic uppercase tracking-tighter">Still need help?</h2>
-             <p className="text-white/30 max-w-md mx-auto text-sm font-medium italic leading-relaxed">
-                Our support team is active 24/7. Reach out and we'll get your community event back on track.
+             <h2 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter leading-tight">Need Direct<br/>Access?</h2>
+             <p className="text-white/20 max-w-lg mx-auto text-sm font-black italic leading-relaxed uppercase tracking-[0.2em]">
+                Our support agents are on standby 24/7. Access the high-priority communication channel below.
              </p>
           </div>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 relative">
              <a href="mailto:vuxevents@gmail.com" className="w-full sm:w-auto">
-               <Button className="w-full sm:w-auto h-16 px-10 rounded-2xl bg-white text-black hover:bg-white/90 font-black uppercase tracking-widest gap-2">
-                 <Mail className="w-4 h-4" /> Email Support
+               <Button variant="vux" className="w-full sm:w-auto h-20 px-14 rounded-3xl text-lg font-black uppercase tracking-widest gap-3 shadow-2xl shadow-indigo-500/20">
+                 <Mail className="w-5 h-5" /> Open Ticket
                </Button>
              </a>
-             <Button variant="ghost" className="w-full sm:w-auto h-16 px-10 rounded-2xl border border-white/10 font-black uppercase tracking-widest gap-2">
-                <ExternalLink className="w-4 h-4" /> Join Discord
+             <Button variant="ghost" className="w-full sm:w-auto h-20 px-14 rounded-3xl border border-white/5 font-black uppercase tracking-widest gap-3 hover:bg-white/[0.03] transition-all">
+                <ExternalLink className="w-5 h-5" /> HQ Discord
              </Button>
           </div>
         </section>
 
-        <footer className="pt-20 border-t border-white/5 text-center flex flex-col md:flex-row items-center justify-between gap-6">
-            <p className="text-[10px] text-white/10 font-black uppercase tracking-widest">
-                © 2026 VUX Events Inc. • Built for the modern community.
+        <footer className="pt-24 border-t border-white/5 text-center flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
+            <p className="text-[10px] text-white/10 font-bold uppercase tracking-[0.3em] font-mono">
+                [PROTOCOL 2.0] VUX Events Matrix • © 2026 • Encrypted Documentation
             </p>
-            <div className="flex items-center gap-8">
-              <Link to="/terms" className="text-[10px] font-black text-white/20 hover:text-white uppercase tracking-widest transition-colors">Terms</Link>
-              <Link to="/privacy" className="text-[10px] font-black text-white/20 hover:text-white uppercase tracking-widest transition-colors">Privacy</Link>
+            <div className="flex items-center gap-12">
+              <Link to="/terms" className="text-[10px] font-black text-white/20 hover:text-indigo-400 uppercase tracking-widest transition-all">Terms of Access</Link>
+              <Link to="/privacy" className="text-[10px] font-black text-white/20 hover:text-indigo-400 uppercase tracking-widest transition-all">Privacy Shield</Link>
             </div>
         </footer>
       </div>

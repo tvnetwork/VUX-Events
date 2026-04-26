@@ -6,20 +6,24 @@
 import { forwardRef } from 'react';
 import { motion, HTMLMotionProps } from 'motion/react';
 import { cn } from '../../lib/utils';
+import { ReactNode } from 'react';
 
 export interface ButtonProps extends HTMLMotionProps<"button"> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'glass' | 'outline' | 'google';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'glass' | 'outline' | 'google' | 'passkey' | 'email' | 'vux';
   size?: 'sm' | 'md' | 'lg' | 'icon' | 'xs';
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', ...props }, ref) => {
+  ({ className, variant = 'primary', size = 'md', children, ...props }, ref) => {
     const variants = {
       primary: 'bg-white text-black hover:bg-white/90',
       secondary: 'bg-white/10 text-white hover:bg-white/20',
       ghost: 'bg-transparent text-white hover:bg-white/5',
       glass: 'glass hover:bg-white/10 text-white',
       google: 'bg-white text-gray-800 hover:bg-gray-50 border border-whiteShadow shadow-lg shadow-black/5',
+      passkey: 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 text-white hover:bg-amber-500/20 shadow-lg shadow-amber-900/5',
+      email: 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-xl shadow-indigo-500/10',
+      vux: 'bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white hover:shadow-lg hover:shadow-purple-500/25',
       outline: 'border border-white/10 bg-transparent text-white hover:bg-white/5',
     };
 
@@ -31,19 +35,31 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       icon: 'p-2 rounded-xl',
     };
 
+    const isPremium = ['vux', 'email', 'passkey', 'google'].includes(variant);
+
     return (
       <motion.button
         ref={ref}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         className={cn(
-          'inline-flex items-center justify-center font-semibold transition-colors disabled:opacity-50 disabled:pointer-events-none outline-none focus-visible:ring-2 focus-visible:ring-white/20',
+          'inline-flex items-center justify-center font-semibold transition-colors disabled:opacity-50 disabled:pointer-events-none outline-none focus-visible:ring-2 focus-visible:ring-white/20 relative overflow-hidden',
           variants[variant],
           sizes[size],
           className
         )}
         {...props}
-      />
+      >
+        {isPremium && (
+          <motion.div
+            initial={{ x: '-100%' }}
+            whileHover={{ x: '100%' }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none -skew-x-12"
+          />
+        )}
+        {children as ReactNode}
+      </motion.button>
     );
   }
 );

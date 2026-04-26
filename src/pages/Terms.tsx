@@ -18,63 +18,87 @@ export function Terms() {
           </Button>
         </Link>
 
-        <header className="space-y-6">
-          <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center border border-white/5 glass">
-            <Scale className="w-8 h-8 text-purple-400" />
+        <header className="space-y-8">
+          <div className="w-20 h-20 rounded-[2.5rem] bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shadow-2xl shadow-indigo-500/20 relative group">
+            <div className="absolute inset-0 bg-indigo-400/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full" />
+            <Scale className="w-10 h-10 text-indigo-400 relative z-10" />
           </div>
-          <div className="space-y-2">
-            <h1 className="text-5xl font-black tracking-tight text-white uppercase italic">Terms of Service</h1>
-            <p className="text-xs text-white/20 font-bold uppercase tracking-widest">Last updated: April 23, 2026</p>
+          <div className="space-y-4">
+            <h1 className="text-7xl md:text-9xl font-black tracking-tighter text-white uppercase italic leading-[0.8]">TERMS OF<br/>ACCESS</h1>
+            <div className="flex items-center gap-4">
+                <div className="h-px w-12 bg-indigo-500" />
+                <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.4em] italic leading-none">Last sync: April 23, 2026</p>
+            </div>
           </div>
         </header>
 
-        <div className="space-y-12 bg-white/5 glass p-10 rounded-[2.5rem] border border-white/10">
-          <section className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">1. Acceptance of Terms</h2>
-            <p className="text-white/40 leading-relaxed text-sm">
-              By accessing or using VUX Events (the "Service"), you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this site.
+        <div className="space-y-16 bg-white/[0.01] p-12 md:p-20 rounded-[4rem] border border-white/[0.03] shadow-2xl relative overflow-hidden backdrop-blur-3xl">
+          <div className="absolute top-0 right-0 w-[30rem] h-[30rem] bg-indigo-600/5 blur-[150px] rounded-full -mr-60 -mt-60" />
+          
+          <section className="space-y-6 relative">
+            <h2 className="text-3xl font-black italic text-white tracking-tighter uppercase flex items-center gap-4">
+                <span className="text-indigo-500 font-mono text-sm opacity-40">01</span>
+                Entry Protocol
+            </h2>
+            <p className="text-white/40 leading-relaxed font-bold italic text-lg uppercase tracking-wide">
+              By accessing the VUX substrate (the "Protocol"), you agree to be bound by these Terms of Access and all underlying cryptographic laws. Unauthorized intrusion or protocol exploitation is strictly prohibited.
             </p>
           </section>
 
-          <section className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">2. User Accounts & Responsibilities</h2>
-            <p className="text-white/40 leading-relaxed text-sm">
-              To access certain features, you must register for an account using a valid Google Identity. You are responsible for maintaining the confidentiality of your account and for all activities that occur under your account. You must notify us immediately of any unauthorized use or security breach.
+          <section className="space-y-6 relative">
+            <h2 className="text-3xl font-black italic text-white tracking-tighter uppercase flex items-center gap-4">
+                <span className="text-indigo-500 font-mono text-sm opacity-40">02</span>
+                Identity Authentication
+            </h2>
+            <p className="text-white/40 leading-relaxed font-bold italic text-lg uppercase tracking-wide">
+              Access requires valid Google Identity verification. You are solely responsible for your digital avatar and all interaction strings broadcasted under your unique network ID.
             </p>
           </section>
 
-          <section className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">3. Event Hosting & Content</h2>
-            <p className="text-white/40 leading-relaxed text-sm">
-              When you host an event on VUX, you represent that you have the right to organize and promote such an event. You retain ownership of all content you upload, but grant VUX Events a license to host, display, and promote that content. We reserve the right to remove any event that violates our Community Guidelines, including events promoting illegal activities, hate speech, or harassment.
+          <section className="space-y-6 relative">
+            <h2 className="text-3xl font-black italic text-white tracking-tighter uppercase flex items-center gap-4">
+                <span className="text-indigo-500 font-mono text-sm opacity-40">03</span>
+                Roadmap Deployment
+            </h2>
+            <p className="text-white/40 leading-relaxed font-bold italic text-lg uppercase tracking-wide">
+              Orchestrators hosting roadmaps represent they have full protocol rights. VUX reserves the right to terminate any event node that violates community harmonics or legal frameworks.
             </p>
           </section>
 
-          <section className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">4. Ticketing & Payments</h2>
-            <p className="text-white/40 leading-relaxed text-sm">
-              VUX Events acts as a platform for event organizers to sell tickets to attendees. All payment processing is handled by third-party secure providers. While we facilitate the transaction, we are not responsible for the fulfillment of the event. Refunds are at the sole discretion of the event organizer unless the event is cancelled and not rescheduled.
+          <section className="space-y-6 relative">
+            <h2 className="text-3xl font-black italic text-white tracking-tighter uppercase flex items-center gap-4">
+                <span className="text-indigo-500 font-mono text-sm opacity-40">04</span>
+                Value Exchange
+            </h2>
+            <p className="text-white/40 leading-relaxed font-bold italic text-lg uppercase tracking-wide">
+              Value transfers within the VUX network are facilitated by secure third-party gateways. VUX facilitates the handshake but holds no liability for external physical event fulfillment.
             </p>
           </section>
 
-          <section className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">5. Limitation of Liability</h2>
-            <p className="text-white/40 leading-relaxed text-sm">
-              In no event shall VUX Events Inc. or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on VUX Events, even if VUX Events or a VUX Events authorized representative has been notified orally or in writing of the possibility of such damage.
+          <section className="space-y-6 relative">
+            <h2 className="text-3xl font-black italic text-white tracking-tighter uppercase flex items-center gap-4">
+                <span className="text-indigo-500 font-mono text-sm opacity-40">05</span>
+                Liability Boundaries
+            </h2>
+            <p className="text-white/40 leading-relaxed font-bold italic text-lg uppercase tracking-wide">
+              VUX Matrix Inc. and its nodes provide the protocol "as is." We bear no responsibility for data corruption, sync failures, or loss of value arising from protocol utilization.
             </p>
           </section>
 
-          <section className="space-y-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">6. Governing Law</h2>
-            <p className="text-white/40 leading-relaxed text-sm">
-              These terms and conditions are governed by and construed in accordance with the laws of the jurisdiction in which VUX Events operates and you irrevocably submit to the exclusive jurisdiction of the courts in that State or location.
+          <section className="space-y-6 relative">
+            <h2 className="text-3xl font-black italic text-white tracking-tighter uppercase flex items-center gap-4">
+                <span className="text-indigo-500 font-mono text-sm opacity-40">06</span>
+                Global Substrate Law
+            </h2>
+            <p className="text-white/40 leading-relaxed font-bold italic text-lg uppercase tracking-wide">
+              These terms are governed by the laws of the host jurisdiction. All disputes shall be settled within the exclusive digital courts of the Matrix operational zone.
             </p>
           </section>
         </div>
 
-        <footer className="pt-20 border-t border-white/5 text-center">
-            <p className="text-[10px] text-white/10 font-black uppercase tracking-widest leading-loose">
-                © 2026 VUX Events Inc. • Built for the modern community.
+        <footer className="pt-24 border-t border-white/5 text-center">
+            <p className="text-[10px] text-white/10 font-bold uppercase tracking-[0.4em] font-mono leading-loose">
+                © 2026 VUX Events Matrix • Secure Protocol v2.0 • Entry Logged
             </p>
         </footer>
       </div>

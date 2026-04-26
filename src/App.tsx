@@ -10,7 +10,9 @@
 
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider, useAuth } from './AuthContext';
+import { ScrollToTop } from './components/ScrollToTop';
 import { Landing } from './pages/Landing';
 import { RootLayout } from './layouts/RootLayout';
 import { Terms } from './pages/Terms';
@@ -31,6 +33,8 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from './lib/firebase';
 
 import { AdminDashboard } from './pages/AdminDashboard';
+import NotFound from './pages/NotFound';
+import ComingSoon from './pages/ComingSoon';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -61,7 +65,10 @@ function AppContent() {
       <Route path="/security" element={<PageShell><Security /></PageShell>} />
       <Route path="/dmca" element={<PageShell><DMCA /></PageShell>} />
       <Route path="/admin" element={user ? <RootLayout initialTab="admin" /> : <Navigate to="/" replace />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="/pricing" element={<ComingSoon />} />
+      <Route path="/synchronization" element={<ComingSoon />} />
+      <Route path="/upgrade" element={<ComingSoon />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
@@ -109,11 +116,14 @@ function DiscoverWrapper() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <ScrollToTop />
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   );
 }
 

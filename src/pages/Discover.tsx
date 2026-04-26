@@ -63,70 +63,70 @@ export function Discover({ onCreateClick, onEventClick }: { onCreateClick?: () =
     <div className="space-y-24 animate-in fade-in duration-1000 pb-32">
       <header className="space-y-12">
         <div className="space-y-6">
-          <div className="flex items-center gap-3 text-purple-500">
-             <div className="w-10 h-px bg-purple-500" />
-             <span className="text-[10px] font-black uppercase tracking-[0.4em]">Discover</span>
+          <div className="flex items-center gap-4 text-indigo-500">
+             <div className="w-12 h-[2px] bg-indigo-500" />
+             <span className="text-[10px] font-black uppercase tracking-[0.5em]">Global Directory</span>
           </div>
-          <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter uppercase leading-[0.8] text-white">DISCOVER<br/>EVENTS</h1>
-          <p className="text-white/40 max-w-sm text-sm font-medium leading-relaxed italic border-l border-white/10 pl-6">
-            Find and join live events, communities, and workshops happening near you.
+          <h1 className="text-7xl md:text-9xl font-black italic tracking-tighter uppercase leading-[0.8] text-white">DISCOVER<br/>NODES</h1>
+          <p className="text-white/40 max-w-sm text-sm font-bold leading-relaxed italic border-l-2 border-indigo-500/40 pl-6 uppercase tracking-wider">
+            Synchronize with live events, decentralized communities, and collaborative workshops.
           </p>
         </div>
 
-        <div className="relative max-w-4xl group">
-          <div className="absolute inset-0 bg-purple-500/5 blur-3xl opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
-          <Search className="absolute left-8 top-1/2 -translate-y-1/2 w-6 h-6 text-white/20 group-focus-within:text-purple-400 transition-colors" />
+        <div className="relative max-w-5xl group">
+          <div className="absolute inset-0 bg-indigo-600/5 blur-[100px] opacity-0 group-focus-within:opacity-100 transition-all duration-1000 pointer-events-none" />
+          <Search className="absolute left-10 top-1/2 -translate-y-1/2 w-8 h-8 text-indigo-500/40 group-focus-within:text-indigo-400 transition-colors" />
           <input 
             type="text" 
             placeholder="Search events, cities, or communities..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-24 pl-20 pr-10 bg-white/[0.01] border border-white/5 rounded-[48px] outline-none focus:border-purple-500/50 transition-all font-black italic text-2xl placeholder:text-white/5 uppercase tracking-tighter"
+            className="w-full h-28 pl-24 pr-12 bg-white/[0.01] border border-white/[0.03] rounded-[60px] outline-none focus:border-indigo-500/40 transition-all font-black italic text-3xl placeholder:text-white/5 uppercase tracking-tighter shadow-2xl"
           />
-          <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2">
-             <Badge className="bg-white/5 border-white/10 text-white/20 text-[10px] py-1">CTRL+K</Badge>
+          <div className="absolute right-10 top-1/2 -translate-y-1/2 flex items-center gap-4">
+             <Badge className="bg-white/5 border-white/10 text-white/20 text-[10px] py-1.5 px-3 font-mono">SYS.FIND</Badge>
           </div>
         </div>
       </header>
 
-      <section className="space-y-10">
-        <div className="flex items-center justify-between px-2">
-           <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Categories</h2>
-           <div className="w-[1px] h-4 bg-white/5 mx-4 flex-1" />
+      <section className="space-y-12">
+        <div className="flex items-center justify-between px-4">
+           <h2 className="text-[10px] font-black uppercase tracking-[0.6em] text-indigo-500/40">Category Selection</h2>
+           <div className="h-[2px] flex-1 bg-gradient-to-r from-indigo-500/40 to-transparent mx-6" />
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
             {categories.map((cat) => (
-            <Card key={cat.id} className="p-6 flex flex-col items-center gap-4 cursor-pointer group hover:bg-white/[0.04] border-white/5 transition-all duration-700 rounded-[32px] overflow-hidden relative">
-                <div className={`absolute top-0 right-0 w-16 h-16 bg-${cat.color}-500/5 blur-xl group-hover:bg-${cat.color}-500/20 transition-colors duration-700`} />
-                <div className="w-12 h-12 rounded-[1.5rem] bg-white/[0.02] flex items-center justify-center border border-white/5 group-hover:border-white/20 transition-all duration-500">
+            <Card key={cat.id} className="p-8 flex flex-col items-center gap-6 cursor-pointer group hover:bg-white/[0.03] border-white/[0.03] transition-all duration-700 rounded-[40px] overflow-hidden relative shadow-2xl">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="w-16 h-16 rounded-[2rem] bg-white/[0.01] flex items-center justify-center border border-white/5 group-hover:border-indigo-500/40 transition-all duration-500 group-hover:scale-110 shadow-xl">
                 {cat.icon}
                 </div>
-                <div className="text-center space-y-1">
-                    <span className="text-[10px] font-black italic uppercase tracking-[0.2em] text-white/40 group-hover:text-white transition-colors">{cat.label}</span>
+                <div className="text-center">
+                    <span className="text-xs font-black italic uppercase tracking-[0.2em] text-white/30 group-hover:text-indigo-400 transition-colors">{cat.label}</span>
                 </div>
             </Card>
             ))}
         </div>
 
         {allTags.length > 0 && (
-          <div className="space-y-6 pt-4">
-             <div className="flex items-center justify-between px-2">
-                <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Trending Signals</h2>
-                <div className="w-[1px] h-4 bg-white/5 mx-4 flex-1" />
+          <div className="space-y-8 pt-8">
+             <div className="flex items-center justify-between px-4">
+                <h2 className="text-[10px] font-black uppercase tracking-[0.6em] text-indigo-500/40">Pulse Signals</h2>
+                <div className="h-[2px] flex-1 bg-gradient-to-r from-indigo-500/40 to-transparent mx-6" />
              </div>
-             <div className="flex flex-wrap gap-2 px-2">
+             <div className="flex flex-wrap gap-3 px-4">
                 {allTags.map(tag => (
                    <button
                     key={tag}
                     onClick={() => toggleTag(tag)}
                     className={cn(
-                      "px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 border border-white/5 hover:border-purple-500/30",
+                      "px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-500 border relative overflow-hidden",
                       selectedTags.includes(tag) 
-                        ? "bg-purple-600 text-white border-purple-500 shadow-xl shadow-purple-600/20" 
-                        : "bg-white/[0.01] text-white/40 hover:bg-white/5 hover:text-white/60"
+                        ? "bg-indigo-600 text-white border-indigo-400 shadow-2xl shadow-indigo-600/40" 
+                        : "bg-white/[0.01] text-white/20 border-white/[0.03] hover:border-indigo-500/40 hover:text-white"
                     )}
                    >
-                      #{tag}
+                      <span className="relative z-10">#{tag}</span>
                    </button>
                 ))}
              </div>
@@ -134,68 +134,68 @@ export function Discover({ onCreateClick, onEventClick }: { onCreateClick?: () =
         )}
       </section>
 
-      <section className="space-y-12">
-        <div className="flex items-end justify-between px-2">
-          <div className="space-y-2">
-             <h2 className="text-4xl font-black italic uppercase tracking-tighter flex items-center gap-4">
-                <Zap className="w-8 h-8 text-yellow-400" /> 
-                {selectedTags.length > 0 ? 'FILTERED RESULTS' : 'TRENDING EVENTS'}
+      <section className="space-y-16">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 px-4">
+          <div className="space-y-4">
+             <h2 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter flex items-center gap-6 leading-none">
+                <div className="w-4 h-4 bg-indigo-500 rounded-full animate-pulse shadow-[0_0_20px_rgba(99,102,241,0.5)]" /> 
+                {selectedTags.length > 0 ? 'SIGNAL MATCH' : 'PRIME NODES'}
              </h2>
-             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">
-               {selectedTags.length > 0 ? `Showing signals for ${selectedTags.join(', ')}` : 'Most popular events right now'}
+             <p className="text-[10px] font-black uppercase tracking-[0.5em] text-indigo-500/40 italic">
+               {selectedTags.length > 0 ? `Displaying results for sync-tags: ${selectedTags.join(', ')}` : 'The most verified events in the substrate'}
              </p>
           </div>
           <button 
             onClick={() => setSelectedTags([])}
             className={cn(
-              "text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-purple-400 transition-colors pb-1 border-b border-white/5",
-              selectedTags.length === 0 && "opacity-0 pointer-events-none"
+              "text-[10px] font-black uppercase tracking-widest text-indigo-500/40 hover:text-indigo-400 transition-all pb-2 px-4 border-b-2 border-indigo-500/10",
+              selectedTags.length === 0 && "opacity-0 pointer-events-none translate-y-4"
             )}
           >
-            Clear Filters
+            RESET PROTOCOL
           </button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 px-4">
           {loading ? (
              [1, 2, 3].map(i => (
-                <div key={i} className="aspect-[4/5] bg-white/[0.01] border border-white/5 rounded-[40px] animate-pulse" />
+                <div key={i} className="aspect-[4/5] bg-white/[0.01] border border-white/[0.05] rounded-[48px] animate-pulse" />
              ))
           ) : filteredEvents.length > 0 ? (
             filteredEvents.map((event) => (
               <DiscoverCard key={event.id} event={event} onClick={() => onEventClick?.(event)} />
             ))
           ) : (
-            <div className="col-span-full py-32 text-center space-y-6">
-               <Ghost className="w-16 h-16 text-white/5 mx-auto" />
-               <div className="space-y-2">
-                  <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white/20">No matching signals</h3>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-white/10">Try clearing your filters or widening your search</p>
+            <div className="col-span-full py-48 text-center space-y-10 bg-white/[0.01] rounded-[60px] border border-dashed border-white/[0.05]">
+               <Ghost className="w-20 h-20 text-white/5 mx-auto" />
+               <div className="space-y-4">
+                  <h3 className="text-4xl font-black italic uppercase tracking-tighter text-white/10">Zero Signals Found</h3>
+                  <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/5">Purge filters to restore synchronization with the grid</p>
                </div>
-               <Button onClick={() => { setSelectedTags([]); setSearchQuery(''); }} variant="outline" className="border-white/5 text-[10px] font-black uppercase tracking-widest px-8">Reset Grid</Button>
+               <Button onClick={() => { setSelectedTags([]); setSearchQuery(''); }} variant="vux" className="h-20 px-12 text-lg">REBOOT GRID</Button>
             </div>
           )}
         </div>
       </section>
 
-      <section className="relative h-[400px] rounded-[48px] overflow-hidden shadow-2xl flex items-center justify-center text-center p-12">
-        <div className="absolute inset-0 bg-[#0b0b0f]" />
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-blue-500/10" />
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+      <section className="relative h-[500px] rounded-[60px] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] flex items-center justify-center text-center p-16 group">
+        <div className="absolute inset-0 bg-[#0b0b0f] transition-all duration-1000 group-hover:scale-105" />
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/15 via-transparent to-purple-500/10" />
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
         
-        <div className="relative z-10 space-y-8 max-w-xl">
-           <div className="w-20 h-20 rounded-[2.5rem] bg-white text-black flex items-center justify-center mx-auto shadow-2xl transform -rotate-12 hover:rotate-0 transition-transform duration-500">
-             <Globe className="w-10 h-10" />
+        <div className="relative z-10 space-y-12 max-w-2xl">
+           <div className="w-28 h-28 rounded-[3rem] bg-white text-black flex items-center justify-center mx-auto shadow-2xl transform -rotate-12 group-hover:rotate-0 transition-all duration-700 ease-out">
+             <Globe className="w-14 h-14" />
            </div>
-           <div className="space-y-3">
-              <h3 className="text-4xl font-black italic uppercase tracking-tighter">START YOUR OWN COMMUNITY</h3>
-              <p className="text-white/40 text-sm font-medium leading-relaxed italic">
-                 VUX is better together. Start your own group to host recurring events and grow your community.
+           <div className="space-y-4">
+              <h3 className="text-6xl md:text-7xl font-black italic uppercase tracking-tighter leading-none">ARCHITECT<br/>YOUR WORLD</h3>
+              <p className="text-white/30 text-lg font-bold leading-relaxed italic uppercase tracking-widest">
+                 Instantiate your own community node and govern your recurring syncs.
               </p>
            </div>
-           <Button onClick={onCreateClick} size="lg" className="h-16 px-12 rounded-2xl shadow-2xl shadow-purple-500/20 gap-3 border border-purple-500/20 group">
-              <span className="font-black italic uppercase tracking-widest">Get Started</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+           <Button onClick={onCreateClick} variant="vux" size="lg" className="h-24 px-16 rounded-3xl shadow-2xl shadow-indigo-600/30 gap-6 group hover:scale-110 transition-all duration-500">
+              <span className="text-xl font-black uppercase tracking-widest">INITIATE NODE</span>
+              <ArrowRight className="w-8 h-8 group-hover:translate-x-3 transition-transform" />
            </Button>
         </div>
       </section>

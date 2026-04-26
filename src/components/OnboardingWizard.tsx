@@ -68,35 +68,41 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto custom-scrollbar">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl overflow-y-auto custom-scrollbar">
+      {/* Immersive Background Effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-[50rem] h-[50rem] bg-indigo-600/10 blur-[150px] rounded-full animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-[40rem] h-[40rem] bg-purple-600/5 blur-[120px] rounded-full animate-pulse delay-1000" />
+      </div>
+
       <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        initial={{ opacity: 0, scale: 0.95, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="w-full max-w-xl overflow-hidden my-auto"
+        className="w-full max-w-2xl overflow-hidden my-auto relative z-10"
       >
-        <Card className="p-0 border-white/10 bg-[#0b0b0f] shadow-2xl relative overflow-y-auto max-h-[90vh] custom-scrollbar">
-          {/* Background Glow */}
-          <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-500/10 blur-[100px] rounded-full" />
+        <Card className="p-0 border-white/[0.03] bg-black/40 backdrop-blur-3xl shadow-2xl relative overflow-y-auto max-h-[92vh] rounded-[3rem] custom-scrollbar">
+          {/* Top Decorative bar */}
+          <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
           
-          <div className="p-8 md:p-12 space-y-8">
+          <div className="p-10 md:p-16 space-y-12">
             {/* Header */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
-                  <Sparkles className="w-5 h-5 text-purple-500" />
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shadow-2xl shadow-indigo-500/10">
+                  <Sparkles className="w-7 h-7 text-indigo-400" />
                 </div>
                 <div>
-                   <h2 className="text-xl font-bold tracking-tight">Welcome to VUX</h2>
-                   <p className="text-xs text-white/30 font-bold uppercase tracking-widest">Protocol Initiation</p>
+                   <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">PROTOCOL INITIATION</h2>
+                   <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.4em]">Node Assignment: v2.0.4</p>
                 </div>
               </div>
-              <div className="flex gap-1.5">
+              <div className="flex gap-2">
                 {[1, 2, 3].map((s) => (
                   <div 
                     key={s} 
                     className={cn(
-                      "w-8 h-1 rounded-full transition-all duration-500",
-                      s === step ? "bg-purple-500 w-12" : (s < step ? "bg-emerald-500" : "bg-white/5")
+                      "w-12 h-1 rounded-full transition-all duration-700",
+                      s === step ? "bg-indigo-500 w-20 shadow-lg shadow-indigo-500/40" : (s < step ? "bg-emerald-500/40" : "bg-white/[0.05]")
                     )}
                   />
                 ))}
@@ -107,24 +113,25 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
               {step === 1 && (
                 <motion.div
                   key="step1"
-                  initial={{ opacity: 0, x: 20 }}
+                  initial={{ opacity: 0, x: 40 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-8"
+                  exit={{ opacity: 0, x: -40 }}
+                  transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+                  className="space-y-10"
                 >
-                  <div className="space-y-2">
-                     <h3 className="text-3xl font-bold tracking-tighter">IDENTIFY YOURSELF</h3>
-                     <p className="text-white/40 text-sm">How should the community address you in the roadmap?</p>
+                  <div className="space-y-4">
+                     <h3 className="text-5xl md:text-6xl font-black italic tracking-tighter uppercase leading-[0.8]">BIO-SYNC<br/><span className="text-indigo-400">ACTIVE</span></h3>
+                     <p className="text-white/30 text-sm font-bold uppercase tracking-widest italic">Define your digital signature within the matrix.</p>
                   </div>
                   
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-6">
+                  <div className="space-y-8">
+                    <div className="flex flex-col md:flex-row items-center gap-10">
                         <div className="relative group">
-                            <div className="w-20 h-20 rounded-full glass border border-white/10 overflow-hidden ring-4 ring-white/5">
+                            <div className="w-32 h-32 rounded-[2.5rem] bg-indigo-500/5 border border-indigo-500/20 overflow-hidden ring-4 ring-indigo-500/5 shadow-2xl shadow-indigo-500/10 transition-transform duration-700 group-hover:scale-105">
                                 <img src={formData.photoURL || getAvatarUrl(user?.uid)} className="w-full h-full object-cover" />
                             </div>
-                            <label className="absolute -bottom-1 -right-1 p-2 bg-white text-black rounded-full shadow-lg cursor-pointer hover:scale-110 transition-transform">
-                                <Camera className="w-3 h-3" />
+                            <label className="absolute -bottom-3 -right-3 w-10 min-w-[40px] h-10 p-0 bg-white text-black rounded-xl shadow-2xl cursor-pointer hover:scale-110 active:scale-95 transition-all flex items-center justify-center border-4 border-black">
+                                <Camera className="w-4 h-4" />
                                 <input 
                                   type="file" 
                                   className="hidden" 
@@ -146,43 +153,45 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                                 />
                             </label>
                         </div>
-                        <div className="flex-1 space-y-2">
-                             <label className="text-[10px] font-bold uppercase tracking-widest text-white/30 px-1">Display Name</label>
-                             <Input 
-                                value={formData.displayName}
-                                onChange={(e) => setFormData({...formData, displayName: e.target.value})}
-                                placeholder="Ghost in the Shell"
-                                className="bg-white/[0.02] border-white/10 focus:border-purple-500/50 h-12"
-                             />
+                        <div className="flex-1 w-full space-y-4">
+                             <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/60 px-1 font-mono">Display Pseudonym</label>
+                                <Input 
+                                   value={formData.displayName}
+                                   onChange={(e) => setFormData({...formData, displayName: e.target.value})}
+                                   placeholder="Neo_Archetype"
+                                   className="bg-white/[0.02] border-white/5 focus:border-indigo-500/40 h-16 rounded-2xl italic font-bold text-lg px-6"
+                                />
+                             </div>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-white/30 px-1">Phone Protocol</label>
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/60 px-1 font-mono">Comm-Link Protocol</label>
                             <Input 
                                 value={formData.phoneNumber}
                                 onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
-                                placeholder="+1 (555) 000-0000"
-                                className="bg-white/[0.02] border-white/10 h-12"
+                                placeholder="+1 (SYNC) 000-0000"
+                                className="bg-white/[0.02] border-white/5 h-16 rounded-2xl px-6 italic font-bold"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-white/30 px-1">Birth Cycle (DOB)</label>
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/60 px-1 font-mono">Activation Cycle (DOB)</label>
                             <Input 
                                 type="date"
                                 value={formData.dob}
                                 onChange={(e) => setFormData({...formData, dob: e.target.value})}
-                                className="bg-white/[0.02] border-white/10 h-12"
+                                className="bg-white/[0.02] border-white/5 h-16 rounded-2xl px-6 italic font-bold appearance-none"
                             />
                         </div>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-white/30 px-1">Data Log (Bio)</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/60 px-1 font-mono">Neural Log (Bio)</label>
                         <textarea 
                             value={formData.bio}
                             onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                            placeholder="A brief history of your presence..."
-                            className="w-full h-24 rounded-2xl glass border border-white/10 bg-white/[0.02] p-4 text-sm resize-none focus:outline-none focus:border-purple-500/50"
+                            placeholder="Decrypting user history..."
+                            className="w-full h-32 rounded-[2rem] border border-white/5 bg-white/[0.02] p-6 text-lg font-bold italic resize-none focus:outline-none focus:border-indigo-500/40 transition-all"
                         />
                     </div>
                   </div>
@@ -192,29 +201,30 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
               {step === 2 && (
                 <motion.div
                   key="step2"
-                  initial={{ opacity: 0, x: 20 }}
+                  initial={{ opacity: 0, x: 40 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-8"
+                  exit={{ opacity: 0, x: -40 }}
+                  transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+                  className="space-y-10"
                 >
-                  <div className="space-y-2">
-                     <h3 className="text-3xl font-bold tracking-tighter">SYNC PREFERENCES</h3>
-                     <p className="text-white/40 text-sm">Control how you receive pulse signals from the grid.</p>
+                  <div className="space-y-4">
+                     <h3 className="text-5xl md:text-6xl font-black italic tracking-tighter uppercase leading-[0.8]">SIGNAL<br/><span className="text-indigo-400">LAYERS</span></h3>
+                     <p className="text-white/30 text-sm font-bold uppercase tracking-widest italic">Configure your receipt of matrix pulses.</p>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                      {[
-                       { icon: <Bell className="w-4 h-4 text-purple-400" />, title: 'Signal Alerts', desc: 'Real-time updates for invitations.', key: 'pushNotifications' },
-                       { icon: <Mail className="w-4 h-4 text-blue-400" />, title: 'Dispatch Log', desc: 'Detailed event summaries via email.', key: 'emailNotifications' },
+                       { icon: <Bell className="w-6 h-6 text-indigo-400" />, title: 'Pulse Alerts', desc: 'Real-time node notifications.', key: 'pushNotifications' },
+                       { icon: <Mail className="w-6 h-6 text-indigo-400" />, title: 'In-Box Sync', desc: 'Detailed log summaries via SMTP.', key: 'emailNotifications' },
                      ].map((pref) => (
-                        <div key={pref.key} className="flex items-center justify-between p-5 rounded-2xl bg-white/[0.02] border border-white/5">
-                            <div className="flex gap-4">
-                                <div className="w-10 h-10 rounded-xl glass border border-white/5 flex items-center justify-center shrink-0">
+                        <div key={pref.key} className="flex items-center justify-between p-8 rounded-[2.5rem] bg-white/[0.01] border border-white/5 group hover:bg-white/[0.03] transition-all">
+                            <div className="flex gap-6">
+                                <div className="w-14 h-14 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:border-indigo-500/40 transition-all duration-500">
                                     {pref.icon}
                                 </div>
-                                <div className="space-y-0.5">
-                                    <h4 className="text-sm font-bold">{pref.title}</h4>
-                                    <p className="text-xs text-white/40">{pref.desc}</p>
+                                <div className="space-y-1">
+                                    <h4 className="text-xl font-black italic uppercase tracking-tighter">{pref.title}</h4>
+                                    <p className="text-[10px] text-white/20 font-black uppercase tracking-widest italic">{pref.desc}</p>
                                 </div>
                             </div>
                             <Switch 
@@ -223,6 +233,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                                     ...formData, 
                                     preferences: { ...formData.preferences, [pref.key]: val }
                                 })}
+                                className="data-[state=checked]:bg-indigo-600 scale-125"
                             />
                         </div>
                      ))}
@@ -233,58 +244,62 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
               {step === 3 && (
                 <motion.div
                   key="step3"
-                  initial={{ opacity: 0, x: 20 }}
+                  initial={{ opacity: 0, x: 40 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-8"
+                  exit={{ opacity: 0, x: -40 }}
+                  transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+                  className="space-y-10"
                 >
-                  <div className="space-y-2">
-                     <h3 className="text-3xl font-bold tracking-tighter">DATA PRIVACY</h3>
-                     <p className="text-white/40 text-sm">Define your visibility within the VUX network.</p>
+                  <div className="space-y-4">
+                     <h3 className="text-5xl md:text-6xl font-black italic tracking-tighter uppercase leading-[0.8]">TRUST<br/><span className="text-indigo-400">MATRIX</span></h3>
+                     <p className="text-white/30 text-sm font-bold uppercase tracking-widest italic">Maintain sovereignty over your digital node.</p>
                   </div>
 
-                  <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/5 space-y-6 text-center">
-                    <Shield className="w-16 h-16 text-emerald-500/20 mx-auto mb-2" />
-                    <div className="space-y-2">
-                        <h4 className="font-bold">Public Explorer Access</h4>
-                        <p className="text-xs text-white/40 leading-relaxed px-4">
-                            By enabling this, your profile and verified events will be searchable by other travelers on the grid.
+                  <div className="p-12 md:p-16 rounded-[4rem] bg-white/[0.01] border border-white/5 space-y-10 text-center relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-indigo-600/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <Shield className="w-24 h-24 text-indigo-500/20 mx-auto mb-4 animate-pulse relative z-10" />
+                    <div className="space-y-4 relative z-10">
+                        <h4 className="text-3xl font-black italic uppercase tracking-tighter">Global Visibility</h4>
+                        <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.3em] leading-relaxed max-w-sm mx-auto">
+                            By enabling this, your identity will be indexed within the global explorer directory.
                         </p>
                     </div>
-                    <div className="flex items-center justify-center gap-4 pt-2">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-white/20">Private Mode</span>
+                    <div className="flex items-center justify-center gap-8 pt-4 relative z-10">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/10 font-mono">STEALTH MODE</span>
                         <Switch 
                             checked={formData.preferences.publicProfile}
                             onCheckedChange={(val) => setFormData({
                                 ...formData, 
                                 preferences: { ...formData.preferences, publicProfile: val }
                             })}
+                            className="data-[state=checked]:bg-indigo-600 scale-150 shadow-2xl shadow-indigo-500/20"
                         />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Public Protocol</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 font-mono">PUBLIC SYNC</span>
                     </div>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <div className="flex items-center justify-between pt-4">
+            <div className="flex items-center justify-between pt-8 border-t border-white/[0.03]">
                 <Button 
                     variant="ghost" 
                     onClick={() => step > 1 && setStep(step - 1)}
                     disabled={step === 1 || loading}
-                    className="text-[10px] uppercase tracking-[0.2em] font-bold"
+                    className="text-[10px] uppercase tracking-[0.4em] font-black text-white/20 hover:text-white"
                 >
-                    Back
+                    PREVIOUS
                 </Button>
                 <Button 
+                    variant="vux"
                     onClick={handleNext}
                     disabled={loading || (step === 1 && !formData.displayName)}
-                    className="h-12 px-8 rounded-xl shadow-xl shadow-purple-500/20 gap-3"
+                    className="h-20 px-14 rounded-3xl gap-4 shadow-2xl shadow-indigo-500/30 text-lg"
                 >
-                    <span className="text-xs font-bold uppercase tracking-[0.2em]">
-                        {step === totalSteps ? 'Initiate Account' : 'Next Protocol'}
+                    <span className="font-black uppercase tracking-widest">
+                        {step === totalSteps ? 'COMPLETE SYNC' : 'NEXT PROTOCOL'}
                     </span>
-                    {step === totalSteps ? <Check className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+                    {step === totalSteps ? <Check className="w-6 h-6" /> : <ArrowRight className="w-6 h-6" />}
                 </Button>
             </div>
           </div>

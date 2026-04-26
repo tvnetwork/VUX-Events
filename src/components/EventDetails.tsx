@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Helmet } from 'react-helmet-async';
 import { X, Calendar, MapPin, Users, CheckCircle2, Loader2, ChevronLeft, Share2, Heart, Clock, Ticket, Copy, QrCode, Globe, Info, Zap, ArrowRight, ShieldCheck, Share, Ghost } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { doc, getDoc, setDoc, query, collection, where, onSnapshot, serverTimestamp, deleteDoc } from 'firebase/firestore';
@@ -199,6 +200,16 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[110] bg-[#0b0b0f] overflow-y-auto custom-scrollbar event-details-container"
     >
+      <Helmet>
+        <title>{event.title} | VUX Events</title>
+        <meta name="description" content={event.description.substring(0, 160)} />
+        <meta property="og:title" content={event.title} />
+        <meta property="og:description" content={event.description.substring(0, 160)} />
+        <meta property="og:image" content={event.coverImageUrl} />
+        <meta property="og:url" content={shareUrl} />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Helmet>
+
       {/* Immersive Backdrop */}
       <div className="fixed inset-0 -z-10 bg-[#0b0b0f]">
         <div className="absolute top-0 left-0 w-full h-[800px] overflow-hidden opacity-40">

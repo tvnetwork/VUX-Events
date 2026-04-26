@@ -63,7 +63,7 @@ export function WatermarkBackground() {
             key={item.id}
             initial={{ opacity: 0 }}
             animate={{ 
-              opacity: [0.1, 0.2, 0.1],
+              opacity: [0.06, 0.12, 0.06],
               y: [0, -10, 0],
               x: [0, 5, 0]
             }}
@@ -75,10 +75,10 @@ export function WatermarkBackground() {
             }}
             className="flex items-center gap-4 whitespace-nowrap"
           >
-            <div className="text-white">
+            <div className="text-white/40">
               {item.icon}
             </div>
-            <span className="text-2xl font-black tracking-tighter uppercase italic text-white/90 leading-none">
+            <span className="text-2xl font-black tracking-tighter uppercase italic text-white/30 leading-none">
               {item.word}
             </span>
           </motion.div>

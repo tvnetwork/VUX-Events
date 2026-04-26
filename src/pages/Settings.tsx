@@ -5,47 +5,22 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User, Settings as SettingsIcon, CreditCard, ChevronRight, Globe, X, Camera, Briefcase, Play, Music, Bell, Shield, Calendar, Mail, Smartphone, Globe2, Check, ArrowRight, Info, ShieldCheck, Box, QrCode, Monitor, Share2, Video, Plus } from 'lucide-react';
+import { Settings as SettingsIcon, CreditCard, Shield, Calendar, Mail, Smartphone, Globe, Check, Info, ShieldCheck, Box, Monitor, RefreshCcw, Plus } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
 import { Switch } from '../components/ui/Switch';
 import { useAuth } from '../AuthContext';
 import { usePasskey } from '../hooks/usePasskey';
-import { cn, getAvatarUrl, formatDate } from '../lib/utils';
-import { updateDoc, doc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { VUXQRCode } from '../components/VUXQRCode';
-import { StorageService } from '../services/StorageService';
+import { cn, formatDate } from '../lib/utils';
 
 export function Settings() {
   const { user, profile, updateProfileData, addPasskey } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'connections' | 'security' | 'payment'>('profile');
-  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'preferences' | 'connections' | 'security' | 'payment'>('preferences');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [passkeyLoading, setPasskeyLoading] = useState(false);
   const [passkeyError, setPasskeyError] = useState<string | null>(null);
   const { register } = usePasskey();
   
-   const [formData, setFormData] = useState({
-    displayName: profile?.displayName || '',
-    bio: profile?.bio || '',
-    photoURL: profile?.photoURL || '',
-    phoneNumber: profile?.phoneNumber || '',
-    dob: profile?.dob || '',
-    socialLinks: {
-      twitter: profile?.socialLinks?.twitter || '',
-      instagram: profile?.socialLinks?.instagram || '',
-      linkedin: profile?.socialLinks?.linkedin || '',
-      facebook: profile?.socialLinks?.facebook || '',
-      youtube: profile?.socialLinks?.youtube || '',
-      tiktok: profile?.socialLinks?.tiktok || '',
-      discord: profile?.socialLinks?.discord || '',
-      website: profile?.socialLinks?.website || '',
-      email: profile?.socialLinks?.email || '',
-    }
-  });
-
   const [preferences, setPreferences] = useState({
     emailNotifications: profile?.preferences?.emailNotifications ?? true,
     pushNotifications: profile?.preferences?.pushNotifications ?? true,
@@ -55,8 +30,7 @@ export function Settings() {
   });
 
   const tabs = [
-    { id: 'profile', label: 'Profile', icon: <User className="w-4 h-4" /> },
-    { id: 'preferences', label: 'Account', icon: <SettingsIcon className="w-4 h-4" /> },
+    { id: 'preferences', label: 'Preferences', icon: <SettingsIcon className="w-4 h-4" /> },
     { id: 'security', label: 'Security', icon: <Shield className="w-4 h-4" /> },
     { id: 'connections', label: 'Apps', icon: <Calendar className="w-4 h-4" /> },
     { id: 'payment', label: 'Billing', icon: <CreditCard className="w-4 h-4" /> },
@@ -64,24 +38,6 @@ export function Settings() {
 
   useEffect(() => {
     if (profile) {
-      setFormData({
-        displayName: profile.displayName || '',
-        bio: profile.bio || '',
-        photoURL: profile.photoURL || '',
-        phoneNumber: profile.phoneNumber || '',
-        dob: profile.dob || '',
-        socialLinks: {
-          twitter: profile.socialLinks?.twitter || '',
-          instagram: profile.socialLinks?.instagram || '',
-          linkedin: profile.socialLinks?.linkedin || '',
-          facebook: profile.socialLinks?.facebook || '',
-          youtube: profile.socialLinks?.youtube || '',
-          tiktok: profile.socialLinks?.tiktok || '',
-          discord: profile.socialLinks?.discord || '',
-          website: profile.socialLinks?.website || '',
-          email: profile.socialLinks?.email || '',
-        }
-      });
       setPreferences({
         emailNotifications: profile.preferences?.emailNotifications ?? true,
         pushNotifications: profile.preferences?.pushNotifications ?? true,
@@ -97,32 +53,15 @@ export function Settings() {
     if (!profile || !user) return;
 
     const timer = setTimeout(async () => {
-      const hasAvatarChanged = formData.photoURL !== profile.photoURL;
-      const hasDisplayNameChanged = formData.displayName !== profile.displayName;
-      const hasBioChanged = formData.bio !== profile.bio;
-      const hasPhoneChanged = formData.phoneNumber !== profile.phoneNumber;
-      const hasDobChanged = formData.dob !== profile.dob;
-        const hasSocialChanged = JSON.stringify(formData.socialLinks) !== JSON.stringify({
-          twitter: profile.socialLinks?.twitter || '',
-          instagram: profile.socialLinks?.instagram || '',
-          linkedin: profile.socialLinks?.linkedin || '',
-          facebook: profile.socialLinks?.facebook || '',
-          youtube: profile.socialLinks?.youtube || '',
-          tiktok: profile.socialLinks?.tiktok || '',
-          discord: profile.socialLinks?.discord || '',
-          website: profile.socialLinks?.website || '',
-          email: profile.socialLinks?.email || '',
-        });
       const hasPrefsChanged = JSON.stringify(preferences) !== JSON.stringify(profile.preferences);
 
-      if (!hasAvatarChanged && !hasDisplayNameChanged && !hasBioChanged && !hasPhoneChanged && !hasDobChanged && !hasSocialChanged && !hasPrefsChanged) {
+      if (!hasPrefsChanged) {
         return;
       }
 
       setSaveStatus('saving');
       try {
         await updateProfileData({
-          ...formData,
           preferences
         });
         setSaveStatus('saved');
@@ -134,7 +73,7 @@ export function Settings() {
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [formData, preferences, profile, user, updateProfileData]);
+  }, [preferences, profile, user, updateProfileData]);
 
   return (
     <div className="max-w-6xl mx-auto py-12 px-4 animate-in fade-in duration-1000">
@@ -142,11 +81,11 @@ export function Settings() {
         <div className="space-y-4">
           <div className="flex items-center gap-3 text-purple-500">
              <div className="w-10 h-px bg-purple-500" />
-             <span className="text-[10px] font-black uppercase tracking-[0.4em]">Settings</span>
+             <span className="text-[10px] font-black uppercase tracking-[0.4em]">System Config</span>
           </div>
-          <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter uppercase leading-[0.8] text-white">YOUR<br/>ACCOUNT</h1>
+          <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter uppercase leading-[0.8] text-white">SYSTEM<br/>SETTINGS</h1>
           <div className="flex items-center gap-4 h-6 uppercase font-black italic">
-            <span className="text-white/20 text-[10px] tracking-widest">General Settings</span>
+            <span className="text-white/20 text-[10px] tracking-widest">Protocol Configurations</span>
             <AnimatePresence mode="wait">
               {saveStatus === 'saving' && (
                 <motion.div
@@ -155,7 +94,7 @@ export function Settings() {
                   className="flex items-center gap-1.5 text-[8px] tracking-[0.2em] text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full"
                 >
                   <div className="w-1 h-1 rounded-full bg-purple-400 animate-pulse" />
-                  UPLOADING CHANGES
+                  UPDATING PROTOCOLS
                 </motion.div>
               )}
               {saveStatus === 'saved' && (
@@ -165,7 +104,7 @@ export function Settings() {
                   className="flex items-center gap-1.5 text-[8px] tracking-[0.2em] text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full"
                 >
                   <Check className="w-2.5 h-2.5" />
-                  SYNCHRONIZED
+                  CONFIG SYNCED
                 </motion.div>
               )}
             </AnimatePresence>
@@ -190,194 +129,42 @@ export function Settings() {
 
       <div className="mt-16">
         <AnimatePresence mode="wait">
-          {activeTab === 'profile' && (
+          {activeTab === 'preferences' && (
             <motion.div
-              key="profile"
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-12"
+               key="preferences"
+               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+               className="max-w-3xl mx-auto space-y-16"
             >
-              <div className="lg:col-span-8 space-y-12">
-                <section className="space-y-8">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-2xl bg-white/[0.02] border border-white/10 flex items-center justify-center">
-                        <User className="w-5 h-5 text-white/40" />
-                    </div>
-                    <h2 className="text-xl font-black italic tracking-tighter uppercase">Personal Profile</h2>
+               <section className="space-y-8">
+                  <div className="text-center space-y-2">
+                     <h2 className="text-4xl font-black italic uppercase tracking-tighter">Notifications</h2>
+                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Control how updates are delivered to you</p>
                   </div>
-                  
-                  <Card className="p-10 space-y-10 border-white/5 bg-white/[0.01] rounded-[40px] shadow-2xl">
-                    <div className="flex flex-col md:flex-row items-center gap-10">
-                      <div className="relative group">
-                         <div className="w-32 h-32 rounded-[3rem] overflow-hidden border-2 border-white/5 group-hover:border-purple-500/50 transition-all duration-700">
-                             <img 
-                                src={formData.photoURL || getAvatarUrl(profile?.uid)} 
-                                className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000"
-                             />
-                         </div>
-                         <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-2xl text-black hover:scale-110 active:scale-95 transition-transform cursor-pointer">
-                             <Camera className="w-5 h-5" />
-                             <input 
-                                type="file" 
-                                className="hidden" 
-                                accept="image/*"
-                                onChange={async (e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file && user) {
-                                    try {
-                                      setSaveStatus('saving');
-                                      const url = await StorageService.uploadProfileImage(file, user.uid);
-                                      setFormData(prev => ({ ...prev, photoURL: url }));
-                                    } catch (err) {
-                                      console.error('Upload failed:', err);
-                                      setSaveStatus('error');
-                                    }
-                                  }
-                                }}
-                             />
-                         </label>
-                      </div>
-                      <div className="space-y-2 text-center md:text-left">
-                        <h3 className="text-2xl font-black italic uppercase tracking-tighter">Profile Picture</h3>
-                        <p className="text-white/20 text-xs font-medium italic max-w-xs uppercase tracking-widest">This is visible to other users on event pages and across the network.</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 px-1">Display Name</label>
-                        <Input 
-                            value={formData.displayName} 
-                            onChange={e => setFormData({...formData, displayName: e.target.value})}
-                            className="bg-white/5 border-white/5 h-16 rounded-2xl font-black italic text-xl px-6 focus:border-purple-500/40"
-                        />
-                      </div>
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 px-1">Username</label>
-                        <div className="relative">
-                            <span className="absolute left-6 top-1/2 -translate-y-1/2 text-white/10 italic text-xl font-black">@</span>
-                            <Input 
-                                disabled
-                                defaultValue={(profile?.uid || '').slice(0, 8).toUpperCase()}
-                                className="pl-12 bg-white/[0.02] border-white/5 h-16 rounded-2xl font-mono text-xs opacity-50 cursor-not-allowed"
+                   <Card className="overflow-hidden border-white/5 bg-white/[0.01] rounded-[48px]">
+                     {[
+                        { icon: <Mail className="w-5 h-5 text-purple-400" />, title: 'Email Reports', desc: 'Summary of community activity delivered weekly.', key: 'emailNotifications' },
+                        { icon: <Smartphone className="w-5 h-5 text-blue-400" />, title: 'Push Notifications', desc: 'Instant notifications for event updates.', key: 'pushNotifications' },
+                        { icon: <Shield className="w-5 h-5 text-emerald-400" />, title: 'Private Mode', desc: 'Hide your profile from public searches.', key: 'publicProfile' },
+                        { icon: <Globe className="w-5 h-5 text-amber-500" />, title: 'Calendar Sync', desc: 'Share your schedule across connected apps.', key: 'calendarSync' },
+                     ].map((pref, i) => (
+                        <div key={i} className={cn("p-10 flex items-center justify-between group hover:bg-white/[0.02] transition-colors", i !== 0 && "border-t border-white/5")}>
+                            <div className="flex items-center gap-8">
+                                <div className="w-16 h-16 rounded-3xl bg-white/[0.03] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-white/20 transition-all duration-500">
+                                    {pref.icon}
+                                </div>
+                                <div className="space-y-1">
+                                    <h4 className="text-lg font-black italic tracking-tighter uppercase">{pref.title}</h4>
+                                    <p className="text-[10px] text-white/20 font-medium italic max-w-sm uppercase tracking-widest">{pref.desc}</p>
+                                </div>
+                            </div>
+                            <Switch 
+                                checked={(preferences as any)[pref.key]} 
+                                onCheckedChange={(val) => setPreferences({...preferences, [pref.key]: val})} 
                             />
                         </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 px-1">Phone Number</label>
-                        <Input 
-                            value={formData.phoneNumber} 
-                            onChange={e => setFormData({...formData, phoneNumber: e.target.value})}
-                            placeholder="+1 (555) 000-0000"
-                            className="bg-white/5 border-white/5 h-16 rounded-2xl font-bold italic text-lg px-6 focus:border-purple-500/40"
-                        />
-                      </div>
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 px-1">Date of Birth</label>
-                        <Input 
-                            type="date"
-                            value={formData.dob} 
-                            onChange={e => setFormData({...formData, dob: e.target.value})}
-                            className="bg-white/5 border-white/5 h-16 rounded-2xl font-bold italic text-lg px-6 focus:border-purple-500/40"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 px-1">Bio</label>
-                      <textarea 
-                        className="w-full min-h-[160px] rounded-[32px] bg-white/5 border border-white/5 p-8 text-sm focus:outline-none focus:border-purple-500/40 transition-all resize-none font-medium italic"
-                        value={formData.bio}
-                        onChange={e => setFormData({...formData, bio: e.target.value})}
-                        placeholder="Tell the community about yourself..."
-                      />
-                    </div>
+                     ))}
                   </Card>
-                </section>
-              </div>
-
-              <div className="lg:col-span-4 space-y-12">
-                 <section className="space-y-8">
-                    <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-2xl bg-white/[0.02] border border-white/10 flex items-center justify-center">
-                            <QrCode className="w-5 h-5 text-white/40" />
-                        </div>
-                        <h2 className="text-xl font-black italic tracking-tighter uppercase">Personal QR Code</h2>
-                    </div>
-                    <VUXQRCode 
-                        value={`${window.location.origin}/discover?user=${profile?.uid}`}
-                        className="w-full"
-                    />
-                 </section>
-
-                  <section className="space-y-8">
-                    <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-2xl bg-white/[0.02] border border-white/10 flex items-center justify-center">
-                            <Globe2 className="w-5 h-5 text-white/40" />
-                        </div>
-                        <h2 className="text-xl font-black italic tracking-tighter uppercase">Social Signals</h2>
-                    </div>
-                    <Card className="p-8 space-y-6 border-white/5 bg-white/[0.01] rounded-[40px]">
-                        {[
-                            { key: 'twitter', icon: <X className="w-4 h-4" />, label: 'X (Twitter)', placeholder: 'username' },
-                            { key: 'instagram', icon: <Camera className="w-4 h-4" />, label: 'Instagram', placeholder: 'username' },
-                            { key: 'linkedin', icon: <Briefcase className="w-4 h-4" />, label: 'LinkedIn', placeholder: 'profile-id' },
-                            { key: 'email', icon: <Mail className="w-4 h-4" />, label: 'Mail', placeholder: 'email@example.com' },
-                            { key: 'discord', icon: <Monitor className="w-4 h-4" />, label: 'Discord', placeholder: 'username#0000' },
-                            { key: 'youtube', icon: <Play className="w-4 h-4" />, label: 'YouTube', placeholder: '@channel' },
-                            { key: 'tiktok', icon: <Music className="w-4 h-4" />, label: 'TikTok', placeholder: '@username' },
-                            { key: 'facebook', icon: <Share2 className="w-4 h-4" />, label: 'Facebook', placeholder: 'username' },
-                            { key: 'website', icon: <Globe className="w-4 h-4" />, label: 'Personal Site', placeholder: 'https://...' },
-                        ].map((soc) => (
-                            <div key={soc.key} className="space-y-3">
-                                <label className="text-[9px] font-black uppercase tracking-widest text-white/20 flex items-center gap-2">
-                                  {soc.icon} {soc.label}
-                                </label>
-                                <Input 
-                                  className="bg-white/5 border-white/5 h-12 rounded-xl text-xs px-5 focus:border-purple-500/40" 
-                                  placeholder={soc.placeholder}
-                                  value={(formData.socialLinks as any)[soc.key]}
-                                  onChange={(e) => setFormData({
-                                    ...formData,
-                                    socialLinks: {
-                                      ...formData.socialLinks,
-                                      [soc.key]: e.target.value
-                                    }
-                                  })}
-                                />
-                            </div>
-                        ))}
-                    </Card>
-                 </section>
-
-                 <Card className="p-8 border-white/5 bg-purple-500/5 rounded-[40px] space-y-6 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/20 blur-3xl rounded-full" />
-                    <div className={cn(
-                        "w-12 h-12 rounded-2xl flex items-center justify-center",
-                        profile?.isVerified ? "bg-emerald-500 text-white" : "bg-white text-black"
-                    )}>
-                        <ShieldCheck className="w-6 h-6" />
-                    </div>
-                    <div className="space-y-2">
-                        <h4 className="text-lg font-black italic uppercase tracking-tighter">
-                            {profile?.isVerified ? "VERIFIED NODE" : "VERIFICATION"}
-                        </h4>
-                        <p className="text-[10px] text-white/40 font-medium italic leading-relaxed">
-                            {profile?.isVerified 
-                                ? "Your identity is authenticated on the VUX network. You have full protocol access." 
-                                : "Your account is currently at the standard verification level. Upgrade for premium features."}
-                        </p>
-                    </div>
-                    {!profile?.isVerified && (
-                        <Button variant="outline" className="w-full rounded-2xl border-white/10 h-12 text-[10px] font-black uppercase tracking-widest group">
-                            Upgrade Verification
-                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                        </Button>
-                    )}
-                 </Card>
-              </div>
+               </section>
             </motion.div>
           )}
 
@@ -479,45 +266,6 @@ export function Settings() {
                         </div>
                       </div>
                    </Card>
-               </section>
-            </motion.div>
-          )}
-
-          {activeTab === 'preferences' && (
-            <motion.div
-               key="preferences"
-               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-               className="max-w-3xl mx-auto space-y-16"
-            >
-               <section className="space-y-8">
-                  <div className="text-center space-y-2">
-                     <h2 className="text-4xl font-black italic uppercase tracking-tighter">Notifications</h2>
-                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Control how updates are delivered to you</p>
-                  </div>
-                   <Card className="overflow-hidden border-white/5 bg-white/[0.01] rounded-[48px]">
-                     {[
-                        { icon: <Mail className="w-5 h-5 text-purple-400" />, title: 'Email Reports', desc: 'Summary of community activity delivered weekly.', key: 'emailNotifications' },
-                        { icon: <Smartphone className="w-5 h-5 text-blue-400" />, title: 'Push Notifications', desc: 'Instant notifications for event updates.', key: 'pushNotifications' },
-                        { icon: <Shield className="w-5 h-5 text-emerald-400" />, title: 'Private Mode', desc: 'Hide your profile from public searches.', key: 'publicProfile' },
-                        { icon: <Globe className="w-5 h-5 text-amber-500" />, title: 'Calendar Sync', desc: 'Share your schedule across connected apps.', key: 'calendarSync' },
-                     ].map((pref, i) => (
-                        <div key={i} className={cn("p-10 flex items-center justify-between group hover:bg-white/[0.02] transition-colors", i !== 0 && "border-t border-white/5")}>
-                            <div className="flex items-center gap-8">
-                                <div className="w-16 h-16 rounded-3xl bg-white/[0.03] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-white/20 transition-all duration-500">
-                                    {pref.icon}
-                                </div>
-                                <div className="space-y-1">
-                                    <h4 className="text-lg font-black italic tracking-tighter uppercase">{pref.title}</h4>
-                                    <p className="text-[10px] text-white/20 font-medium italic max-w-sm uppercase tracking-widest">{pref.desc}</p>
-                                </div>
-                            </div>
-                            <Switch 
-                                checked={(preferences as any)[pref.key]} 
-                                onCheckedChange={(val) => setPreferences({...preferences, [pref.key]: val})} 
-                            />
-                        </div>
-                     ))}
-                  </Card>
                </section>
             </motion.div>
           )}
