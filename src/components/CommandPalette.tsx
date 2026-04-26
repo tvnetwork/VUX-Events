@@ -50,7 +50,12 @@ export function CommandPalette({ isOpen, onClose, onTabChange, onCreateClick }: 
         const snap = await getDocs(q);
         const events = snap.docs
           .map(doc => ({ id: doc.id, ...doc.data() } as Event))
-          .filter(e => (e.title || '').toLowerCase().includes((search || '').toLowerCase()));
+          .filter(e => {
+            const searchLower = (search || '').toLowerCase();
+            const titleMatch = (e.title || '').toLowerCase().includes(searchLower);
+            const tagMatch = (e.tags || []).some(tag => tag.toLowerCase().includes(searchLower));
+            return titleMatch || tagMatch;
+          });
         setResults(events);
       } catch (e) {
         console.error(e);
@@ -112,7 +117,14 @@ export function CommandPalette({ isOpen, onClose, onTabChange, onCreateClick }: 
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold truncate text-white">{event.title}</p>
-                          <p className="text-xs text-white/40 truncate">{event.location}</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {event.tags?.slice(0, 3).map(tag => (
+                              <span key={tag} className="text-[8px] font-black uppercase tracking-widest text-[#a855f7] bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/10">
+                                {tag}
+                              </span>
+                            ))}
+                            <span className="text-xs text-white/40 truncate">{event.location}</span>
+                          </div>
                         </div>
                       </button>
                     ))}

@@ -18,9 +18,10 @@ export function Discover({ onCreateClick, onEventClick }: { onCreateClick?: () =
   const [featuredEvents, setFeaturedEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   useEffect(() => {
-    const q = query(collection(db, 'events'), limit(9));
+    const q = query(collection(db, 'events'), limit(20));
     const unsubscribe = onSnapshot(q, (snap) => {
       setFeaturedEvents(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Event)));
       setLoading(false);
@@ -30,6 +31,25 @@ export function Discover({ onCreateClick, onEventClick }: { onCreateClick?: () =
     });
     return unsubscribe;
   }, []);
+
+  const allTags = Array.from(new Set(featuredEvents.flatMap(e => e.tags || []))).sort();
+
+  const filteredEvents = featuredEvents.filter(e => {
+    const matchesSearch = (e.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (e.location || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (e.tags || []).some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesTags = selectedTags.length === 0 || 
+                       selectedTags.every(t => (e.tags || []).includes(t));
+
+    return matchesSearch && matchesTags;
+  });
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+  };
 
   const categories = [
     { id: 'tech', label: 'Tech', icon: <Cpu className="w-5 h-5 text-blue-400" />, color: 'blue' },
@@ -74,19 +94,44 @@ export function Discover({ onCreateClick, onEventClick }: { onCreateClick?: () =
            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Categories</h2>
            <div className="w-[1px] h-4 bg-white/5 mx-4 flex-1" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
             {categories.map((cat) => (
-            <Card key={cat.id} className="p-8 flex flex-col items-center gap-6 cursor-pointer group hover:bg-white/[0.04] border-white/5 transition-all duration-700 rounded-[32px] overflow-hidden relative">
+            <Card key={cat.id} className="p-6 flex flex-col items-center gap-4 cursor-pointer group hover:bg-white/[0.04] border-white/5 transition-all duration-700 rounded-[32px] overflow-hidden relative">
                 <div className={`absolute top-0 right-0 w-16 h-16 bg-${cat.color}-500/5 blur-xl group-hover:bg-${cat.color}-500/20 transition-colors duration-700`} />
-                <div className="w-16 h-16 rounded-[2rem] bg-white/[0.02] flex items-center justify-center border border-white/5 group-hover:border-white/20 transition-all duration-500">
+                <div className="w-12 h-12 rounded-[1.5rem] bg-white/[0.02] flex items-center justify-center border border-white/5 group-hover:border-white/20 transition-all duration-500">
                 {cat.icon}
                 </div>
                 <div className="text-center space-y-1">
-                    <span className="text-xs font-black italic uppercase tracking-widest text-white/40 group-hover:text-white transition-colors">{cat.label}</span>
+                    <span className="text-[10px] font-black italic uppercase tracking-[0.2em] text-white/40 group-hover:text-white transition-colors">{cat.label}</span>
                 </div>
             </Card>
             ))}
         </div>
+
+        {allTags.length > 0 && (
+          <div className="space-y-6 pt-4">
+             <div className="flex items-center justify-between px-2">
+                <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Trending Signals</h2>
+                <div className="w-[1px] h-4 bg-white/5 mx-4 flex-1" />
+             </div>
+             <div className="flex flex-wrap gap-2 px-2">
+                {allTags.map(tag => (
+                   <button
+                    key={tag}
+                    onClick={() => toggleTag(tag)}
+                    className={cn(
+                      "px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 border border-white/5 hover:border-purple-500/30",
+                      selectedTags.includes(tag) 
+                        ? "bg-purple-600 text-white border-purple-500 shadow-xl shadow-purple-600/20" 
+                        : "bg-white/[0.01] text-white/40 hover:bg-white/5 hover:text-white/60"
+                    )}
+                   >
+                      #{tag}
+                   </button>
+                ))}
+             </div>
+          </div>
+        )}
       </section>
 
       <section className="space-y-12">
@@ -94,11 +139,21 @@ export function Discover({ onCreateClick, onEventClick }: { onCreateClick?: () =
           <div className="space-y-2">
              <h2 className="text-4xl font-black italic uppercase tracking-tighter flex items-center gap-4">
                 <Zap className="w-8 h-8 text-yellow-400" /> 
-                TRENDING EVENTS
+                {selectedTags.length > 0 ? 'FILTERED RESULTS' : 'TRENDING EVENTS'}
              </h2>
-             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Most popular events right now</p>
+             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">
+               {selectedTags.length > 0 ? `Showing signals for ${selectedTags.join(', ')}` : 'Most popular events right now'}
+             </p>
           </div>
-          <button className="text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-purple-400 transition-colors pb-1 border-b border-white/5">View Full Feed</button>
+          <button 
+            onClick={() => setSelectedTags([])}
+            className={cn(
+              "text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-purple-400 transition-colors pb-1 border-b border-white/5",
+              selectedTags.length === 0 && "opacity-0 pointer-events-none"
+            )}
+          >
+            Clear Filters
+          </button>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -106,10 +161,19 @@ export function Discover({ onCreateClick, onEventClick }: { onCreateClick?: () =
              [1, 2, 3].map(i => (
                 <div key={i} className="aspect-[4/5] bg-white/[0.01] border border-white/5 rounded-[40px] animate-pulse" />
              ))
-          ) : (
-            featuredEvents.map((event) => (
+          ) : filteredEvents.length > 0 ? (
+            filteredEvents.map((event) => (
               <DiscoverCard key={event.id} event={event} onClick={() => onEventClick?.(event)} />
             ))
+          ) : (
+            <div className="col-span-full py-32 text-center space-y-6">
+               <Ghost className="w-16 h-16 text-white/5 mx-auto" />
+               <div className="space-y-2">
+                  <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white/20">No matching signals</h3>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-white/10">Try clearing your filters or widening your search</p>
+               </div>
+               <Button onClick={() => { setSelectedTags([]); setSearchQuery(''); }} variant="outline" className="border-white/5 text-[10px] font-black uppercase tracking-widest px-8">Reset Grid</Button>
+            </div>
           )}
         </div>
       </section>
@@ -162,9 +226,18 @@ function DiscoverCard({ event, onClick }: { event: Event, onClick?: () => void }
         </div>
 
         <div className="absolute inset-x-8 bottom-8 space-y-6">
-           <div className="space-y-2">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">{event.category}</p>
-              <h4 className="text-3xl font-black italic uppercase tracking-tighter text-white leading-none line-clamp-2">{event.title}</h4>
+           <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                 {event.tags?.slice(0, 3).map(tag => (
+                    <span key={tag} className="text-[7px] font-black uppercase tracking-[0.2em] text-white/40 bg-white/5 px-2 py-1 rounded-lg border border-white/5 backdrop-blur-md">
+                       {tag}
+                    </span>
+                 ))}
+              </div>
+              <div className="space-y-1">
+                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">{event.category}</p>
+                 <h4 className="text-3xl font-black italic uppercase tracking-tighter text-white leading-[0.9] line-clamp-2">{event.title}</h4>
+              </div>
            </div>
            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-widest">

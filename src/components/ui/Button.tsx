@@ -8,7 +8,7 @@ import { motion, HTMLMotionProps } from 'motion/react';
 import { cn } from '../../lib/utils';
 
 export interface ButtonProps extends HTMLMotionProps<"button"> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'glass' | 'outline';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'glass' | 'outline' | 'google';
   size?: 'sm' | 'md' | 'lg' | 'icon' | 'xs';
 }
 
@@ -19,6 +19,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       secondary: 'bg-white/10 text-white hover:bg-white/20',
       ghost: 'bg-transparent text-white hover:bg-white/5',
       glass: 'glass hover:bg-white/10 text-white',
+      google: 'bg-white text-gray-800 hover:bg-gray-50 border border-whiteShadow shadow-lg shadow-black/5',
       outline: 'border border-white/10 bg-transparent text-white hover:bg-white/5',
     };
 

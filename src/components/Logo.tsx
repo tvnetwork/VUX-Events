@@ -1,7 +1,7 @@
 import { cn } from '../lib/utils';
 
-const logoUrl = 'https://imgcdn.dev/i/YV1TaK';
-const fallbackLogo = '/assets/logo.jpg';
+const logoUrl = '/logo.svg';
+const fallbackLogo = '/logo.svg';
 
 interface LogoProps {
   className?: string;

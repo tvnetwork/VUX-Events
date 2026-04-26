@@ -32,6 +32,24 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
   const [showGuestForm, setShowGuestForm] = useState(false);
   const [guestInfo, setGuestInfo] = useState({ name: '', email: '' });
   const [customFields, setCustomFields] = useState<Record<string, string>>({});
+  const containerRef = useState<HTMLDivElement | null>(null)[0];
+
+  useEffect(() => {
+    // Scroll the window and the container to top when event details open
+    window.scrollTo(0, 0);
+    
+    // Also scroll the internal container if it exists
+    const container = document.querySelector('.event-details-container');
+    if (container) {
+      container.scrollTop = 0;
+    }
+
+    // Lock body scroll when details are open
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [event.id]);
 
   useEffect(() => {
     if (!showGuestForm) {
@@ -179,7 +197,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[110] bg-[#0b0b0f] overflow-y-auto custom-scrollbar"
+      className="fixed inset-0 z-[110] bg-[#0b0b0f] overflow-y-auto custom-scrollbar event-details-container"
     >
       {/* Immersive Backdrop */}
       <div className="fixed inset-0 -z-10 bg-[#0b0b0f]">

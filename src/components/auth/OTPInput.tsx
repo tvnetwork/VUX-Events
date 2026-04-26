@@ -21,6 +21,18 @@ export function OTPInput({ value, onChange, length = 6, disabled, isError, isSuc
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const val = e.target.value;
+    
+    // Handle multi-character input (paste/autofill/browser suggestions)
+    if (val.length > 1) {
+      const combined = val.replace(/\D/g, '').slice(0, length);
+      if (combined) {
+        onChange(combined);
+        const nextTarget = Math.min(combined.length, length - 1);
+        inputRefs.current[nextTarget]?.focus();
+      }
+      return;
+    }
+
     if (isNaN(Number(val))) return;
 
     const newValue = value.split('');
@@ -42,9 +54,14 @@ export function OTPInput({ value, onChange, length = 6, disabled, isError, isSuc
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData('text').slice(0, length);
-    if (!/^\d+$/.test(pastedData)) return;
-    onChange(pastedData);
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, length);
+    if (pastedData) {
+      onChange(pastedData);
+      // Only focus next input if we didn't fill the whole thing
+      if (pastedData.length < length) {
+        inputRefs.current[pastedData.length]?.focus();
+      }
+    }
   };
 
   return (

@@ -127,7 +127,7 @@ export async function createServer() {
       const transporter = nodemailer.createTransport(transportConfig);
 
       console.log(`[OTP][${rid}] Attempting sendMail...`);
-      const logoUrl = 'https://imgcdn.dev/i/YV1TaK';
+      const logoUrl = 'https://' + req.get('host') + '/logo.svg';
 
       const info = await transporter.sendMail({
         from: process.env.SMTP_FROM || `"VUX Events" <${user}>`,
@@ -297,7 +297,7 @@ export async function createServer() {
         auth: { user: userSmtp, pass },
       });
 
-      const logoUrl = 'https://imgcdn.dev/i/YV1TaK';
+      const logoUrl = 'https://' + req.get('host') + '/logo.svg';
       const htmlContent = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0f; color: white; padding: 40px; border-radius: 24px;">
           <div style="text-align: center; margin-bottom: 30px;">

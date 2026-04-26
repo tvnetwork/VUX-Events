@@ -11,6 +11,18 @@ export interface Passkey {
   createdAt: string;
 }
 
+export interface SocialLinks {
+  twitter?: string;
+  instagram?: string;
+  linkedin?: string;
+  facebook?: string;
+  youtube?: string;
+  tiktok?: string;
+  discord?: string;
+  website?: string;
+  email?: string;
+}
+
 export interface UserProfile {
   uid: string;
   email: string;
@@ -29,6 +41,7 @@ export interface UserProfile {
     calendarSync: boolean;
     theme: 'dark' | 'light' | 'system';
   };
+  socialLinks?: SocialLinks;
   onboardingCompleted?: boolean;
   connections?: {
     googleCalendar?: {
@@ -62,6 +75,7 @@ export interface Event {
   registrationFields?: { label: string; type: 'text' | 'email' | 'longtext'; required: boolean }[];
   capacity?: number;
   ticketTypes?: TicketType[];
+  tags?: string[];
   createdAt: string;
   updatedAt: string;
 }

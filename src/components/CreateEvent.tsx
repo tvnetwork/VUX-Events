@@ -192,6 +192,19 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                         </div>
 
                         <div className="space-y-3">
+                           <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 px-1">Tags (comma separated)</label>
+                           <Input 
+                            value={formData.tags?.join(', ') || ''}
+                            onChange={(e) => {
+                              const tags = e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+                              setFormData({...formData, tags});
+                            }}
+                            placeholder="e.g., design, tech, networking"
+                            className="bg-white/5 border-white/5 h-16 rounded-2xl font-bold italic"
+                           />
+                        </div>
+
+                        <div className="space-y-3">
                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 px-1">Description</label>
                            <textarea 
                             value={formData.description}

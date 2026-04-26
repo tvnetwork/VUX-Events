@@ -5,23 +5,27 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User, Settings as SettingsIcon, CreditCard, ChevronRight, Globe, X, Share2, Link as LinkIcon, Camera, Bell, Shield, Calendar, Mail, Smartphone, Globe2, Check, ArrowRight, Info, ShieldCheck, Box, QrCode } from 'lucide-react';
+import { User, Settings as SettingsIcon, CreditCard, ChevronRight, Globe, X, Camera, Briefcase, Play, Music, Bell, Shield, Calendar, Mail, Smartphone, Globe2, Check, ArrowRight, Info, ShieldCheck, Box, QrCode, Monitor, Share2, Video, Plus } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Switch } from '../components/ui/Switch';
 import { useAuth } from '../AuthContext';
-import { cn, getAvatarUrl } from '../lib/utils';
+import { usePasskey } from '../hooks/usePasskey';
+import { cn, getAvatarUrl, formatDate } from '../lib/utils';
 import { updateDoc, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { VUXQRCode } from '../components/VUXQRCode';
 import { StorageService } from '../services/StorageService';
 
 export function Settings() {
-  const { user, profile, updateProfileData } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'connections' | 'payment'>('profile');
+  const { user, profile, updateProfileData, addPasskey } = useAuth();
+  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'connections' | 'security' | 'payment'>('profile');
   const [loading, setLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
+  const [passkeyError, setPasskeyError] = useState<string | null>(null);
+  const { register } = usePasskey();
   
    const [formData, setFormData] = useState({
     displayName: profile?.displayName || '',
@@ -29,6 +33,17 @@ export function Settings() {
     photoURL: profile?.photoURL || '',
     phoneNumber: profile?.phoneNumber || '',
     dob: profile?.dob || '',
+    socialLinks: {
+      twitter: profile?.socialLinks?.twitter || '',
+      instagram: profile?.socialLinks?.instagram || '',
+      linkedin: profile?.socialLinks?.linkedin || '',
+      facebook: profile?.socialLinks?.facebook || '',
+      youtube: profile?.socialLinks?.youtube || '',
+      tiktok: profile?.socialLinks?.tiktok || '',
+      discord: profile?.socialLinks?.discord || '',
+      website: profile?.socialLinks?.website || '',
+      email: profile?.socialLinks?.email || '',
+    }
   });
 
   const [preferences, setPreferences] = useState({
@@ -42,6 +57,7 @@ export function Settings() {
   const tabs = [
     { id: 'profile', label: 'Profile', icon: <User className="w-4 h-4" /> },
     { id: 'preferences', label: 'Account', icon: <SettingsIcon className="w-4 h-4" /> },
+    { id: 'security', label: 'Security', icon: <Shield className="w-4 h-4" /> },
     { id: 'connections', label: 'Apps', icon: <Calendar className="w-4 h-4" /> },
     { id: 'payment', label: 'Billing', icon: <CreditCard className="w-4 h-4" /> },
   ];
@@ -54,6 +70,17 @@ export function Settings() {
         photoURL: profile.photoURL || '',
         phoneNumber: profile.phoneNumber || '',
         dob: profile.dob || '',
+        socialLinks: {
+          twitter: profile.socialLinks?.twitter || '',
+          instagram: profile.socialLinks?.instagram || '',
+          linkedin: profile.socialLinks?.linkedin || '',
+          facebook: profile.socialLinks?.facebook || '',
+          youtube: profile.socialLinks?.youtube || '',
+          tiktok: profile.socialLinks?.tiktok || '',
+          discord: profile.socialLinks?.discord || '',
+          website: profile.socialLinks?.website || '',
+          email: profile.socialLinks?.email || '',
+        }
       });
       setPreferences({
         emailNotifications: profile.preferences?.emailNotifications ?? true,
@@ -75,9 +102,20 @@ export function Settings() {
       const hasBioChanged = formData.bio !== profile.bio;
       const hasPhoneChanged = formData.phoneNumber !== profile.phoneNumber;
       const hasDobChanged = formData.dob !== profile.dob;
+        const hasSocialChanged = JSON.stringify(formData.socialLinks) !== JSON.stringify({
+          twitter: profile.socialLinks?.twitter || '',
+          instagram: profile.socialLinks?.instagram || '',
+          linkedin: profile.socialLinks?.linkedin || '',
+          facebook: profile.socialLinks?.facebook || '',
+          youtube: profile.socialLinks?.youtube || '',
+          tiktok: profile.socialLinks?.tiktok || '',
+          discord: profile.socialLinks?.discord || '',
+          website: profile.socialLinks?.website || '',
+          email: profile.socialLinks?.email || '',
+        });
       const hasPrefsChanged = JSON.stringify(preferences) !== JSON.stringify(profile.preferences);
 
-      if (!hasAvatarChanged && !hasDisplayNameChanged && !hasBioChanged && !hasPhoneChanged && !hasDobChanged && !hasPrefsChanged) {
+      if (!hasAvatarChanged && !hasDisplayNameChanged && !hasBioChanged && !hasPhoneChanged && !hasDobChanged && !hasSocialChanged && !hasPrefsChanged) {
         return;
       }
 
@@ -274,22 +312,41 @@ export function Settings() {
                     />
                  </section>
 
-                 <section className="space-y-8">
+                  <section className="space-y-8">
                     <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-2xl bg-white/[0.02] border border-white/10 flex items-center justify-center">
                             <Globe2 className="w-5 h-5 text-white/40" />
                         </div>
-                        <h2 className="text-xl font-black italic tracking-tighter uppercase">Social Links</h2>
+                        <h2 className="text-xl font-black italic tracking-tighter uppercase">Social Signals</h2>
                     </div>
                     <Card className="p-8 space-y-6 border-white/5 bg-white/[0.01] rounded-[40px]">
                         {[
-                            { icon: <X className="w-4 h-4" />, label: 'X (Twitter)' },
-                            { icon: <Share2 className="w-4 h-4" />, label: 'Instagram' },
-                            { icon: <Globe2 className="w-4 h-4" />, label: 'Portfolio' },
-                        ].map((soc, i) => (
-                            <div key={i} className="space-y-3">
-                                <label className="text-[9px] font-black uppercase tracking-widest text-white/20 flex items-center gap-2">{soc.icon} {soc.label}</label>
-                                <Input className="bg-white/5 border-white/5 h-12 rounded-xl text-xs px-5" placeholder="username" />
+                            { key: 'twitter', icon: <X className="w-4 h-4" />, label: 'X (Twitter)', placeholder: 'username' },
+                            { key: 'instagram', icon: <Camera className="w-4 h-4" />, label: 'Instagram', placeholder: 'username' },
+                            { key: 'linkedin', icon: <Briefcase className="w-4 h-4" />, label: 'LinkedIn', placeholder: 'profile-id' },
+                            { key: 'email', icon: <Mail className="w-4 h-4" />, label: 'Mail', placeholder: 'email@example.com' },
+                            { key: 'discord', icon: <Monitor className="w-4 h-4" />, label: 'Discord', placeholder: 'username#0000' },
+                            { key: 'youtube', icon: <Play className="w-4 h-4" />, label: 'YouTube', placeholder: '@channel' },
+                            { key: 'tiktok', icon: <Music className="w-4 h-4" />, label: 'TikTok', placeholder: '@username' },
+                            { key: 'facebook', icon: <Share2 className="w-4 h-4" />, label: 'Facebook', placeholder: 'username' },
+                            { key: 'website', icon: <Globe className="w-4 h-4" />, label: 'Personal Site', placeholder: 'https://...' },
+                        ].map((soc) => (
+                            <div key={soc.key} className="space-y-3">
+                                <label className="text-[9px] font-black uppercase tracking-widest text-white/20 flex items-center gap-2">
+                                  {soc.icon} {soc.label}
+                                </label>
+                                <Input 
+                                  className="bg-white/5 border-white/5 h-12 rounded-xl text-xs px-5 focus:border-purple-500/40" 
+                                  placeholder={soc.placeholder}
+                                  value={(formData.socialLinks as any)[soc.key]}
+                                  onChange={(e) => setFormData({
+                                    ...formData,
+                                    socialLinks: {
+                                      ...formData.socialLinks,
+                                      [soc.key]: e.target.value
+                                    }
+                                  })}
+                                />
                             </div>
                         ))}
                     </Card>
@@ -321,6 +378,108 @@ export function Settings() {
                     )}
                  </Card>
               </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'security' && (
+            <motion.div
+               key="security"
+               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+               className="max-w-4xl mx-auto space-y-16"
+            >
+               <section className="space-y-8">
+                  <div className="text-center space-y-2">
+                     <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Passkeys</h2>
+                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Secure biometric authentication</p>
+                  </div>
+                   
+                   <Card className="p-12 border-white/5 bg-white/[0.01] rounded-[48px] space-y-10 relative overflow-hidden">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+                          <div className="space-y-3">
+                              <div className="flex items-center gap-3">
+                                  <Shield className="w-5 h-5 text-purple-500" />
+                                  <h3 className="text-xl font-black italic tracking-tighter uppercase text-white">Register Device</h3>
+                              </div>
+                              <p className="text-xs text-white/40 max-w-sm italic font-medium leading-relaxed">
+                                  Passkeys allow you to sign in securely using biometrics (Face ID, Touch ID) without needing a password or OTP.
+                              </p>
+                          </div>
+                          <Button 
+                            disabled={passkeyLoading}
+                            onClick={async () => {
+                              if (!user || !profile) return;
+                              setPasskeyLoading(true);
+                              setPasskeyError(null);
+                              try {
+                                const passkey = await register(user.email!, profile.displayName);
+                                await addPasskey(passkey);
+                              } catch (err: any) {
+                                console.error(err);
+                                setPasskeyError(err.message || "Passkey registration failed");
+                              } finally {
+                                setPasskeyLoading(false);
+                              }
+                            }}
+                            className="rounded-2xl h-14 px-10 gap-3 group"
+                          >
+                            <Plus className={cn("w-4 h-4 transition-transform group-hover:rotate-90", passkeyLoading && "animate-spin")} />
+                            <span className="font-black italic uppercase text-xs tracking-widest">Add Passkey</span>
+                          </Button>
+                      </div>
+
+                      {passkeyError && (
+                        <div className="p-6 rounded-3xl bg-red-500/5 border border-red-500/10 text-red-400 text-[10px] font-black uppercase tracking-widest text-center">
+                          {passkeyError}
+                        </div>
+                      )}
+
+                      <div className="space-y-6 pt-10 border-t border-white/5">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Registered Passkeys</h4>
+                            <span className="text-[10px] font-bold text-white/10 uppercase italic">
+                              {(profile?.passkeys?.length || 0)} Devices
+                            </span>
+                          </div>
+
+                          <div className="space-y-4">
+                            {profile?.passkeys?.map((pk, i) => (
+                              <div key={i} className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 flex items-center justify-between group">
+                                <div className="flex items-center gap-6">
+                                  <div className="w-12 h-12 rounded-2xl bg-white/[0.05] flex items-center justify-center border border-white/5 group-hover:border-purple-500/20 transition-all">
+                                    <ShieldCheck className="w-5 h-5 text-purple-400" />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <p className="text-sm font-black italic uppercase tracking-tighter text-white">{pk.name || "Default Passkey"}</p>
+                                    <p className="text-[9px] text-white/20 font-medium uppercase tracking-widest italic">
+                                      Registered {formatDate(pk.createdAt, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                   <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[8px] font-black uppercase tracking-widest">Active</div>
+                                </div>
+                              </div>
+                            ))}
+                            {(!profile?.passkeys || profile.passkeys.length === 0) && (
+                              <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-[40px] space-y-4">
+                                <Monitor className="w-10 h-10 text-white/5 mx-auto" />
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/10 italic">No passkeys registered on this account.</p>
+                              </div>
+                            )}
+                          </div>
+                      </div>
+
+                      <div className="p-8 rounded-[32px] bg-purple-500/5 border border-purple-500/10 flex items-start gap-6">
+                        <Info className="w-5 h-5 text-purple-500 shrink-0 mt-1" />
+                        <div className="space-y-2">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-purple-400">Security Requirement</p>
+                          <p className="text-[11px] text-white/40 italic font-medium leading-relaxed uppercase tracking-wide">
+                            Passkeys are device-specific. If you access VUX Events from a new computer or phone, you must register a passkey for that device while logged in with your email.
+                          </p>
+                        </div>
+                      </div>
+                   </Card>
+               </section>
             </motion.div>
           )}
 

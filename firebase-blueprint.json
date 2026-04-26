@@ -22,6 +22,19 @@
               "createdAt": { "type": "string", "format": "date-time" }
             }
           }
+        },
+        "socialLinks": {
+          "type": "object",
+          "properties": {
+            "twitter": { "type": "string" },
+            "instagram": { "type": "string" },
+            "linkedin": { "type": "string" },
+            "facebook": { "type": "string" },
+            "youtube": { "type": "string" },
+            "tiktok": { "type": "string" },
+            "discord": { "type": "string" },
+            "website": { "type": "string" }
+          }
         }
       },
       "required": ["uid", "email", "createdAt"]
@@ -54,7 +67,11 @@
           }
         },
         "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
       },
       "required": ["id", "hostId", "title", "date", "status", "createdAt"]
     },

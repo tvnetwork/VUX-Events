@@ -4,11 +4,11 @@
  */
 
 import { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, getDocs, where } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, getDocs, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Event, RSVP } from '../types';
 import { useAuth } from '../AuthContext';
-import { MapPin, Users, Calendar, ChevronRight, Clock, Map as MapIcon, Plus, User, CreditCard, ArrowRight, Ghost, Search, Play, Star, BarChart3, CheckCircle2, Activity, TrendingUp } from 'lucide-react';
+import { MapPin, Users, Calendar, ChevronRight, Clock, Map as MapIcon, Plus, User, CreditCard, ArrowRight, Ghost, Search, Play, Star, BarChart3, CheckCircle2, Activity, TrendingUp, Trash2, FileEdit } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -293,6 +293,40 @@ function TimelineItem({ event, onClick, onEdit, isManageMode }: { event: Event, 
   const { user } = useAuth();
   const [attendees, setAttendees] = useState<RSVP[]>([]);
   const isHost = user?.uid === event.hostId;
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm('Are you sure you want to delete this event? This action cannot be undone.')) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, 'events', event.id));
+    } catch (err) {
+      console.error('Error deleting event:', err);
+      alert('Failed to delete event. You might not have permission.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleStatusChange = async (e: React.MouseEvent, status: 'draft' | 'published') => {
+    e.stopPropagation();
+    setIsUpdating(true);
+    try {
+      await updateDoc(doc(db, 'events', event.id), {
+        status,
+        updatedAt: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error('Error updating status:', err);
+      alert('Failed to update event status.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const [analytics, setAnalytics] = useState({
     checkins: 0,
     engagement: Math.floor(Math.random() * 30) + 70, // Simulated engagement
@@ -332,9 +366,13 @@ function TimelineItem({ event, onClick, onEdit, isManageMode }: { event: Event, 
             <div className="flex-1 p-10 md:p-14 space-y-10">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex items-center gap-3">
-                        <Badge className="bg-white/5 text-white/60 border-none font-black italic tracking-widest px-4 py-1.5 h-8">
-                            {(event.category || 'General').toUpperCase()}
-                        </Badge>
+                        <Badge className={cn(
+                              "font-black italic tracking-widest px-4 py-1.5 h-8",
+                              event.status === 'draft' ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "bg-white/5 text-white/60 border-none"
+                            )}>
+                                {(event.category || 'General').toUpperCase()}
+                                {event.status === 'draft' && " (DRAFT)"}
+                            </Badge>
                         <div className="flex items-center gap-2 text-[10px] font-black text-white/20 uppercase tracking-[0.2em] px-4 border-l border-white/5 h-8">
                             <Clock className="w-3.5 h-3.5" />
                             <span>{(() => {
@@ -417,17 +455,52 @@ function TimelineItem({ event, onClick, onEdit, isManageMode }: { event: Event, 
 
                     <div className="flex items-center gap-4">
                         {isHost && (
-                            <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onEdit();
-                                }}
-                                className="h-12 px-8 rounded-2xl text-[10px] font-black uppercase tracking-widest border-white/5 hover:bg-white hover:text-black transition-all"
-                            >
-                                Edit Event
-                            </Button>
+                            <div className="flex items-center gap-2">
+                                {event.status !== 'draft' && (
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm"
+                                        disabled={isUpdating}
+                                        onClick={(e) => handleStatusChange(e, 'draft')}
+                                        className="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest border-white/5 hover:bg-amber-500/10 hover:text-amber-500 transition-all flex items-center gap-2"
+                                    >
+                                        <FileEdit className="w-3.5 h-3.5" />
+                                        Move to Draft
+                                    </Button>
+                                )}
+                                {event.status === 'draft' && (
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm"
+                                        disabled={isUpdating}
+                                        onClick={(e) => handleStatusChange(e, 'published')}
+                                        className="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest border-white/5 hover:bg-emerald-500/10 hover:text-emerald-500 transition-all"
+                                    >
+                                        Publish
+                                    </Button>
+                                )}
+                                <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onEdit();
+                                    }}
+                                    className="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest border-white/5 hover:bg-white hover:text-black transition-all"
+                                >
+                                    Edit
+                                </Button>
+                                <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    disabled={isDeleting}
+                                    onClick={handleDelete}
+                                    className="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all flex items-center gap-2"
+                                >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    Delete
+                                </Button>
+                            </div>
                         )}
                         <div className="w-14 h-14 rounded-full glass border border-white/5 flex items-center justify-center group-hover:bg-purple-600 transition-all duration-500 text-white">
                             <ChevronRight className="w-6 h-6 -rotate-45 group-hover:rotate-0 transition-transform duration-500" />

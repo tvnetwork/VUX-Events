@@ -38,6 +38,10 @@ export function OTPModal({ email, onBack, onVerify, onResend }: OTPModalProps) {
   const handleCodeChange = (newCode: string) => {
     setCode(newCode);
     if (newCode.length === 6) {
+      // Auto-submit and blur to close keyboard
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
       handleSubmit(undefined, newCode);
     }
   };
@@ -61,7 +65,7 @@ export function OTPModal({ email, onBack, onVerify, onResend }: OTPModalProps) {
       const text = await navigator.clipboard.readText();
       const cleaned = text.replace(/\D/g, '').slice(0, 6);
       if (cleaned) {
-        setCode(cleaned);
+        handleCodeChange(cleaned);
       }
     } catch (err) {
       console.error('Failed to read clipboard:', err);
