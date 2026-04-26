@@ -47,9 +47,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
-    } catch (e) {
-      console.error('Fetch error:', e);
-      throw new Error('Could not connect to authentication server. Please check your internet connection.');
+    } catch (e: any) {
+      console.error('Fetch REJECTED:', {
+        message: e.message,
+        name: e.name,
+        stack: e.stack,
+        url: '/api/auth/send-otp'
+      });
+      throw new Error(`Connection failed: ${e.message || 'The authentication server could not be reached.'}`);
     }
     
     const contentType = response.headers.get('content-type');
@@ -86,9 +91,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code }),
       });
-    } catch (e) {
-      console.error('Fetch error:', e);
-      throw new Error('Could not connect to verification server. Please check your internet connection.');
+    } catch (e: any) {
+      console.error('Verify Fetch REJECTED:', {
+        message: e.message,
+        name: e.name,
+        stack: e.stack,
+        url: '/api/auth/verify-otp'
+      });
+      throw new Error(`Verification connection failed: ${e.message || 'The verification server could not be reached.'}`);
     }
     
     const contentType = response.headers.get('content-type');
