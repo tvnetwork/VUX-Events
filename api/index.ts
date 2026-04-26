@@ -1,6 +1,6 @@
 console.log('[Vercel] Function script loaded at root level');
 
-import { createServer } from '../server.ts';
+import { createServer } from '../server.js';
 
 let appPromise: Promise<any> | null = null;
 

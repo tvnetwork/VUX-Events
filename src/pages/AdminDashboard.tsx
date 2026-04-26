@@ -38,6 +38,7 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState<'overview' | 'users' | 'events' | 'pulses' | 'broadcast'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published' | 'completed' | 'cancelled'>('all');
   
   // Broadcast State
   const [broadcastSubject, setBroadcastSubject] = useState('Important Update from VUX Events');
@@ -373,6 +374,24 @@ const handleVerifyUser = async (userId: string) => {
                        className="w-full bg-white/[0.01] border border-white/5 rounded-3xl h-16 pl-16 pr-8 text-sm focus:outline-none focus:border-purple-500/40 transition-all font-medium placeholder:italic placeholder:text-white/10"
                     />
                 </div>
+                
+                {activeView === 'events' && (
+                    <div className="relative">
+                        <Filter className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 pointer-events-none" />
+                        <select 
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value as any)}
+                            className="bg-white/[0.01] border border-white/5 rounded-3xl h-16 pl-14 pr-10 text-[10px] font-black uppercase tracking-widest text-white/40 focus:outline-none focus:border-purple-500/40 appearance-none cursor-pointer hover:bg-white/5 transition-all"
+                        >
+                            <option value="all" className="bg-[#0b0b0f]">ALL STATUS</option>
+                            <option value="draft" className="bg-[#0b0b0f]">DRAFT</option>
+                            <option value="published" className="bg-[#0b0b0f]">PUBLISHED</option>
+                            <option value="completed" className="bg-[#0b0b0f]">COMPLETED</option>
+                            <option value="cancelled" className="bg-[#0b0b0f]">CANCELLED</option>
+                        </select>
+                    </div>
+                )}
+
                 <Button variant="ghost" size="icon" onClick={fetchData} className="w-16 h-16 rounded-3xl border border-white/5 bg-white/[0.01] hover:bg-white/5 transition-all">
                     <RefreshCcw className={cn("w-5 h-5 text-white/40", loading && "animate-spin")} />
                 </Button>
@@ -387,7 +406,7 @@ const handleVerifyUser = async (userId: string) => {
                                   {activeView === 'pulses' ? 'TIME' : 'NAME'}
                                 </th>
                                 <th className="p-8 text-[10px] font-black uppercase tracking-[0.4em] text-white/20">
-                                  {activeView === 'pulses' ? 'TYPE' : (activeView === 'users' ? 'STATUS' : 'LOCATION')}
+                                  {activeView === 'pulses' ? 'TYPE' : 'STATUS'}
                                 </th>
                                 <th className="p-8 text-[10px] font-black uppercase tracking-[0.4em] text-white/20">
                                   {activeView === 'pulses' ? 'MESSAGE' : (activeView === 'users' ? 'JOINED' : 'DATE')}
@@ -438,7 +457,11 @@ const handleVerifyUser = async (userId: string) => {
                                     </tr>
                                 ))
                             ) : activeView === 'events' ? (
-                                eventsList.filter(e => (e.title || '').toLowerCase().includes((searchQuery || '').toLowerCase())).map((e) => (
+                                eventsList.filter(e => {
+                                    const matchesSearch = (e.title || '').toLowerCase().includes((searchQuery || '').toLowerCase());
+                                    const matchesStatus = statusFilter === 'all' || e.status === statusFilter;
+                                    return matchesSearch && matchesStatus;
+                                }).map((e) => (
                                     <tr key={e.id} className="group hover:bg-white/[0.02] transition-colors duration-500">
                                         <td className="p-8">
                                             <div className="flex items-center gap-5">
@@ -451,8 +474,19 @@ const handleVerifyUser = async (userId: string) => {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="p-8 text-[10px] text-white/40 font-bold uppercase tracking-widest italic group-hover:text-white/60 transition-colors">
-                                            {e.location}
+                                        <td className="p-8">
+                                            <div className="flex flex-col gap-2">
+                                                <Badge className={cn(
+                                                    "text-[9px] uppercase font-black tracking-widest px-3 py-1 italic w-fit",
+                                                    e.status === 'published' ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" :
+                                                    e.status === 'draft' ? "bg-white/5 text-white/40 border border-white/10" :
+                                                    e.status === 'completed' ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" :
+                                                    "bg-red-500/10 text-red-400 border border-red-500/20"
+                                                )}>
+                                                    {e.status}
+                                                </Badge>
+                                                <span className="text-[10px] text-white/20 font-bold uppercase tracking-widest italic">{e.location}</span>
+                                            </div>
                                         </td>
                                         <td className="p-8 text-[11px] text-white/40 font-mono italic tracking-tighter">
                                             {formatDate(e.date)}
