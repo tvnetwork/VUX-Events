@@ -29,6 +29,7 @@ const CreateEvent = lazy(() => import('../components/CreateEvent').then(m => ({ 
 const EventDetails = lazy(() => import('../components/EventDetails').then(m => ({ default: m.EventDetails })));
 const ManageAttendees = lazy(() => import('../components/ManageAttendees').then(m => ({ default: m.ManageAttendees })));
 const OnboardingWizard = lazy(() => import('../components/OnboardingWizard').then(m => ({ default: m.OnboardingWizard })));
+const FeedbackModal = lazy(() => import('../components/FeedbackModal').then(m => ({ default: m.FeedbackModal })));
 
 function TabLoading() {
   return (
@@ -46,6 +47,7 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [feedbackEvent, setFeedbackEvent] = useState<Event | null>(null);
   const [managingEvent, setManagingEvent] = useState<Event | null>(null);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -58,6 +60,8 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
   // Check for event ID in URL
   useEffect(() => {
     const eventId = searchParams.get('event');
+    const feedbackId = searchParams.get('feedback');
+
     if (eventId) {
       const fetchEvent = async () => {
         const eventDoc = await getDoc(doc(db, 'events', eventId));
@@ -70,6 +74,20 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
         setSearchParams(newParams);
       };
       fetchEvent();
+    }
+
+    if (feedbackId) {
+      const fetchFeedbackEvent = async () => {
+        const eventDoc = await getDoc(doc(db, 'events', feedbackId));
+        if (eventDoc.exists()) {
+          setFeedbackEvent({ id: eventDoc.id, ...eventDoc.data() } as Event);
+        }
+        // Clear the param after opening
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete('feedback');
+        setSearchParams(newParams);
+      };
+      fetchFeedbackEvent();
     }
   }, [searchParams, setSearchParams]);
 
@@ -172,6 +190,15 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
         {showOnboarding && (
           <Suspense fallback={null}>
             <OnboardingWizard onComplete={() => setShowOnboarding(false)} />
+          </Suspense>
+        )}
+
+        {feedbackEvent && (
+          <Suspense fallback={null}>
+            <FeedbackModal 
+              event={feedbackEvent} 
+              onClose={() => setFeedbackEvent(null)} 
+            />
           </Suspense>
         )}
       </AnimatePresence>

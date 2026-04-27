@@ -58,6 +58,7 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
     description: '',
     date: '',
     time: '',
+    endTime: '',
     location: '',
     category: 'Workshop',
     visibility: 'public',
@@ -76,6 +77,7 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
         description: '',
         date: '',
         time: '',
+        endTime: '',
         location: '',
         category: 'Workshop',
         visibility: 'public',
@@ -531,7 +533,7 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                            </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-6">
+                        <div className="grid grid-cols-3 gap-6">
                            <div className="space-y-3">
                               <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 px-1">Event Date</label>
                               <div className="relative">
@@ -552,6 +554,18 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                                   type="time"
                                   value={formData.time}
                                   onChange={(e) => setFormData({...formData, time: e.target.value})}
+                                  className="bg-white/5 border-white/5 h-16 pl-14 rounded-2xl font-mono text-xs"
+                                />
+                              </div>
+                           </div>
+                           <div className="space-y-3">
+                              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 px-1">End Time</label>
+                              <div className="relative">
+                                <Clock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                <Input 
+                                  type="time"
+                                  value={formData.endTime}
+                                  onChange={(e) => setFormData({...formData, endTime: e.target.value})}
                                   className="bg-white/5 border-white/5 h-16 pl-14 rounded-2xl font-mono text-xs"
                                 />
                               </div>

@@ -616,18 +616,34 @@ const handleVerifyUser = async (userId: string) => {
                         </Button>
                      </div>
 
-                     <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/10 space-y-6 opacity-40">
+                      <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/5 space-y-6 group">
                         <div className="flex items-center justify-between">
-                            <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-white/20">
+                            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
                                 <Users className="w-5 h-5" />
                             </div>
-                            <Badge className="bg-white/5 text-white/20 border-none uppercase text-[8px] font-black">Future</Badge>
+                            <Badge className="bg-emerald-500/10 text-emerald-400 border-none uppercase text-[8px] font-black">Ready</Badge>
                         </div>
                         <div className="space-y-1">
                             <h4 className="text-lg font-black italic uppercase tracking-tighter text-white">Post-Event Survey</h4>
                             <p className="text-[10px] font-medium text-white/30 italic">Collect feedback 2 hours after conclusion.</p>
                         </div>
-                     </div>
+                        <Button 
+                            variant="outline" 
+                            className="w-full rounded-xl border-white/5 hover:border-indigo-500/20 text-[8px] font-black uppercase tracking-widest"
+                            onClick={() => {
+                                toast.promise(
+                                    fetch('/api/admin/surveys/trigger', { method: 'POST' }),
+                                    {
+                                        loading: 'Scanning events for surveys...',
+                                        success: 'Survey sequence initiated',
+                                        error: 'Failed to trigger surveys'
+                                    }
+                                );
+                            }}
+                        >
+                            Trigger Manual Scan
+                        </Button>
+                      </div>
                 </div>
             </Card>
         </section>

@@ -112,6 +112,16 @@ export interface Collection {
   createdAt: string;
 }
 
+export interface Feedback {
+  id: string;
+  eventId: string;
+  userId: string;
+  userName: string;
+  rating: number; // 1-5
+  comment?: string;
+  createdAt: string;
+}
+
 export interface Event {
   id: string;
   hostId: string;
@@ -121,6 +131,7 @@ export interface Event {
   description: string;
   date: string;
   time: string;
+  endTime?: string;
   location: string;
   coordinates?: { lat: number; lng: number };
   category: string;
@@ -143,6 +154,7 @@ export interface Event {
   collectionId?: string;
   createdAt: string;
   updatedAt: string;
+  surveySent?: boolean;
 }
 
 export interface RSVP {

@@ -801,6 +801,127 @@ export async function createServer() {
   }
 });
 
+  apiRouter.post('/events/:id/feedback', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { userId, userName, rating, comment } = req.body;
+
+      if (!userId || !userName || !rating) {
+        return res.status(400).json({ error: 'Missing required feedback fields' });
+      }
+
+      const feedbackId = Math.random().toString(36).substring(2);
+      const feedbackData = {
+        id: feedbackId,
+        eventId: id,
+        userId,
+        userName,
+        rating,
+        comment: comment || '',
+        createdAt: new Date().toISOString()
+      };
+
+      await db.collection('events').doc(id).collection('feedback').doc(feedbackId).set(feedbackData);
+      
+      res.json({ success: true, feedback: feedbackData });
+    } catch (error: any) {
+      console.error('[Feedback] Submission Error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  apiRouter.post('/admin/surveys/trigger', async (req, res) => {
+    try {
+      console.log('[Automation] Starting post-event survey scan...');
+      const now = new Date();
+      // Look for events that ended 2 to 3 hours ago
+      const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+      const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+
+      const eventsSnap = await db.collection('events')
+        .where('status', 'in', ['published', 'completed'])
+        .where('surveySent', '!=', true)
+        .get();
+
+      const eventsToSurvey = eventsSnap.docs.filter(doc => {
+        const data = doc.data();
+        const startDateTime = new Date(`${data.date}T${data.time || '00:00'}`);
+        // If endTime is missing, assume 2 hours duration
+        let endDateTime: Date;
+        if (data.endTime) {
+          endDateTime = new Date(`${data.date}T${data.endTime}`);
+        } else {
+          endDateTime = new Date(startDateTime.getTime() + 2 * 60 * 60 * 1000);
+        }
+
+        return endDateTime <= twoHoursAgo && endDateTime >= threeHoursAgo;
+      });
+
+      console.log(`[Automation] Found ${eventsToSurvey.length} events for surveys.`);
+
+      const userSmtp = process.env.SMTP_USER || 'vuxevents@gmail.com';
+      const pass = process.env.SMTP_PASS;
+
+      if (!pass) return res.status(503).json({ error: 'SMTP not configured' });
+
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_PORT === '465',
+        auth: { user: userSmtp, pass },
+      });
+
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+      const host = req.get('host');
+      const baseUrl = `${protocol}://${host}`;
+
+      let sentCount = 0;
+      for (const eventDoc of eventsToSurvey) {
+        const event = eventDoc.data();
+        const rsvpsSnap = await eventDoc.ref.collection('rsvps').where('status', '==', 'approved').get();
+        
+        console.log(`[Automation] Sending surveys for "${event.title}" to ${rsvpsSnap.size} attendees.`);
+
+        for (const rsvpDoc of rsvpsSnap.docs) {
+          const rsvp = rsvpDoc.data();
+          try {
+            await transporter.sendMail({
+              from: process.env.SMTP_FROM || `"VUX Feedback" <${userSmtp}>`,
+              to: rsvp.userEmail,
+              subject: `How was ${event.title}? ✨`,
+              html: `
+                <div style="font-family: sans-serif; background: #0b0b0f; color: white; padding: 48px; border-radius: 40px; text-align: center; border: 1px solid rgba(255,255,255,0.05); max-width: 600px; margin: 0 auto;">
+                  <img src="${baseUrl}/logo.svg" width="64" style="border-radius: 18px; margin-bottom: 32px;" />
+                  <h1 style="font-size: 28px; font-weight: 900; letter-spacing: -0.04em; margin-bottom: 16px;">TELL US EVERYTHING</h1>
+                  <p style="color: rgba(255,255,255,0.5); font-size: 16px; margin-bottom: 40px;">
+                    Hi ${rsvp.userDisplayName}, we hope you enjoyed ${event.title}. Your feedback helps us build better event experiences.
+                  </p>
+                  
+                  <a href="${baseUrl}/discover?feedback=${eventDoc.id}" style="display: inline-block; background: #a855f7; color: white; text-decoration: none; padding: 16px 32px; border-radius: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 40px;">Rate the Event</a>
+                  
+                  <div style="border-top: 1px solid rgba(255,255,255,0.05); pt: 32px;">
+                    <p style="font-size: 10px; color: rgba(255,255,255,0.2); font-weight: 900; text-transform: uppercase; letter-spacing: 0.4em;">VUX: EVENTS DONE RIGHT.</p>
+                  </div>
+                </div>
+              `
+            });
+            sentCount++;
+          } catch (e) {
+            console.error(`[Automation] Failed to send survey to ${rsvp.userEmail}`, e);
+          }
+        }
+
+        // Mark survey as sent
+        await eventDoc.ref.update({ surveySent: true, status: 'completed' });
+      }
+
+      res.json({ success: true, eventsProcessed: eventsToSurvey.length, surveysSent: sentCount });
+    } catch (error: any) {
+      console.error('[Automation] Survey Trigger Error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   apiRouter.post('/admin/reminders/trigger', async (req, res) => {
     try {
       console.log('[Automation] Starting manual reminder scan...');
