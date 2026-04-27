@@ -3,332 +3,466 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Settings as SettingsIcon, CreditCard, Shield, Calendar, Mail, Smartphone, Globe, Check, Info, ShieldCheck, Box, Monitor, RefreshCcw, Plus } from 'lucide-react';
-import { Card } from '../components/ui/Card';
+import { Link } from 'react-router-dom';
+import { 
+  ChevronLeft, 
+  Shield, 
+  Lock, 
+  Smartphone, 
+  Fingerprint, 
+  Zap, 
+  Calendar, 
+  Monitor, 
+  Music, 
+  AlertCircle, 
+  Check, 
+  ArrowRight,
+  User,
+  ExternalLink,
+  ShieldCheck,
+  Link as LinkIcon
+} from 'lucide-react';
 import { Button } from '../components/ui/Button';
-import { Switch } from '../components/ui/Switch';
+import { Card } from '../components/ui/Card';
 import { useAuth } from '../AuthContext';
-import { usePasskey } from '../hooks/usePasskey';
-import { cn, formatDate } from '../lib/utils';
+import { cn } from '../lib/utils';
+import { TwoFactorSetup } from '../components/auth/TwoFactorSetup';
+import { GoogleCalendarService } from '../services/GoogleCalendarService';
+
+type SettingsTab = 'security' | 'integrations' | 'account';
 
 export function Settings() {
-  const { user, profile, updateProfileData, addPasskey } = useAuth();
-  const [activeTab, setActiveTab] = useState<'preferences' | 'connections' | 'security' | 'payment'>('preferences');
+  const { user, profile, updateProfileData, registerPasskey } = useAuth();
+  const [activeTab, setActiveTab] = useState<SettingsTab>('security');
+  const [show2FASetup, setShow2FASetup] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [passkeyLoading, setPasskeyLoading] = useState(false);
-  const [passkeyError, setPasskeyError] = useState<string | null>(null);
-  const { register } = usePasskey();
-  
-  const [preferences, setPreferences] = useState({
-    emailNotifications: profile?.preferences?.emailNotifications ?? true,
-    pushNotifications: profile?.preferences?.pushNotifications ?? true,
-    publicProfile: profile?.preferences?.publicProfile ?? true,
-    calendarSync: profile?.preferences?.calendarSync ?? false,
-    theme: profile?.preferences?.theme ?? 'dark',
-  });
+
+  const handleDisable2FA = async () => {
+    if (!confirm('Are you sure you want to disable two-factor authentication? This will reduce your account security.')) return;
+    
+    setLoading(true);
+    try {
+      await updateProfileData({
+        security: {
+          ...profile?.security,
+          twoFactorEnabled: false
+        }
+      });
+    } catch (err) {
+      console.error('Failed to disable 2FA:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const tabs = [
-    { id: 'preferences', label: 'Preferences', icon: <SettingsIcon className="w-4 h-4" /> },
-    { id: 'security', label: 'Security', icon: <Shield className="w-4 h-4" /> },
-    { id: 'connections', label: 'Apps', icon: <Calendar className="w-4 h-4" /> },
-    { id: 'payment', label: 'Billing', icon: <CreditCard className="w-4 h-4" /> },
+    { id: 'security', label: 'Security', icon: Shield },
+    { id: 'integrations', label: 'Integrations', icon: Zap },
+    { id: 'account', label: 'Account', icon: User },
   ];
 
-  useEffect(() => {
-    if (profile) {
-      setPreferences({
-        emailNotifications: profile.preferences?.emailNotifications ?? true,
-        pushNotifications: profile.preferences?.pushNotifications ?? true,
-        publicProfile: profile.preferences?.publicProfile ?? true,
-        calendarSync: profile.preferences?.calendarSync ?? false,
-        theme: profile.preferences?.theme ?? 'dark',
-      });
-    }
-  }, [profile]);
-
-  // Auto-save logic
-  useEffect(() => {
-    if (!profile || !user) return;
-
-    const timer = setTimeout(async () => {
-      const hasPrefsChanged = JSON.stringify(preferences) !== JSON.stringify(profile.preferences);
-
-      if (!hasPrefsChanged) {
-        return;
-      }
-
-      setSaveStatus('saving');
-      try {
-        await updateProfileData({
-          preferences
-        });
-        setSaveStatus('saved');
-        setTimeout(() => setSaveStatus('idle'), 2000);
-      } catch (e) {
-        console.error(e);
-        setSaveStatus('error');
-      }
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, [preferences, profile, user, updateProfileData]);
-
-  return (
-    <div className="max-w-6xl mx-auto py-12 px-4 animate-in fade-in duration-1000">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-10 border-b border-white/5 pb-10">
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 text-purple-500">
-             <div className="w-10 h-px bg-purple-500" />
-             <span className="text-[10px] font-black uppercase tracking-[0.4em]">System Config</span>
+   return (
+    <div className="min-h-screen bg-transparent pt-24 pb-20 px-4 md:px-6">
+      <div className="max-w-4xl mx-auto space-y-8 md:space-y-12">
+        <Link to="/">
+          <Button variant="ghost" className="gap-2 text-white/70 hover:text-white -ml-2 md:-ml-4 text-xs">
+            <ChevronLeft className="w-4 h-4" /> Back to Home
+          </Button>
+        </Link>
+ 
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-white/5 pb-10">
+          <div className="space-y-4">
+             <div className="flex items-center gap-3 text-blue-500">
+               <div className="w-8 md:w-10 h-px bg-blue-500" />
+               <span className="text-[10px] font-black uppercase tracking-[0.4em]">System Configuration</span>
+             </div>
+             <h1 className="text-5xl md:text-8xl font-black italic tracking-tighter uppercase leading-[0.8] text-white">SETTINGS</h1>
+             <p className="text-[10px] text-white/90 font-black uppercase tracking-[0.4em] max-w-[200px] md:max-w-none">Personal Environment & Security Protocol</p>
           </div>
-          <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter uppercase leading-[0.8] text-white">SYSTEM<br/>SETTINGS</h1>
-          <div className="flex items-center gap-4 h-6 uppercase font-black italic">
-            <span className="text-white/20 text-[10px] tracking-widest">Protocol Configurations</span>
-            <AnimatePresence mode="wait">
-              {saveStatus === 'saving' && (
-                <motion.div
-                  key="saving"
-                  initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 5 }}
-                  className="flex items-center gap-1.5 text-[8px] tracking-[0.2em] text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full"
-                >
-                  <div className="w-1 h-1 rounded-full bg-purple-400 animate-pulse" />
-                  UPDATING PROTOCOLS
-                </motion.div>
-              )}
-              {saveStatus === 'saved' && (
-                <motion.div
-                  key="saved"
-                  initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 5 }}
-                  className="flex items-center gap-1.5 text-[8px] tracking-[0.2em] text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full"
-                >
-                  <Check className="w-2.5 h-2.5" />
-                  CONFIG SYNCED
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-        <div className="flex bg-white/[0.03] p-1.5 rounded-[2rem] border border-white/10 shadow-2xl overflow-x-auto scrollbar-hide">
+          
+          <div className="flex bg-white/[0.03] p-1.5 rounded-2xl md:rounded-[2rem] border border-white/5 overflow-x-auto no-scrollbar scroll-smooth">
             {tabs.map((tab) => (
-                <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={cn(
-                        "flex items-center gap-3 px-8 h-12 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all whitespace-nowrap",
-                        activeTab === tab.id ? "bg-white text-black shadow-xl shadow-white/5" : "text-white/40 hover:text-white"
-                    )}
-                >
-                    {tab.icon}
-                    <span>{tab.label}</span>
-                </button>
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as SettingsTab)}
+                className={cn(
+                  "flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest italic transition-all whitespace-nowrap",
+                  activeTab === tab.id 
+                    ? "bg-blue-500 text-white shadow-xl shadow-blue-500/20" 
+                    : "text-white/60 hover:text-white"
+                )}
+              >
+                <tab.icon className="w-3 md:w-3.5 h-3 md:h-3.5" />
+                {tab.label}
+              </button>
             ))}
-        </div>
-      </header>
-
-      <div className="mt-16">
-        <AnimatePresence mode="wait">
-          {activeTab === 'preferences' && (
-            <motion.div
-               key="preferences"
-               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-               className="max-w-3xl mx-auto space-y-16"
+          </div>
+        </header>
+ 
+        <div className="grid grid-cols-1 gap-8 md:gap-12">
+          {activeTab === 'security' && (
+            <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               className="space-y-8 md:space-y-10"
             >
-               <section className="space-y-8">
-                  <div className="text-center space-y-2">
-                     <h2 className="text-4xl font-black italic uppercase tracking-tighter">Notifications</h2>
-                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Control how updates are delivered to you</p>
+              {/* Identity Protection */}
+              <Card className="p-6 md:p-10 border-white/5 bg-white/[0.01] rounded-[2rem] md:rounded-[3rem] overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
+                
+                <div className="space-y-8 md:space-y-10 relative z-10">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase text-white">Identity Protection</h2>
+                      <p className="text-[9px] md:text-[10px] text-white/90 font-bold uppercase tracking-widest leading-relaxed">Multi-Layer Authentication Layers</p>
+                    </div>
+                    <div className={cn(
+                      "px-3 md:px-4 py-1 md:py-1.5 rounded-full border text-[8px] md:text-[9px] font-black uppercase tracking-widest italic whitespace-nowrap",
+                      profile?.security?.twoFactorEnabled 
+                        ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" 
+                        : "bg-red-500/10 border-red-500/20 text-red-400"
+                    )}>
+                      {profile?.security?.twoFactorEnabled ? 'Fortified' : 'Vulnerable'}
+                    </div>
                   </div>
-                   <Card className="overflow-hidden border-white/5 bg-white/[0.01] rounded-[48px]">
-                     {[
-                        { icon: <Mail className="w-5 h-5 text-purple-400" />, title: 'Email Reports', desc: 'Summary of community activity delivered weekly.', key: 'emailNotifications' },
-                        { icon: <Smartphone className="w-5 h-5 text-blue-400" />, title: 'Push Notifications', desc: 'Instant notifications for event updates.', key: 'pushNotifications' },
-                        { icon: <Shield className="w-5 h-5 text-emerald-400" />, title: 'Private Mode', desc: 'Hide your profile from public searches.', key: 'publicProfile' },
-                        { icon: <Globe className="w-5 h-5 text-amber-500" />, title: 'Calendar Sync', desc: 'Share your schedule across connected apps.', key: 'calendarSync' },
-                     ].map((pref, i) => (
-                        <div key={i} className={cn("p-10 flex items-center justify-between group hover:bg-white/[0.02] transition-colors", i !== 0 && "border-t border-white/5")}>
-                            <div className="flex items-center gap-8">
-                                <div className="w-16 h-16 rounded-3xl bg-white/[0.03] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-white/20 transition-all duration-500">
-                                    {pref.icon}
-                                </div>
-                                <div className="space-y-1">
-                                    <h4 className="text-lg font-black italic tracking-tighter uppercase">{pref.title}</h4>
-                                    <p className="text-[10px] text-white/20 font-medium italic max-w-sm uppercase tracking-widest">{pref.desc}</p>
-                                </div>
-                            </div>
-                            <Switch 
-                                checked={(preferences as any)[pref.key]} 
-                                onCheckedChange={(val) => setPreferences({...preferences, [pref.key]: val})} 
-                            />
+ 
+                  <div className="space-y-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] bg-white/[0.02] border border-white/5 group hover:bg-white/[0.04] transition-all gap-6">
+                      <div className="flex gap-4 md:gap-6">
+                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shrink-0">
+                          <Smartphone className="w-5 h-5 md:w-6 md:h-6 text-blue-400" />
                         </div>
-                     ))}
-                  </Card>
-               </section>
+                        <div className="space-y-1.5 min-w-0">
+                          <h3 className="text-sm font-black uppercase tracking-widest text-white truncate">2FA (TOTP)</h3>
+                          <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest italic leading-relaxed max-w-[200px]">Secure your terminal with rotating keys.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6 justify-between md:justify-start">
+                        <span className={cn(
+                          "text-[9px] md:text-[10px] font-black uppercase tracking-widest italic whitespace-nowrap",
+                          profile?.security?.twoFactorEnabled ? "text-emerald-500" : "text-white/10"
+                        )}>
+                          {profile?.security?.twoFactorEnabled ? 'Active' : 'Inactive'}
+                        </span>
+                        {profile?.security?.twoFactorEnabled ? (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={handleDisable2FA}
+                            disabled={loading}
+                            className="h-10 md:h-12 px-4 md:px-6 rounded-xl text-[9px] font-black uppercase tracking-widest border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                          >
+                            Disable
+                          </Button>
+                        ) : (
+                          <Button 
+                            variant="vux" 
+                            size="sm" 
+                            onClick={() => setShow2FASetup(true)}
+                            className="h-10 md:h-12 px-6 md:px-8 rounded-xl text-[9px] font-black uppercase tracking-widest gap-2"
+                          >
+                            Initiate <ArrowRight className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+ 
+                    <div className="flex flex-col md:flex-row md:items-center justify-between p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] bg-white/[0.02] border border-white/5 group hover:bg-white/[0.04] transition-all gap-6">
+                      <div className="flex gap-4 md:gap-6">
+                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 shrink-0">
+                          <Fingerprint className="w-5 h-5 md:w-6 md:h-6 text-amber-400" />
+                        </div>
+                        <div className="space-y-1.5 min-w-0">
+                          <h3 className="text-sm font-black uppercase tracking-widest text-white truncate">Passkeys</h3>
+                          <p className="text-[10px] text-white/50 font-bold uppercase tracking-widest italic leading-relaxed truncate md:whitespace-normal">Hardware biometric auth.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6 justify-between md:justify-start">
+                        <span className={cn(
+                          "text-[9px] md:text-[10px] font-black uppercase tracking-widest italic whitespace-nowrap",
+                          profile?.passkeys?.length ? "text-emerald-500" : "text-white/10"
+                        )}>
+                          {profile?.passkeys?.length ? `${profile.passkeys.length} Registered` : 'Inactive'}
+                        </span>
+                        <Button 
+                          variant="vux" 
+                          size="sm" 
+                          onClick={async () => {
+                            setLoading(true);
+                            try {
+                              await registerPasskey();
+                            } catch (err) {
+                              console.error(err);
+                            } finally {
+                              setLoading(false);
+                            }
+                          }}
+                          disabled={loading}
+                          className="h-10 md:h-12 px-6 md:px-8 rounded-xl text-[9px] font-black uppercase tracking-widest gap-2"
+                        >
+                          Register <ArrowRight className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {profile?.passkeys && profile.passkeys.length > 0 && (
+                      <div className="space-y-3 px-4">
+                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Authorized Devices</h4>
+                        <div className="grid grid-cols-1 gap-2">
+                           {profile.passkeys.map((pk, i) => (
+                             <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.01] border border-white/5">
+                                <div className="flex items-center gap-3">
+                                   <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                                   <span className="text-[10px] font-bold text-white/70 uppercase tracking-widest">{pk.name}</span>
+                                </div>
+                                <span className="text-[9px] font-medium text-white/20 uppercase tracking-widest italic">
+                                   {new Date(pk.createdAt).toLocaleDateString()}
+                                </span>
+                             </div>
+                           ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Card>
+ 
+              <AnimatePresence>
+                {show2FASetup && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <Card className="p-6 md:p-10 border-blue-500/20 bg-blue-500/[0.02] rounded-[2rem] md:rounded-[3rem]">
+                      <TwoFactorSetup 
+                        onComplete={() => setShow2FASetup(false)} 
+                        onCancel={() => setShow2FASetup(false)} 
+                      />
+                    </Card>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+ 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                 <section className="space-y-4 p-8 md:p-10 bg-white/[0.01] rounded-[2rem] md:rounded-[3rem] border border-white/5">
+                    <div className="flex items-center gap-3">
+                        <ShieldCheck className="w-4 h-4 text-blue-500/40" />
+                        <h2 className="text-sm font-black uppercase tracking-tighter text-white italic">Infrastructure</h2>
+                    </div>
+                    <p className="text-[10px] text-white/60 leading-relaxed font-medium italic uppercase tracking-widest">
+                      Built on secure-by-default architecture. We leverage TLS 1.3 encryption & AES-256 protection.
+                    </p>
+                 </section>
+                 <section className="space-y-4 p-8 md:p-10 bg-white/[0.01] rounded-[2rem] md:rounded-[3rem] border border-white/5">
+                    <div className="flex items-center gap-3">
+                        <Lock className="w-4 h-4 text-blue-500/40" />
+                        <h2 className="text-sm font-black uppercase tracking-tighter text-white italic">Privacy</h2>
+                    </div>
+                    <p className="text-[10px] text-white/60 leading-relaxed font-medium italic uppercase tracking-widest">
+                      Your data is yours. We never sell info and use OAuth for secure zero-credential storage.
+                    </p>
+                 </section>
+              </div>
             </motion.div>
           )}
-
-          {activeTab === 'security' && (
-            <motion.div
-               key="security"
-               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-               className="max-w-4xl mx-auto space-y-16"
+ 
+          {activeTab === 'integrations' && (
+            <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               className="space-y-8 md:space-y-10"
             >
-               <section className="space-y-8">
-                  <div className="text-center space-y-2">
-                     <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Passkeys</h2>
-                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Secure biometric authentication</p>
-                  </div>
-                   
-                   <Card className="p-12 border-white/5 bg-white/[0.01] rounded-[48px] space-y-10 relative overflow-hidden">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-                          <div className="space-y-3">
-                              <div className="flex items-center gap-3">
-                                  <Shield className="w-5 h-5 text-purple-500" />
-                                  <h3 className="text-xl font-black italic tracking-tighter uppercase text-white">Register Device</h3>
-                              </div>
-                              <p className="text-xs text-white/40 max-w-sm italic font-medium leading-relaxed">
-                                  Passkeys allow you to sign in securely using biometrics (Face ID, Touch ID) without needing a password or OTP.
-                              </p>
-                          </div>
-                          <Button 
-                            disabled={passkeyLoading}
-                            onClick={async () => {
-                              if (!user || !profile) return;
-                              setPasskeyLoading(true);
-                              setPasskeyError(null);
-                              try {
-                                const passkey = await register(user.email!, profile.displayName);
-                                await addPasskey(passkey);
-                              } catch (err: any) {
-                                console.error(err);
-                                setPasskeyError(err.message || "Passkey registration failed");
-                              } finally {
-                                setPasskeyLoading(false);
-                              }
-                            }}
-                            className="rounded-2xl h-14 px-10 gap-3 group"
-                          >
-                            <Plus className={cn("w-4 h-4 transition-transform group-hover:rotate-90", passkeyLoading && "animate-spin")} />
-                            <span className="font-black italic uppercase text-xs tracking-widest">Add Passkey</span>
-                          </Button>
+              <Card className="p-6 md:p-10 border-white/5 bg-white/[0.01] rounded-[2rem] md:rounded-[3rem] space-y-10">
+                <div className="space-y-1">
+                  <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase text-white">App Ecosystem Status</h2>
+                  <p className="text-[9px] md:text-[10px] text-white/30 font-bold uppercase tracking-widest">Connect external services to your VUX experience</p>
+                </div>
+ 
+                <div className="grid grid-cols-1 gap-6">
+                   {/* Google Calendar Sync */}
+                   <div className="flex flex-col gap-6 p-6 md:p-8 bg-white/[0.02] rounded-[1.5rem] md:rounded-[2.5rem] border border-white/10 hover:bg-white/[0.04] transition-all group">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                        <div className="flex items-center gap-4 md:gap-6">
+                            <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shrink-0">
+                                <Calendar className="w-5 h-5 md:w-6 md:h-6 text-blue-500" />
+                            </div>
+                            <div className="min-w-0">
+                                <h4 className="text-sm font-black uppercase text-white/70 tracking-widest leading-none truncate">Google Calendar</h4>
+                                <p className="text-[10px] text-white/50 font-medium italic mt-2 uppercase tracking-widest truncate">Auto-sync events</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-6 justify-between sm:justify-start">
+                           <span className={cn(
+                               "text-[9px] font-black uppercase tracking-widest italic whitespace-nowrap",
+                               profile?.integrations?.googleCalendar ? "text-emerald-500" : "text-white/20"
+                           )}>
+                               {profile?.integrations?.googleCalendar ? "Active Sync" : "Disconnected"}
+                           </span>
+                           <button 
+                               onClick={async () => {
+                                   if (!GoogleCalendarService.isConfigured()) return;
+                                   setSaveStatus('saving');
+                                   try {
+                                     const isEnabling = !profile?.integrations?.googleCalendar;
+                                     if (isEnabling) await GoogleCalendarService.getAccessToken();
+                                     await updateProfileData({
+                                         integrations: { ...profile?.integrations, googleCalendar: isEnabling }
+                                     });
+                                     setSaveStatus('saved');
+                                   } catch (err) {
+                                     setSaveStatus('error');
+                                   } finally {
+                                     setTimeout(() => setSaveStatus('idle'), 2000);
+                                   }
+                               }}
+                               disabled={!GoogleCalendarService.isConfigured()}
+                               className={cn(
+                                   "w-12 h-6 md:w-14 md:h-7 rounded-full transition-all relative p-1 disabled:opacity-20 shrink-0",
+                                   profile?.integrations?.googleCalendar ? "bg-emerald-500" : "bg-white/10"
+                               )}
+                           >
+                              <div className={cn(
+                                  "w-4 h-4 md:w-5 md:h-5 bg-white rounded-full transition-transform",
+                                  profile?.integrations?.googleCalendar ? "translate-x-6 md:translate-x-7" : "translate-x-0"
+                              )} />
+                           </button>
+                        </div>
                       </div>
-
-                      {passkeyError && (
-                        <div className="p-6 rounded-3xl bg-red-500/5 border border-red-500/10 text-red-400 text-[10px] font-black uppercase tracking-widest text-center">
-                          {passkeyError}
+                      
+                      {!GoogleCalendarService.isConfigured() && (
+                        <div className="p-4 md:p-5 rounded-xl md:rounded-2xl bg-amber-500/5 border border-amber-500/10 flex gap-4 items-start">
+                          <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                          <div className="space-y-1">
+                            <p className="text-[9px] font-black uppercase text-amber-500 tracking-wider italic">Configuration Required</p>
+                            <p className="text-[10px] text-white/60 leading-relaxed italic uppercase tracking-widest">
+                              Feature disabled. Add keys in project secrets.
+                            </p>
+                          </div>
                         </div>
                       )}
-
-                      <div className="space-y-6 pt-10 border-t border-white/5">
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Registered Passkeys</h4>
-                            <span className="text-[10px] font-bold text-white/10 uppercase italic">
-                              {(profile?.passkeys?.length || 0)} Devices
-                            </span>
+                   </div>
+ 
+                   {/* Discord Connection */}
+                   <div className="flex items-center justify-between p-6 md:p-8 bg-white/[0.02] rounded-[1.5rem] md:rounded-[2.5rem] border border-white/10 hover:bg-white/[0.04] transition-all group gap-4">
+                      <div className="flex items-center gap-4 md:gap-6 min-w-0">
+                          <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-[#5865F2]/10 flex items-center justify-center border border-[#5865F2]/20 shrink-0">
+                              <Monitor className="w-5 h-5 md:w-6 md:h-6 text-[#5865F2]" />
                           </div>
-
-                          <div className="space-y-4">
-                            {profile?.passkeys?.map((pk, i) => (
-                              <div key={i} className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 flex items-center justify-between group">
-                                <div className="flex items-center gap-6">
-                                  <div className="w-12 h-12 rounded-2xl bg-white/[0.05] flex items-center justify-center border border-white/5 group-hover:border-purple-500/20 transition-all">
-                                    <ShieldCheck className="w-5 h-5 text-purple-400" />
-                                  </div>
-                                  <div className="space-y-1">
-                                    <p className="text-sm font-black italic uppercase tracking-tighter text-white">{pk.name || "Default Passkey"}</p>
-                                    <p className="text-[9px] text-white/20 font-medium uppercase tracking-widest italic">
-                                      Registered {formatDate(pk.createdAt, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                   <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[8px] font-black uppercase tracking-widest">Active</div>
-                                </div>
-                              </div>
-                            ))}
-                            {(!profile?.passkeys || profile.passkeys.length === 0) && (
-                              <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-[40px] space-y-4">
-                                <Monitor className="w-10 h-10 text-white/5 mx-auto" />
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/10 italic">No passkeys registered on this account.</p>
-                              </div>
-                            )}
+                          <div className="min-w-0">
+                              <h4 className="text-sm font-black uppercase text-white tracking-widest leading-none truncate">Discord</h4>
+                              <p className="text-[10px] text-white/20 font-medium italic mt-2 uppercase tracking-widest truncate">Broadcast presence</p>
                           </div>
                       </div>
-
-                      <div className="p-8 rounded-[32px] bg-purple-500/5 border border-purple-500/10 flex items-start gap-6">
-                        <Info className="w-5 h-5 text-purple-500 shrink-0 mt-1" />
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-purple-400">Security Requirement</p>
-                          <p className="text-[11px] text-white/40 italic font-medium leading-relaxed uppercase tracking-wide">
-                            Passkeys are device-specific. If you access VUX Events from a new computer or phone, you must register a passkey for that device while logged in with your email.
-                          </p>
-                        </div>
+                      <Button variant="outline" size="sm" className="rounded-xl px-4 md:px-6 border-white/10 text-[9px] font-black uppercase tracking-widest italic h-10 md:h-12 group-hover:bg-[#5865F2] group-hover:text-white transition-all shrink-0">
+                         Connect
+                      </Button>
+                   </div>
+ 
+                   {/* Spotify Connection */}
+                   <div className="flex items-center justify-between p-6 md:p-8 bg-white/[0.02] rounded-[1.5rem] md:rounded-[2.5rem] border border-white/10 hover:bg-white/[0.04] transition-all group gap-4">
+                      <div className="flex items-center gap-4 md:gap-6 min-w-0">
+                          <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shrink-0">
+                              <Music className="w-5 h-5 md:w-6 md:h-6 text-emerald-500" />
+                          </div>
+                          <div className="min-w-0">
+                              <h4 className="text-sm font-black uppercase text-white tracking-widest leading-none truncate">Spotify</h4>
+                              <p className="text-[10px] text-white/20 font-medium italic mt-2 uppercase tracking-widest truncate">Sync soundtracks</p>
+                          </div>
                       </div>
-                   </Card>
-               </section>
+                      <Button variant="outline" size="sm" className="rounded-xl px-4 md:px-6 border-white/10 text-[9px] font-black uppercase tracking-widest italic h-10 md:h-12 group-hover:bg-emerald-500 group-hover:text-white transition-all shrink-0">
+                         Connect
+                      </Button>
+                   </div>
+                </div>
+              </Card>
             </motion.div>
           )}
-
-          {activeTab === 'connections' && (
-            <motion.div
-               key="connections"
-               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-               className="max-w-4xl mx-auto space-y-12"
+ 
+          {activeTab === 'account' && (
+            <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               className="space-y-8 md:space-y-10"
             >
-               <Card className="p-16 border-white/5 bg-white/[0.01] rounded-[48px] text-center space-y-10 relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
-                  <div className="w-24 h-24 rounded-[2.5rem] bg-white/[0.03] border border-white/10 flex items-center justify-center mx-auto">
-                     <Box className="w-10 h-10 text-white/10" />
-                  </div>
-                  <div className="space-y-4">
-                      <h3 className="text-4xl font-black italic uppercase tracking-tighter">ACCOUNT CONNECTIONS</h3>
-                      <p className="text-white/40 max-w-sm mx-auto text-sm font-medium italic leading-relaxed">
-                         Connect your account to external calendar services for synchronization.
-                      </p>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto pt-6">
-                     <button className="flex items-center gap-6 p-6 rounded-[32px] bg-white/[0.02] border border-white/10 hover:bg-white/[0.05] transition-all group">
-                        <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shrink-0">
-                           <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" className="w-6 h-6" />
+              <Card className="p-6 md:p-10 border-white/5 bg-white/[0.01] rounded-[2rem] md:rounded-[3rem] space-y-10">
+                <div className="space-y-1">
+                  <h2 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase text-white">System Identity Status</h2>
+                  <p className="text-[9px] md:text-[10px] text-white/60 font-bold uppercase tracking-widest leading-relaxed">Terminal profile & authentication records</p>
+                </div>
+ 
+                <div className="space-y-6">
+                  {/* Google Core Account */}
+                  <div className="p-6 md:p-8 bg-white/[0.02] rounded-[1.5rem] md:rounded-[2.5rem] border border-white/10 space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                      <div className="flex items-center gap-4 md:gap-6 min-w-0">
+                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white flex items-center justify-center shadow-2xl shrink-0">
+                            <svg viewBox="0 0 24 24" className="w-5 h-5 md:w-6 md:h-6">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-1.01.68-2.31 1.09-3.71 1.09-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                <path d="M5.84 14.13c-.22-.66-.35-1.36-.35-2.08s.13-1.42.35-2.08V7.13H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.87l3.66-2.74z" fill="#FBBC05"/>
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 7.13l3.66 2.87c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                            </svg>
                         </div>
-                        <div className="text-left font-black italic tracking-tighter uppercase">Link Google</div>
-                     </button>
-                     <button className="flex items-center gap-6 p-6 rounded-[32px] bg-white/[0.02] border border-white/10 hover:bg-white/[0.05] transition-all group">
-                        <div className="w-12 h-12 rounded-2xl bg-blue-500 flex items-center justify-center shrink-0">
-                           <Calendar className="w-6 h-6 text-white" />
+                        <div className="min-w-0">
+                            <h4 className="text-[10px] font-black uppercase text-white/70 tracking-widest mb-1 italic">Authorized ID</h4>
+                            <p className="text-base md:text-lg font-black italic tracking-tighter text-white uppercase truncate">{user?.email}</p>
                         </div>
-                        <div className="text-left font-black italic tracking-tighter uppercase">Link Outlook</div>
-                     </button>
+                      </div>
+                      <div className="flex items-center gap-3 self-end sm:self-center">
+                          <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="text-[8px] md:text-[9px] font-black uppercase text-emerald-500 tracking-widest italic">Connected</span>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-6 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                       <p className="text-[9px] md:text-[10px] text-white/50 font-bold uppercase tracking-widest">Protocol: OAuth 2.0</p>
+                       <p className="text-[9px] md:text-[10px] text-white/50 font-bold uppercase tracking-widest">Type: Permanent Link</p>
+                    </div>
                   </div>
-               </Card>
+ 
+                  {/* Account Sync Status */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <div className="p-6 md:p-8 bg-white/[0.02] rounded-[1.5rem] md:rounded-[2.5rem] border border-white/10 flex items-center justify-between">
+                       <div className="flex gap-4">
+                          <LinkIcon className="w-5 h-5 text-blue-500/40" />
+                          <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-white italic">Cloud Sync</span>
+                       </div>
+                       <Check className="w-4 h-4 md:w-5 md:h-5 text-emerald-500" />
+                    </div>
+                    <div className="p-6 md:p-8 bg-white/[0.02] rounded-[1.5rem] md:rounded-[2.5rem] border border-white/10 flex items-center justify-between">
+                       <div className="flex gap-4">
+                          <Shield className="w-5 h-5 text-blue-500/40" />
+                          <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-white italic">Edge Encryption</span>
+                       </div>
+                       <Check className="w-4 h-4 md:w-5 md:h-5 text-emerald-500" />
+                    </div>
+                  </div>
+                </div>
+              </Card>
+ 
+              <div className="flex justify-center pt-8">
+                 <button className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-red-500/40 hover:text-red-500 transition-colors italic leading-relaxed text-center px-6">
+                    Request Terminal Reset & Data Deletion
+                 </button>
+              </div>
             </motion.div>
           )}
-
-          {activeTab === 'payment' && (
-             <motion.div
-               key="payment"
-               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-               className="py-40 text-center space-y-10"
-             >
-                <div className="relative inline-block">
-                    <div className="w-24 h-24 rounded-[2.5rem] bg-white/[0.02] border border-white/10 flex items-center justify-center mx-auto text-white/5 animate-pulse">
-                        <CreditCard className="w-12 h-12" />
-                    </div>
-                </div>
-                <div className="space-y-4">
-                   <h3 className="text-5xl font-black italic uppercase tracking-tighter">BILLING & PAYMENTS</h3>
-                   <p className="text-white/20 max-w-sm mx-auto text-sm font-medium italic leading-relaxed uppercase tracking-widest">
-                      Payment features for community access and premium events are currently being implemented.
-                   </p>
-                </div>
-                <div className="flex items-center justify-center gap-3 p-4 rounded-2xl bg-white/[0.02] border border-white/5 max-w-xs mx-auto">
-                    <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                    <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest italic">Encrypted Secure Payment</span>
-                </div>
-             </motion.div>
-          )}
-        </AnimatePresence>
+        </div>
+ 
+        <footer className="pt-20 border-t border-white/5 text-center space-y-6">
+            <p className="text-[9px] md:text-[10px] text-white/10 font-black uppercase tracking-[0.4em] leading-loose italic">
+                © 2026 VUX • System Configuration Sub-Module • v4.0.1
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-8">
+               <Link to="/security" className="text-[8px] font-black uppercase tracking-widest text-white/50 hover:text-white transition-colors">Security Documentation</Link>
+               <span className="hidden sm:inline-block text-[8px] font-black uppercase text-white/5 italic select-none">Unauthorized Access Will Be Traced</span>
+            </div>
+        </footer>
       </div>
     </div>
   );

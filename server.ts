@@ -126,118 +126,27 @@ export async function createServer() {
       
       const transporter = nodemailer.createTransport(transportConfig);
 
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
       console.log(`[OTP][${rid}] Attempting sendMail...`);
-      const logoUrl = req ? `https://${req.get('host')}/logo.svg` : 'https://vuxevents.zone.id/logo.svg';
+      const logoUrl = req ? `${protocol}://${req.get('host')}/logo.svg` : 'https://vuxevents.zone.id/logo.svg';
       const info = await transporter.sendMail({
         from: process.env.SMTP_FROM || `"VUX Events" <${user}>`,
         to: email,
-        subject: `${code} is your VUX Events verification code`,
+        subject: `${code} is your VUX verification code`,
         html: `
           <!DOCTYPE html>
           <html>
-          <head>
-            <style>
-              .container {
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-                max-width: 500px;
-                margin: 0 auto;
-                background-color: #0b0b0f;
-                border-radius: 32px;
-                padding: 48px;
-                color: #ffffff;
-                text-align: center;
-                border: 1px solid rgba(255,255,255,0.08);
-              }
-              .logo-container {
-                margin-bottom: 32px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 12px;
-              }
-              .logo-image {
-                width: 72px;
-                height: 72px;
-                border-radius: 18px;
-                box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-                object-fit: cover;
-              }
-              .logo-text {
-                font-weight: 900;
-                font-style: italic;
-                text-transform: uppercase;
-                letter-spacing: -0.05em;
-                font-size: 24px;
-                color: #ffffff;
-                margin-top: 8px;
-              }
-              .title {
-                font-size: 28px;
-                font-weight: 800;
-                margin: 0 0 16px 0;
-                letter-spacing: -0.02em;
-                color: #ffffff;
-              }
-              .description {
-                color: rgba(255,255,255,0.6);
-                line-height: 1.6;
-                font-size: 15px;
-                margin-bottom: 32px;
-              }
-              .code-container {
-                margin: 32px 0;
-              }
-              .code-box {
-                display: inline-block;
-                background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(168, 85, 247, 0.05));
-                padding: 24px 40px;
-                border-radius: 24px;
-                font-size: 48px;
-                font-weight: 800;
-                letter-spacing: 14px;
-                color: #a855f7;
-                border: 1px solid rgba(168, 85, 247, 0.3);
-                text-shadow: 0 0 25px rgba(168, 85, 247, 0.4);
-              }
-              .copy-helper {
-                font-size: 12px;
-                color: rgba(168, 85, 247, 0.6);
-                margin-top: 12px;
-                font-weight: 500;
-              }
-              .footer {
-                color: rgba(255,255,255,0.3);
-                font-size: 12px;
-                margin-top: 48px;
-                border-top: 1px solid rgba(255,255,255,0.05);
-                padding-top: 24px;
-                line-height: 1.5;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="logo-container">
-                <img src="${logoUrl}" class="logo-image" alt="VUX Logo" />
-                <div class="logo-text">VUX Events</div>
+          <body style="background-color: #0b0b0f; padding: 40px; font-family: 'Inter', sans-serif;">
+            <div style="max-width: 500px; margin: 0 auto; background-color: #0d0d12; border-radius: 40px; padding: 48px; color: #ffffff; text-align: center; border: 1px solid rgba(255,255,255,0.05); shadow: 0 40px 100px rgba(0,0,0,0.5);">
+              <img src="${logoUrl}" style="width: 64px; border-radius: 18px; margin-bottom: 32px;" />
+              <h1 style="font-size: 24px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em;">VERIFICATION CODE</h1>
+              <p style="color: rgba(255,255,255,0.4); font-size: 14px; margin-bottom: 40px; font-weight: 500;">Enter this code on the website to sign in.</p>
+              
+              <div style="background: rgba(168, 85, 247, 0.05); padding: 32px; border-radius: 24px; font-size: 48px; font-weight: 800; letter-spacing: 0.2em; color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.2); margin-bottom: 32px;">
+                ${code}
               </div>
               
-              <h1 class="title">Verify your identity</h1>
-              <p class="description">Copy the 6-digit code below and paste it into the VUX Events app to complete your sign-in.</p>
-              
-              <div class="code-container">
-                <div class="code-box">${code}</div>
-                <div class="copy-helper">↑ Copy this code ↑</div>
-              </div>
-              
-              <p style="color: rgba(255,255,255,0.4); font-size: 14px;">This code is valid for 10 minutes.</p>
-              
-              <div class="footer">
-                This verification code was requested for <strong>${email}</strong>.<br/>
-                If you did not request this, please ignore this email.<br/>
-                <br/>
-                &copy; ${new Date().getFullYear()} VUX Events. All rights reserved.
-              </div>
+              <p style="font-size: 11px; color: rgba(255,255,255,0.2); text-transform: uppercase; letter-spacing: 0.3em; font-weight: 900; margin-top: 40px;">THE PREMIER EVENT PLATFORM</p>
             </div>
           </body>
           </html>
@@ -296,19 +205,20 @@ export async function createServer() {
         auth: { user: userSmtp, pass },
       });
 
-      const logoUrl = req ? `https://${req.get('host')}/logo.svg` : 'https://vuxevents.zone.id/logo.svg';
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+      const logoUrl = req ? `${protocol}://${req.get('host')}/logo.svg` : 'https://vuxevents.zone.id/logo.svg';
       const htmlContent = `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0f; color: white; padding: 40px; border-radius: 24px;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <img src="${logoUrl}" width="80" height="80" style="border-radius: 20px;" />
-            <h1 style="font-style: italic; text-transform: uppercase;">VUX Events</h1>
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0f; color: white; padding: 48px; border-radius: 48px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+          <img src="${logoUrl}" width="72" height="72" style="border-radius: 20px; margin-bottom: 32px;" />
+          <h1 style="font-size: 32px; font-weight: 900; letter-spacing: -0.04em; font-style: italic; text-transform: uppercase; margin-bottom: 16px;">WELCOME TO VUX</h1>
+          <p style="color: rgba(255,255,255,0.5); font-size: 16px; line-height: 1.6; margin-bottom: 40px;">
+            Hi ${displayName || 'Explorer'}, welcome to the platform. You've successfully joined the world's most advanced event infrastructure.
+          </p>
+          <div style="background: rgba(255,255,255,0.03); padding: 32px; border-radius: 32px; border: 1px dashed rgba(255,255,255,0.1); margin-bottom: 40px;">
+             <p style="font-size: 11px; font-weight: 900; color: #a855f7; letter-spacing: 0.3em; margin: 0 0 8px 0; text-transform: uppercase;">ACCOUNT VERIFIED</p>
+             <p style="font-size: 14px; font-weight: 500; color: white; margin: 0;">Connected as ${email}</p>
           </div>
-          <h2>Welcome aboard! ${randomWelcome}</h2>
-          <p>Hi ${displayName || 'Explorer'}, we're thrilled to have you in the VUX ecosystem.</p>
-          <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; margin: 20px 0;">
-            <p>Explore the network, connect with creators, and secure your spot at the most exclusive gatherings.</p>
-          </div>
-          <p style="color: #a855f7;">See you at the next pulse.</p>
+          <p style="font-size: 10px; color: rgba(255,255,255,0.2); font-weight: 900; text-transform: uppercase; letter-spacing: 0.4em;">VUX: EVENTS DONE RIGHT.</p>
         </div>
       `;
 
@@ -327,9 +237,53 @@ export async function createServer() {
     }
   });
 
+  const generateICS = (event: { title: string, description: string, date: string, time: string, location: string }) => {
+    try {
+      const dateParts = (event.date || '').split('-');
+      if (dateParts.length < 3) return null;
+      
+      const [year, month, day] = dateParts.map(Number);
+      const timeToSplit = (event.time || '12:00').includes(':') ? event.time : '12:00';
+      const [hour, min] = timeToSplit.split(':').map(Number);
+      
+      const start = new Date(year, month - 1, day, hour, min);
+      const end = new Date(start.getTime() + 2 * 60 * 60 * 1000); 
+      
+      const formatDate = (date: Date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+      return [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          'PROID:-//VUX Network//Event//EN',
+          'CALSCALE:GREGORIAN',
+          'METHOD:PUBLISH',
+          'BEGIN:VEVENT',
+          `DTSTAMP:${formatDate(new Date())}`,
+          `DTSTART:${formatDate(start)}`,
+          `DTEND:${formatDate(end)}`,
+          `SUMMARY:${event.title}`,
+          `DESCRIPTION:${(event.description || '').replace(/\n/g, '\\n')}`,
+          `LOCATION:${event.location || 'TBA'}`,
+          `UID:${Math.random().toString(36).substring(2)}@vux.network`,
+          'STATUS:CONFIRMED',
+          'SEQUENCE:0',
+          'BEGIN:VALARM',
+          'TRIGGER:-PT24H',
+          'ACTION:DISPLAY',
+          'DESCRIPTION:Reminder',
+          'END:VALARM',
+          'END:VEVENT',
+          'END:VCALENDAR'
+      ].join('\r\n');
+    } catch (e) {
+      console.error('ICS Generation failed:', e);
+      return null;
+    }
+  };
+
   apiRouter.post('/email/rsvp-confirmation', async (req, res) => {
     try {
-      const { email, displayName, eventTitle, eventDate, eventLocation, rsvpId } = req.body || {};
+      const { email, displayName, eventTitle, eventDescription, eventDate, eventLocation, rawDate, rawTime, rsvpId, eventId } = req.body || {};
       if (!email || !eventTitle) return res.status(400).json({ error: 'Missing required fields' });
 
       console.log(`[SMTP] Sending ticket email to: ${email} for ${eventTitle}`);
@@ -352,49 +306,133 @@ export async function createServer() {
         auth: { user: userSmtp, pass },
       });
 
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${rsvpId}&color=a855f7&bgcolor=0b0b0f`;
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+      const host = req.get('host');
+      const baseUrl = `${protocol}://${host}`;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${rsvpId}&color=a855f7&bgcolor=08080c`;
+      const logoUrl = `${baseUrl}/logo.svg`;
+      
+      const icsContent = generateICS({
+        title: eventTitle,
+        description: eventDescription || '',
+        date: rawDate,
+        time: rawTime,
+        location: eventLocation
+      });
+
       const htmlContent = `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0f; color: white; padding: 40px; border-radius: 48px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
-          <div style="margin-bottom: 30px;">
-              <p style="font-[10px] font-bold uppercase tracking-[0.3em] text-purple-400">RSVP CONFIRMED ${randomTicket}</p>
-              <h1 style="font-style: italic; text-transform: uppercase; font-size: 32px; margin: 10px 0;">${eventTitle}</h1>
-          </div>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap');
+          </style>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #050508; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+          <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #050508; padding: 40px 20px;">
+            <tr>
+              <td align="center">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #08080c; border-radius: 48px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; box-shadow: 0 50px 100px rgba(0,0,0,0.8);">
+                  
+                  <!-- Header/Brand -->
+                  <tr>
+                    <td style="padding: 48px 48px 24px 48px;">
+                      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                          <td>
+                            <img src="${logoUrl}" width="48" height="48" style="border-radius: 14px; margin-bottom: 24px;" />
+                            <p style="margin: 0; font-size: 10px; font-weight: 900; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.5em; margin-bottom: 8px;">CONFIRMATION SECURED</p>
+                            <h1 style="margin: 0; font-size: 28px; font-weight: 900; color: #ffffff; letter-spacing: -0.04em; line-height: 1.1;">You're going to<br/><span style="color: #a855f7; font-style: italic;">${eventTitle}</span></h1>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
 
-          <div style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1); border-radius: 32px; padding: 30px; margin-bottom: 30px;">
-              <img src="${qrUrl}" width="150" height="150" style="margin-bottom: 20px; border-radius: 12px; border: 4px solid rgba(168, 85, 247, 0.2);" />
-              <p style="font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 5px;">TICKET ID</p>
-              <code style="font-size: 14px; color: #a855f7;">${rsvpId}</code>
-          </div>
+                  <!-- Ticket / QR Section -->
+                  <tr>
+                    <td style="padding: 0 48px;">
+                      <div style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(0,0,0,0) 100%); border-radius: 32px; border: 1px solid rgba(168, 85, 247, 0.1); padding: 40px; text-align: center; position: relative; overflow: hidden;">
+                        <img src="${qrUrl}" width="180" height="180" style="border-radius: 16px; margin-bottom: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); border: 1px solid rgba(168, 85, 247, 0.2);" />
+                        <p style="margin: 0; font-size: 9px; font-weight: 900; color: rgba(255,255,255,0.2); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 8px;">DIGITAL ACCESS PROTOCOL</p>
+                        <div style="display: inline-block; background: rgba(0,0,0,0.3); padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                          <code style="font-family: monospace; font-size: 16px; font-weight: 800; color: #a855f7;">VUX-${rsvpId.substring(0, 8).toUpperCase()}</code>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
 
-          <div style="text-align: left; padding: 0 20px;">
-              <p style="font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 20px;">Hi ${displayName || 'Guest'}, you're all set! Present this ticket at the entrance.</p>
-              
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-                  <div>
-                      <p style="font-size: 10px; color: rgba(255,255,255,0.3); font-weight: bold; text-transform: uppercase;">DATE</p>
-                      <p style="font-size: 14px; color: white;">${eventDate}</p>
-                  </div>
-                  <div>
-                      <p style="font-size: 10px; color: rgba(255,255,255,0.3); font-weight: bold; text-transform: uppercase;">LOCATION</p>
-                      <p style="font-size: 14px; color: white;">${eventLocation}</p>
-                  </div>
-              </div>
-          </div>
+                  <!-- Info Section -->
+                  <tr>
+                    <td style="padding: 40px 48px;">
+                      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                          <td style="padding-bottom: 32px;">
+                            <p style="margin: 0; font-size: 10px; font-weight: 900; color: rgba(255,255,255,0.2); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 12px;">TIME & DATE</p>
+                            <p style="margin: 0; font-size: 18px; font-weight: 700; color: #ffffff;">${eventDate}</p>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding-bottom: 40px;">
+                            <p style="margin: 0; font-size: 10px; font-weight: 900; color: rgba(255,255,255,0.2); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 12px;">LOCATION</p>
+                            <p style="margin: 0; font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 4px;">${eventLocation} <span style="color: #a855f7;">↗</span></p>
+                            <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.4);">Verified Venue Infrastructure</p>
+                          </td>
+                        </tr>
+                        
+                        <!-- CTA Section -->
+                        <tr>
+                          <td style="padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05);">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                              <tr>
+                                <td>
+                                  <a href="${baseUrl}/events/${eventId}" style="display: inline-block; background-color: rgba(168, 85, 247, 0.1); color: #a855f7; text-decoration: none; padding: 12px 24px; border-radius: 12px; font-size: 12px; font-weight: 800; margin-right: 12px; text-transform: uppercase; letter-spacing: 0.1em;">Event Page</a>
+                                  <a href="${baseUrl}/profile" style="display: inline-block; background-color: rgba(255, 255, 255, 0.05); color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 12px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">My Ticket</a>
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
 
-          <p style="font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
-              Operated by VUX Network. Digital Ticket #VUX-${Math.floor(Math.random()*100000)}
-          </p>
-        </div>
+                  <!-- Footer -->
+                  <tr>
+                    <td style="padding: 32px 48px; background-color: rgba(255,255,255,0.02); text-align: center;">
+                      <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.2); font-weight: 600; line-height: 1.6;">
+                        You're using VUX NETWORK. The world's fastest event check-in system.<br/>
+                        &copy; ${new Date().getFullYear()} VUX.ZONE — All Rights Reserved.
+                      </p>
+                    </td>
+                  </tr>
+
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
       `;
+
+      const attachments = [];
+      if (icsContent) {
+        attachments.push({
+            filename: 'invite.ics',
+            content: icsContent,
+            contentType: 'text/calendar; method=PUBLISH'
+        });
+      }
 
       await transporter.sendMail({
         from: process.env.SMTP_FROM || `"VUX Events" <${userSmtp}>`,
         to: email,
-        subject: `${randomTicket} Your Ticket: ${eventTitle}`,
-        html: htmlContent
+        subject: `${randomTicket} Registration Confirmed: ${eventTitle}`,
+        html: htmlContent,
+        attachments
       });
 
-      console.log('[SMTP] Ticket email sent successfully');
+      console.log('[SMTP] Ticket email sent successfully with ICS');
       res.json({ success: true });
     } catch (error: any) {
       console.error('[SMTP] Ticket Email Error:', error);
@@ -745,6 +783,78 @@ export async function createServer() {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+  apiRouter.post('/admin/reminders/trigger', async (req, res) => {
+    try {
+      console.log('[Automation] Starting manual reminder scan...');
+      const now = new Date();
+      const twentyFourHoursFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      const twentyFiveHoursFromNow = new Date(now.getTime() + 25 * 60 * 60 * 1000);
+
+      // Find events starting in the next 24-25 hours
+      const eventsSnap = await admin.firestore().collection('events')
+        .where('status', '==', 'published')
+        .get();
+
+      const eventsToRemind = eventsSnap.docs.filter(doc => {
+        const data = doc.data();
+        const eventDate = new Date(`${data.date}T${data.time || '00:00'}`);
+        return eventDate >= twentyFourHoursFromNow && eventDate <= twentyFiveHoursFromNow;
+      });
+
+      console.log(`[Automation] Found ${eventsToRemind.length} events for reminders.`);
+
+      const userSmtp = process.env.SMTP_USER || 'vuxevents@gmail.com';
+      const pass = process.env.SMTP_PASS;
+
+      if (!pass) return res.status(503).json({ error: 'SMTP not configured' });
+
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_PORT === '465',
+        auth: { user: userSmtp, pass },
+      });
+
+      let sentCount = 0;
+      for (const eventDoc of eventsToRemind) {
+        const event = eventDoc.data();
+        const rsvpsSnap = await eventDoc.ref.collection('rsvps').where('status', '==', 'approved').get();
+        
+        console.log(`[Automation] Sending reminders for "${event.title}" to ${rsvpsSnap.size} guests.`);
+
+        for (const rsvpDoc of rsvpsSnap.docs) {
+          const rsvp = rsvpDoc.data();
+          try {
+            await transporter.sendMail({
+              from: process.env.SMTP_FROM || `"VUX Reminders" <${userSmtp}>`,
+              to: rsvp.userEmail,
+              subject: `⏰ 24 Hours To Go: ${event.title}`,
+              html: `
+                <div style="font-family: sans-serif; background: #0b0b0f; color: white; padding: 40px; border-radius: 24px; text-align: center; border: 1px solid rgba(255,255,255,0.05);">
+                  <h1 style="color: #a855f7; font-style: italic; font-weight: 900;">REMINDER 💡</h1>
+                  <p style="font-size: 20px; font-weight: 700;">${event.title} starts in 24 hours!</p>
+                  <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 16px; margin: 20px 0;">
+                    <p style="margin: 0; font-size: 14px;">📍 ${event.location}</p>
+                    <p style="margin: 5px 0 0; font-size: 14px;">🕒 ${event.date} at ${event.time}</p>
+                  </div>
+                  <p style="font-size: 12px; color: rgba(255,255,255,0.4);">We look forward to seeing you there!</p>
+                </div>
+              `
+            });
+            sentCount++;
+          } catch (e) {
+            console.error(`[Automation] Failed to send reminder to ${rsvp.userEmail}`, e);
+          }
+        }
+      }
+
+      res.json({ success: true, eventsProcessed: eventsToRemind.length, remindersSent: sentCount });
+    } catch (error: any) {
+      console.error('[Automation] Trigger Error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
 
   // API 404 handler for any unmatched routes inside the apiRouter
   apiRouter.use((req, res) => {

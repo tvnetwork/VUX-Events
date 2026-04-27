@@ -82,7 +82,7 @@ export function Help() {
         {/* Navigation & Header */}
         <div className="space-y-12">
           <Link to="/">
-            <Button variant="ghost" className="gap-2 text-white/40 hover:text-white -ml-4 rounded-2xl">
+            <Button variant="ghost" className="gap-2 text-white/70 hover:text-white -ml-4 rounded-2xl">
               <ChevronLeft className="w-4 h-4" /> Back to App
             </Button>
           </Link>
@@ -95,7 +95,7 @@ export function Help() {
               </div>
               <div className="space-y-4">
                 <h1 className="text-7xl md:text-9xl font-black tracking-tighter text-white uppercase italic leading-[0.8]">HELP<br/>CENTER</h1>
-                <p className="text-white/40 text-sm font-bold uppercase tracking-[0.3em] italic">Omni-Channel Protocol Assistance</p>
+                <p className="text-white/70 text-sm font-bold uppercase tracking-[0.3em] italic">Omni-Channel Protocol Assistance</p>
               </div>
             </div>
 
@@ -126,7 +126,7 @@ export function Help() {
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-2xl font-black italic uppercase tracking-tighter transition-colors group-hover:text-indigo-400">{item.title}</h3>
-                  <p className="text-[10px] text-white/20 font-black uppercase tracking-widest leading-relaxed italic">{item.desc}</p>
+                  <p className="text-[10px] text-white/50 font-black uppercase tracking-widest leading-relaxed italic">{item.desc}</p>
                 </div>
               </div>
             </Card>
@@ -165,7 +165,7 @@ export function Help() {
                     </div>
                     <div className={cn(
                       "w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center transition-all duration-500",
-                      expandedIndex === i ? "rotate-180 bg-indigo-600 text-white shadow-xl shadow-indigo-500/40" : "text-white/20"
+                      expandedIndex === i ? "rotate-180 bg-indigo-600 text-white shadow-xl shadow-indigo-500/40" : "text-white/50"
                     )}>
                       <ChevronDown className="w-6 h-6" />
                     </div>
@@ -178,7 +178,7 @@ export function Help() {
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
                       >
-                        <div className="px-10 pb-10 text-white/40 leading-relaxed font-bold italic text-lg border-t border-white/[0.03] pt-8 bg-black/20">
+                        <div className="px-10 pb-10 text-white/80 leading-relaxed font-bold italic text-lg border-t border-white/[0.03] pt-8 bg-black/20">
                           {faq.answer}
                         </div>
                       </motion.div>
@@ -189,7 +189,7 @@ export function Help() {
             ) : (
               <div className="py-32 text-center space-y-6 bg-white/[0.01] rounded-[48px] border border-dashed border-white/[0.05]">
                 <Search className="w-12 h-12 text-white/5 mx-auto" />
-                <p className="text-[10px] italic font-black uppercase tracking-[0.4em] text-white/10">No protocol match for query: "{searchQuery}"</p>
+                <p className="text-[10px] italic font-black uppercase tracking-[0.4em] text-white/30">No protocol match for query: "{searchQuery}"</p>
               </div>
             )}
           </div>
@@ -203,7 +203,7 @@ export function Help() {
                 <MessageCircle className="w-12 h-12 text-indigo-400" />
              </div>
              <h2 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter leading-tight">Need Direct<br/>Access?</h2>
-             <p className="text-white/20 max-w-lg mx-auto text-sm font-black italic leading-relaxed uppercase tracking-[0.2em]">
+             <p className="text-white/50 max-w-lg mx-auto text-sm font-black italic leading-relaxed uppercase tracking-[0.2em]">
                 Our support agents are on standby 24/7. Access the high-priority communication channel below.
              </p>
           </div>
@@ -220,12 +220,12 @@ export function Help() {
         </section>
 
         <footer className="pt-24 border-t border-white/5 text-center flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
-            <p className="text-[10px] text-white/10 font-bold uppercase tracking-[0.3em] font-mono">
+            <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.3em] font-mono">
                 [PROTOCOL 2.0] VUX Events Matrix • © 2026 • Encrypted Documentation
             </p>
             <div className="flex items-center gap-12">
-              <Link to="/terms" className="text-[10px] font-black text-white/20 hover:text-indigo-400 uppercase tracking-widest transition-all">Terms of Access</Link>
-              <Link to="/privacy" className="text-[10px] font-black text-white/20 hover:text-indigo-400 uppercase tracking-widest transition-all">Privacy Shield</Link>
+              <Link to="/terms" className="text-[10px] font-black text-white/50 hover:text-indigo-400 uppercase tracking-widest transition-all">Terms of Access</Link>
+              <Link to="/privacy" className="text-[10px] font-black text-white/50 hover:text-indigo-400 uppercase tracking-widest transition-all">Privacy Shield</Link>
             </div>
         </footer>
       </div>

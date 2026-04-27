@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import { cn } from '../lib/utils';
+import { SiteConfigService } from '../services/SiteConfigService';
 
 const logoUrl = '/logo.svg';
 const fallbackLogo = '/logo.svg';
@@ -10,6 +12,14 @@ interface LogoProps {
 }
 
 export function Logo({ className, showText = true, size = 'md' }: LogoProps) {
+  const [siteTitle, setSiteTitle] = useState('VUX Events');
+
+  useEffect(() => {
+    SiteConfigService.getConfig().then(config => {
+      setSiteTitle(config.title);
+    });
+  }, []);
+
   const sizeClasses = {
     sm: 'w-8 h-8',
     md: 'w-10 h-10',
@@ -41,7 +51,7 @@ export function Logo({ className, showText = true, size = 'md' }: LogoProps) {
           "font-black tracking-tighter italic uppercase text-white",
           size === 'lg' ? 'text-4xl' : size === 'md' ? 'text-xl' : 'text-lg'
         )}>
-          VUX Events
+          {siteTitle}
         </span>
       )}
     </div>

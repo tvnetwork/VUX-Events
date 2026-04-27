@@ -43,6 +43,16 @@ export interface UserProfile {
   };
   socialLinks?: SocialLinks;
   onboardingCompleted?: boolean;
+  integrations?: {
+    googleCalendar?: boolean;
+    discord?: boolean;
+    spotify?: boolean;
+  };
+  security?: {
+    twoFactorEnabled: boolean;
+    twoFactorSecret?: string;
+    backupCodes?: string[];
+  };
   connections?: {
     googleCalendar?: {
       connected: boolean;
@@ -58,24 +68,79 @@ export interface TicketType {
   capacity?: number;
 }
 
+export interface Sponsor {
+  name: string;
+  logoUrl?: string;
+  tier: 'Diamond' | 'Gold' | 'Silver' | 'Community';
+  websiteUrl?: string;
+}
+
+export interface Speaker {
+  id: string;
+  name: string;
+  role: string;
+  bio?: string;
+  photoUrl?: string;
+  twitter?: string;
+  linkedin?: string;
+}
+
+export interface Poll {
+  id: string;
+  question: string;
+  options: { id: string; text: string; votes: number }[];
+  isActive: boolean;
+  resultsVisible: boolean;
+}
+
+export interface Contestant {
+  id: string;
+  name: string;
+  role?: string;
+  photoUrl?: string;
+  votes: number;
+  bio?: string;
+}
+
+export interface Collection {
+  id: string;
+  name: string;
+  description: string;
+  creatorId: string;
+  eventIds: string[];
+  coverImageUrl?: string;
+  createdAt: string;
+}
+
 export interface Event {
   id: string;
   hostId: string;
+  coHostIds?: string[];
   hostName?: string;
   title: string;
   description: string;
   date: string;
   time: string;
   location: string;
+  coordinates?: { lat: number; lng: number };
   category: string;
   visibility: 'public' | 'private';
+  password?: string;
   coverImageUrl: string;
   status: 'draft' | 'published' | 'completed' | 'cancelled';
   isApprovalRequired: boolean;
-  registrationFields?: { label: string; type: 'text' | 'email' | 'longtext'; required: boolean }[];
+  isPrivate?: boolean;
+  hideParticipants?: boolean;
+  registrationFields?: { label: string; type: 'text' | 'email' | 'longtext' | 'select' | 'multichoice' | 'checkbox' | 'phone'; required: boolean; options?: string[] }[];
   capacity?: number;
   ticketTypes?: TicketType[];
   tags?: string[];
+  socialLinks?: SocialLinks;
+  sponsors?: Sponsor[];
+  speakers?: Speaker[];
+  polls?: Poll[];
+  contestants?: Contestant[];
+  collectionId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -87,10 +152,11 @@ export interface RSVP {
   userEmail: string;
   userDisplayName: string;
   userPhotoURL?: string;
-  status: 'pending' | 'approved' | 'declined';
+  status: 'pending' | 'approved' | 'declined' | 'waitlist';
   customFields?: Record<string, string>;
   checkedIn?: boolean;
   ticketType?: string;
+  shareProfile?: boolean;
   createdAt: string;
 }
 

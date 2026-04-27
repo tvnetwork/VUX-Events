@@ -91,9 +91,9 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                 <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shadow-2xl shadow-indigo-500/10">
                   <Sparkles className="w-7 h-7 text-indigo-400" />
                 </div>
-                <div>
-                   <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">PROTOCOL INITIATION</h2>
-                   <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.4em]">Node Assignment: v2.0.4</p>
+                 <div>
+                   <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">GETTING STARTED</h2>
+                   <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.4em]">Step {step} of {totalSteps}</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -120,8 +120,8 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                   className="space-y-10"
                 >
                   <div className="space-y-4">
-                     <h3 className="text-5xl md:text-6xl font-black italic tracking-tighter uppercase leading-[0.8]">BIO-SYNC<br/><span className="text-indigo-400">ACTIVE</span></h3>
-                     <p className="text-white/30 text-sm font-bold uppercase tracking-widest italic">Define your digital signature within the matrix.</p>
+                     <h3 className="text-5xl md:text-6xl font-black italic tracking-tighter uppercase leading-[0.8]">PROFILE<br/><span className="text-indigo-400">SETUP</span></h3>
+                     <p className="text-white/30 text-sm font-bold uppercase tracking-widest italic">Set up your public identity on VUX.</p>
                   </div>
                   
                   <div className="space-y-8">
@@ -155,11 +155,11 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                         </div>
                         <div className="flex-1 w-full space-y-4">
                              <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/60 px-1 font-mono">Display Pseudonym</label>
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/60 px-1">Display Name</label>
                                 <Input 
                                    value={formData.displayName}
                                    onChange={(e) => setFormData({...formData, displayName: e.target.value})}
-                                   placeholder="Neo_Archetype"
+                                   placeholder="Your Name"
                                    className="bg-white/[0.02] border-white/5 focus:border-indigo-500/40 h-16 rounded-2xl italic font-bold text-lg px-6"
                                 />
                              </div>
@@ -167,16 +167,16 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/60 px-1 font-mono">Comm-Link Protocol</label>
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/60 px-1">Phone Number</label>
                             <Input 
                                 value={formData.phoneNumber}
                                 onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
-                                placeholder="+1 (SYNC) 000-0000"
+                                placeholder="+1 (000) 000-0000"
                                 className="bg-white/[0.02] border-white/5 h-16 rounded-2xl px-6 italic font-bold"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/60 px-1 font-mono">Activation Cycle (DOB)</label>
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/60 px-1">Date of Birth</label>
                             <Input 
                                 type="date"
                                 value={formData.dob}
@@ -186,11 +186,11 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                         </div>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/60 px-1 font-mono">Neural Log (Bio)</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/60 px-1">Bio</label>
                         <textarea 
                             value={formData.bio}
                             onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                            placeholder="Decrypting user history..."
+                            placeholder="Tell us about yourself..."
                             className="w-full h-32 rounded-[2rem] border border-white/5 bg-white/[0.02] p-6 text-lg font-bold italic resize-none focus:outline-none focus:border-indigo-500/40 transition-all"
                         />
                     </div>
@@ -208,14 +208,14 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                   className="space-y-10"
                 >
                   <div className="space-y-4">
-                     <h3 className="text-5xl md:text-6xl font-black italic tracking-tighter uppercase leading-[0.8]">SIGNAL<br/><span className="text-indigo-400">LAYERS</span></h3>
-                     <p className="text-white/30 text-sm font-bold uppercase tracking-widest italic">Configure your receipt of matrix pulses.</p>
+                     <h3 className="text-5xl md:text-6xl font-black italic tracking-tighter uppercase leading-[0.8]">NOTIFY<br/><span className="text-indigo-400">SETTINGS</span></h3>
+                     <p className="text-white/30 text-sm font-bold uppercase tracking-widest italic">Choose how you want to stay updated.</p>
                   </div>
 
                   <div className="space-y-6">
                      {[
-                       { icon: <Bell className="w-6 h-6 text-indigo-400" />, title: 'Pulse Alerts', desc: 'Real-time node notifications.', key: 'pushNotifications' },
-                       { icon: <Mail className="w-6 h-6 text-indigo-400" />, title: 'In-Box Sync', desc: 'Detailed log summaries via SMTP.', key: 'emailNotifications' },
+                       { icon: <Bell className="w-6 h-6 text-indigo-400" />, title: 'Push Alerts', desc: 'Real-time phone notifications.', key: 'pushNotifications' },
+                       { icon: <Mail className="w-6 h-6 text-indigo-400" />, title: 'Email Sync', desc: 'Updates directly to your inbox.', key: 'emailNotifications' },
                      ].map((pref) => (
                         <div key={pref.key} className="flex items-center justify-between p-8 rounded-[2.5rem] bg-white/[0.01] border border-white/5 group hover:bg-white/[0.03] transition-all">
                             <div className="flex gap-6">
@@ -251,21 +251,21 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                   className="space-y-10"
                 >
                   <div className="space-y-4">
-                     <h3 className="text-5xl md:text-6xl font-black italic tracking-tighter uppercase leading-[0.8]">TRUST<br/><span className="text-indigo-400">MATRIX</span></h3>
-                     <p className="text-white/30 text-sm font-bold uppercase tracking-widest italic">Maintain sovereignty over your digital node.</p>
+                     <h3 className="text-5xl md:text-6xl font-black italic tracking-tighter uppercase leading-[0.8]">PRIVACY<br/><span className="text-indigo-400">CONTROL</span></h3>
+                     <p className="text-white/30 text-sm font-bold uppercase tracking-widest italic">Choose who can see your profile.</p>
                   </div>
 
                   <div className="p-12 md:p-16 rounded-[4rem] bg-white/[0.01] border border-white/5 space-y-10 text-center relative overflow-hidden group">
                     <div className="absolute inset-0 bg-indigo-600/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
                     <Shield className="w-24 h-24 text-indigo-500/20 mx-auto mb-4 animate-pulse relative z-10" />
                     <div className="space-y-4 relative z-10">
-                        <h4 className="text-3xl font-black italic uppercase tracking-tighter">Global Visibility</h4>
+                        <h4 className="text-3xl font-black italic uppercase tracking-tighter">Public Profile</h4>
                         <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.3em] leading-relaxed max-w-sm mx-auto">
-                            By enabling this, your identity will be indexed within the global explorer directory.
+                            When enabled, other members can see your profile and events you are attending.
                         </p>
                     </div>
                     <div className="flex items-center justify-center gap-8 pt-4 relative z-10">
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/10 font-mono">STEALTH MODE</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/10">PRIVATE</span>
                         <Switch 
                             checked={formData.preferences.publicProfile}
                             onCheckedChange={(val) => setFormData({
@@ -274,7 +274,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                             })}
                             className="data-[state=checked]:bg-indigo-600 scale-150 shadow-2xl shadow-indigo-500/20"
                         />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 font-mono">PUBLIC SYNC</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">PUBLIC</span>
                     </div>
                   </div>
                 </motion.div>
@@ -288,7 +288,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                     disabled={step === 1 || loading}
                     className="text-[10px] uppercase tracking-[0.4em] font-black text-white/20 hover:text-white"
                 >
-                    PREVIOUS
+                    BACK
                 </Button>
                 <Button 
                     variant="vux"
@@ -297,7 +297,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                     className="h-20 px-14 rounded-3xl gap-4 shadow-2xl shadow-indigo-500/30 text-lg"
                 >
                     <span className="font-black uppercase tracking-widest">
-                        {step === totalSteps ? 'COMPLETE SYNC' : 'NEXT PROTOCOL'}
+                        {step === totalSteps ? 'COMPLETE SETUP' : 'CONTINUE'}
                     </span>
                     {step === totalSteps ? <Check className="w-6 h-6" /> : <ArrowRight className="w-6 h-6" />}
                 </Button>

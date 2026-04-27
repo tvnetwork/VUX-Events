@@ -6,6 +6,7 @@ import { Hero } from '../components/Hero';
 import { Footer } from '../components/Footer';
 import { LandingNavbar } from '../components/LandingNavbar';
 import { AuthModal } from '../components/AuthModal';
+import { AnnouncementBanner } from '../components/AnnouncementBanner';
 import { WatermarkBackground } from '../components/WatermarkBackground';
 
 export function Landing() {
@@ -21,7 +22,8 @@ export function Landing() {
         <meta property="og:type" content="website" />
       </Helmet>
       <WatermarkBackground />
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <AnnouncementBanner />
         <LandingNavbar onAuthClick={() => setIsAuthOpen(true)} />
         
         <main>

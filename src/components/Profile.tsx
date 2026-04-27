@@ -11,6 +11,7 @@ import { db } from '../lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { getAvatarUrl } from '../lib/utils';
 import { StorageService } from '../services/StorageService';
+import { ImageUpload } from './ImageUpload';
 
 export function Profile({ onClose }: { onClose: () => void }) {
   const { profile, user, updateProfileData } = useAuth();
@@ -45,46 +46,29 @@ export function Profile({ onClose }: { onClose: () => void }) {
         initial={{ scale: 0.95, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.95, opacity: 0, y: 20 }}
-        className="glass w-full max-w-lg rounded-[3rem] overflow-y-auto max-h-[90vh] custom-scrollbar relative border-white/20 my-auto"
+        className="glass w-full max-w-lg rounded-[3rem] overflow-y-auto max-h-[90vh] custom-scrollbar relative border-white/20 my-auto shadow-2xl"
       >
         <button 
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/10 transition-colors z-10"
+          className="absolute top-8 right-8 p-3 rounded-full hover:bg-white/10 transition-colors z-10"
         >
           <X className="w-5 h-5 text-slate-400" />
         </button>
 
-        <div className="p-12 space-y-8">
-          <div className="text-center space-y-4">
-            <div className="relative inline-block">
-              <img 
-                src={formData.photoURL || getAvatarUrl(profile?.uid)} 
-                className="w-24 h-24 rounded-full border-4 border-white/10 mx-auto object-cover" 
+        <div className="p-12 space-y-10">
+          <div className="text-center space-y-6">
+            <div className="flex justify-center">
+              <ImageUpload
+                aspect={1 / 1}
+                defaultValue={formData.photoURL || getAvatarUrl(profile?.uid)}
+                onUpload={(url) => setFormData(prev => ({ ...prev, photoURL: url }))}
+                className="w-40"
               />
-              <label className="absolute bottom-0 right-0 p-2 bg-white rounded-full text-slate-900 border-4 border-slate-950 cursor-pointer hover:scale-110 transition-transform">
-                <Camera className="w-4 h-4" />
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file && user) {
-                      try {
-                        setLoading(true);
-                        const url = await StorageService.uploadProfileImage(file, user.uid);
-                        setFormData(prev => ({ ...prev, photoURL: url }));
-                      } catch (err) {
-                        console.error('Upload failed:', err);
-                      } finally {
-                        setLoading(false);
-                      }
-                    }
-                  }}
-                />
-              </label>
             </div>
-            <h2 className="text-2xl font-bold">Edit Profile</h2>
+            <div className="space-y-1">
+              <h2 className="text-3xl font-black italic uppercase tracking-tighter">Edit Profile</h2>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Update your public profile</p>
+            </div>
           </div>
 
           <div className="space-y-6">

@@ -8,52 +8,68 @@ service cloud.firestore {
 
     // Phase 3: Primitive Definition
     function isSignedIn() { return request.auth != null; }
-    function isVerified() { return isSignedIn(); } // Relaxed for now
-    function isOwner(userId) { 
-      return isSignedIn() && (request.auth.uid == userId || request.auth.token.email == userId); 
-    }
-
-    match /test/connection {
-      allow read: if true;
+    function isAdmin() {
+      return isSignedIn() && 
+             (request.auth.token.email != null && 
+              request.auth.token.email.lower() == 'oladoyeheritage445@gmail.com'.lower());
     }
 
     function isValidId(id) { return id is string && id.size() <= 128; }
     function incoming() { return request.resource.data; }
     function existing() { return resource.data; }
 
-    // Validation Helpers
-    function isValidUser(data) {
-      return data.uid != null;
-    }
-    function isValidEvent(data) {
-      return data.hostId != null;
-    }
-    function isValidRSVP(data, eventId) {
-      return data.userId != null;
-    }
-
-    // Phase 4: Match Blocks
-    match /users/{userId} {
+    // global settings
+    match /settings/{settingId} {
       allow read: if true;
-      allow write: if isOwner(userId) && isValidUser(incoming());
+      allow write: if isAdmin();
     }
 
-    // Support for collection group queries
-    match /{path=**}/rsvps/{rsvpId} {
-      allow list: if isSignedIn();
+    // system activity
+    match /system_pulses/{pulseId} {
+      allow list, get: if isAdmin();
+      allow create: if true; 
+      allow update, delete: if isAdmin();
+    }
+
+    // marketing/broadcast templates
+    match /email_templates/{templateId} {
+      allow list, get: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /collections/{collectionId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (existing().creatorId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
     }
 
     match /events/{eventId} {
       allow read: if true;
-      allow create: if isSignedIn() && incoming().hostId == request.auth.uid;
-      allow update: if isSignedIn() && (existing().hostId == request.auth.uid);
-      allow delete: if isSignedIn() && (existing().hostId == request.auth.uid);
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (existing().hostId == request.auth.uid || 
+                     (existing().coHostIds != null && request.auth.token.email in existing().coHostIds) ||
+                     isAdmin());
+      allow delete: if isSignedIn() && (existing().hostId == request.auth.uid || isAdmin());
 
       match /rsvps/{rsvpId} {
         allow read: if true;
-        allow create: if true; // Allow guest RSVPs
-        allow update, delete: if isSignedIn() && (request.auth.uid == rsvpId || request.auth.token.email == resource.data.userEmail);
+        allow create: if true; 
+        allow update, delete: if isSignedIn() && (request.auth.uid == rsvpId || isAdmin());
       }
+    }
+    
+    // Support for collection group queries
+    match /{path=**}/rsvps/{rsvpId} {
+      allow list: if isSignedIn();
     }
   }
 }

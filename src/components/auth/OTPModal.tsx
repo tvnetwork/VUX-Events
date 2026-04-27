@@ -130,7 +130,7 @@ export function OTPModal({ email, onBack, onVerify, onResend }: OTPModalProps) {
             disabled={code.length !== 6 || loading}
             className="w-full h-15 text-lg font-black rounded-2xl shadow-2xl shadow-indigo-500/10"
           >
-            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Verify Account'}
+            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'CONTINUE'}
           </Button>
 
           <div className="flex items-center justify-between px-2">

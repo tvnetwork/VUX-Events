@@ -21,11 +21,13 @@ import {
 export function WatermarkBackground() {
   const words = [
     "VUX Events",
-    "Entry",
-    "Cool Shot Systems",
-    "Tech Visionaries Network",
-    "Professor",
-    "Events"
+    "Discovery",
+    "Community",
+    "Pulse",
+    "Moments",
+    "Tickets",
+    "Social",
+    "Live"
   ];
 
   const icons = [

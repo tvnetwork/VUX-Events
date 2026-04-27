@@ -17,14 +17,14 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', children, ...props }, ref) => {
     const variants = {
       primary: 'bg-white text-black hover:bg-white/90',
-      secondary: 'bg-white/10 text-white hover:bg-white/20',
+      secondary: 'bg-white/10 text-white hover:bg-white/20 hover:shadow-lg hover:shadow-white/5',
       ghost: 'bg-transparent text-white hover:bg-white/5',
-      glass: 'glass hover:bg-white/10 text-white',
-      google: 'bg-white text-gray-800 hover:bg-gray-50 border border-whiteShadow shadow-lg shadow-black/5',
-      passkey: 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 text-white hover:bg-amber-500/20 shadow-lg shadow-amber-900/5',
-      email: 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-xl shadow-indigo-500/10',
-      vux: 'bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white hover:shadow-lg hover:shadow-purple-500/25',
-      outline: 'border border-white/10 bg-transparent text-white hover:bg-white/5',
+      glass: 'glass hover:bg-white/10 text-white hover:shadow-xl hover:shadow-black/20',
+      google: 'bg-white text-gray-800 hover:bg-gray-50 border border-whiteShadow shadow-lg shadow-black/5 hover:shadow-xl',
+      passkey: 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 text-white hover:bg-amber-500/20 shadow-lg shadow-amber-900/5 hover:shadow-amber-500/10',
+      email: 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-xl shadow-indigo-500/10 hover:shadow-indigo-500/20',
+      vux: 'bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white hover:shadow-[0_20px_50px_-10px_rgba(168,85,247,0.4)]',
+      outline: 'border border-white/10 bg-transparent text-white hover:bg-white/5 hover:shadow-lg hover:shadow-white/5',
     };
 
     const sizes = {

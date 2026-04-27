@@ -5,7 +5,8 @@
     "publickey-credentials-get",
     "publickey-credentials-create",
     "clipboard-read",
-    "webauthn"
+    "webauthn",
+    "geolocation"
   ],
   "majorCapabilities": []
 }

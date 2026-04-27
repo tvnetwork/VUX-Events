@@ -22,7 +22,7 @@ export function EmailStep({ email, setEmail, onSubmit, loading }: EmailStepProps
         <div className="relative group">
           <Input 
             type="email"
-            placeholder="Identity String (Email)"
+            placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -32,7 +32,7 @@ export function EmailStep({ email, setEmail, onSubmit, loading }: EmailStepProps
         </div>
         
         <Button 
-          type="submit"
+          type="submit" 
           variant="vux"
           disabled={loading || !email}
           className="w-full h-16 text-sm font-black rounded-2xl group shadow-xl shadow-indigo-500/10"
@@ -41,7 +41,7 @@ export function EmailStep({ email, setEmail, onSubmit, loading }: EmailStepProps
             <Loader2 className="w-6 h-6 animate-spin mx-auto" />
           ) : (
             <div className="flex items-center justify-center gap-3">
-              <span>INITIALIZE SYNC</span>
+              <span>CONTINUE</span>
               <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-2" />
             </div>
           )}

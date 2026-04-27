@@ -8,18 +8,22 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   User, 
   Camera, 
-  Mail, 
-  Music, 
   Globe, 
   QrCode, 
   ShieldCheck, 
   ArrowRight, 
   Check, 
-  MessageSquare, 
   Monitor, 
   Share2,
   Phone,
-  Link as LinkIcon
+  Twitter,
+  Instagram,
+  Linkedin,
+  Facebook,
+  Youtube,
+  Music,
+  Calendar,
+  Zap
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -112,11 +116,11 @@ export function Profile() {
         <div className="space-y-4">
           <div className="flex items-center gap-3 text-indigo-500">
              <div className="w-10 h-px bg-indigo-500" />
-             <span className="text-[10px] font-black uppercase tracking-[0.4em]">Protocol Identity</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.4em]">Profile Identity</span>
           </div>
-          <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter uppercase leading-[0.8] text-white">PROFILE<br/>STATION</h1>
+          <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter uppercase leading-[0.8] text-white">PROFILE<br/>SETTINGS</h1>
           <div className="flex items-center gap-4 h-6 uppercase font-black italic">
-            <span className="text-white/20 text-[10px] tracking-widest">Digital Avatar Management</span>
+            <span className="text-white/60 text-[10px] tracking-widest">Account Management</span>
             <AnimatePresence mode="wait">
               {saveStatus === 'saving' && (
                 <motion.div
@@ -125,7 +129,7 @@ export function Profile() {
                   className="flex items-center gap-1.5 text-[8px] tracking-[0.2em] text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full"
                 >
                   <div className="w-1 h-1 rounded-full bg-indigo-400 animate-pulse" />
-                  UPLOADING BIOMETRICS
+                  SECURELY SAVING
                 </motion.div>
               )}
               {saveStatus === 'saved' && (
@@ -135,7 +139,7 @@ export function Profile() {
                   className="flex items-center gap-1.5 text-[8px] tracking-[0.2em] text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full"
                 >
                   <Check className="w-2.5 h-2.5" />
-                  IDENTITY SYNCED
+                  PROFILE UPDATED
                 </motion.div>
               )}
             </AnimatePresence>
@@ -151,7 +155,7 @@ export function Profile() {
               <div className="w-10 h-10 rounded-2xl bg-white/[0.02] border border-white/10 flex items-center justify-center">
                   <User className="w-5 h-5 text-white/40" />
               </div>
-              <h2 className="text-xl font-black italic tracking-tighter uppercase">Identity Core</h2>
+              <h2 className="text-xl font-black italic tracking-tighter uppercase">Personal Details</h2>
             </div>
             
             <Card className="p-10 space-y-10 border-white/5 bg-white/[0.01] rounded-[40px] shadow-2xl relative overflow-hidden">
@@ -188,16 +192,16 @@ export function Profile() {
                    </label>
                 </div>
                 <div className="space-y-3 text-center md:text-left">
-                  <h3 className="text-3xl font-black italic uppercase tracking-tighter">Avatar Node</h3>
-                  <p className="text-white/20 text-xs font-medium italic max-w-xs uppercase tracking-[0.2em] leading-relaxed">
-                    This cryptographic representation is broadcasted across the network during event interactions.
+                  <h3 className="text-3xl font-black italic uppercase tracking-tighter">Profile Photo</h3>
+                  <p className="text-white/60 text-xs font-medium italic max-w-xs uppercase tracking-[0.2em] leading-relaxed">
+                    This photo will be visible to other community members and event organizers.
                   </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
                 <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 px-2 flex items-center gap-2">
+                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 px-2 flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
                     Display Name
                   </label>
@@ -208,9 +212,9 @@ export function Profile() {
                   />
                 </div>
                 <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 px-2">Network ID</label>
+                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 px-2">Account ID</label>
                   <div className="relative">
-                      <span className="absolute left-6 top-1/2 -translate-y-1/2 text-white/10 italic text-xl font-black">#</span>
+                      <span className="absolute left-6 top-1/2 -translate-y-1/2 text-white/40 italic text-xl font-black">#</span>
                       <Input 
                           disabled
                           defaultValue={(profile?.uid || '').slice(0, 12).toUpperCase()}
@@ -222,16 +226,16 @@ export function Profile() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
                 <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 px-2">Secure Line</label>
+                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 px-2">Phone Number</label>
                   <Input 
                       value={formData.phoneNumber} 
                       onChange={e => setFormData({...formData, phoneNumber: e.target.value})}
-                      placeholder="+1 (555) VUX-ZONE"
+                      placeholder="+1 (555) 000-0000"
                       className="bg-white/5 border-white/5 h-16 rounded-2xl font-bold italic text-lg px-6 focus:border-indigo-500/40"
                   />
                 </div>
                 <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 px-2">Origin Date</label>
+                  <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 px-2">Date of Birth</label>
                   <Input 
                       type="date"
                       value={formData.dob} 
@@ -242,12 +246,12 @@ export function Profile() {
               </div>
 
               <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 px-2">System Manifest (Bio)</label>
+                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 px-2">Bio / Description</label>
                 <textarea 
-                  className="w-full min-h-[200px] rounded-[32px] bg-white/5 border border-white/5 p-8 text-sm focus:outline-none focus:border-indigo-500/40 transition-all resize-none font-medium italic placeholder:text-white/10"
+                  className="w-full min-h-[200px] rounded-[32px] bg-white/5 border border-white/5 p-8 text-sm focus:outline-none focus:border-indigo-500/40 transition-all resize-none font-medium italic placeholder:text-white/30"
                   value={formData.bio}
                   onChange={e => setFormData({...formData, bio: e.target.value})}
-                  placeholder="Define your existence in the VUX ecosystem..."
+                  placeholder="Tell us about yourself..."
                 />
               </div>
             </Card>
@@ -258,10 +262,10 @@ export function Profile() {
            {/* QR Identification */}
            <section className="space-y-8">
               <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-2xl bg-white/[0.02] border border-white/10 flex items-center justify-center">
-                      <QrCode className="w-5 h-5 text-white/40" />
+                  <div className="w-10 h-10 rounded-2xl bg-white/[0.05] border border-white/10 flex items-center justify-center">
+                      <QrCode className="w-5 h-5 text-white/70" />
                   </div>
-                  <h2 className="text-xl font-black italic tracking-tighter uppercase">Access Node</h2>
+                  <h2 className="text-xl font-black italic tracking-tighter uppercase">Profile QR</h2>
               </div>
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-[3rem] blur-xl opacity-20 group-hover:opacity-40 transition-opacity" />
@@ -283,12 +287,12 @@ export function Profile() {
               </div>
               <div className="space-y-2">
                   <h4 className="text-xl font-black italic uppercase tracking-tighter">
-                      {profile?.isVerified ? "VERIFIED NODE" : "AUTHENTICATE"}
+                      {profile?.isVerified ? "VERIFIED ACCOUNT" : "GET VERIFIED"}
                   </h4>
-                  <p className="text-[10px] text-white/40 font-bold italic leading-relaxed uppercase tracking-widest">
+                  <p className="text-[10px] text-white/70 font-bold italic leading-relaxed uppercase tracking-widest">
                       {profile?.isVerified 
-                          ? "Protocol clearance confirmed. You are a trusted entity on the global VUX substrate." 
-                          : "Level 1 Access. Complete identity verification to unlock premium administrative permissions."}
+                          ? "Account verification confirmed. Your identity is trusted across the VUX platform." 
+                          : "Enhance your account. Verify your identity to unlock exclusive perks, early access to events, and premium rewards."}
                   </p>
               </div>
               {!profile?.isVerified && (
@@ -299,38 +303,40 @@ export function Profile() {
               )}
            </Card>
 
-            {/* Social Signal Matrix */}
+            {/* Social Accounts */}
             <section className="space-y-8">
               <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-2xl bg-white/[0.02] border border-white/10 flex items-center justify-center">
-                      <Share2 className="w-5 h-5 text-white/40" />
+                  <div className="w-10 h-10 rounded-2xl bg-white/[0.05] border border-white/10 flex items-center justify-center">
+                      <Share2 className="w-5 h-5 text-white/70" />
                   </div>
-                  <h2 className="text-xl font-black italic tracking-tighter uppercase">Social Signals</h2>
+                  <h2 className="text-xl font-black italic tracking-tighter uppercase">Social Accounts</h2>
               </div>
               <Card className="p-8 space-y-6 border-white/5 bg-white/[0.01] rounded-[40px]">
                   {[
-                      { key: 'twitter', icon: <MessageSquare className="w-4 h-4" />, label: 'X (Twitter)' },
-                      { key: 'instagram', icon: <Camera className="w-4 h-4" />, label: 'Instagram' },
-                      { key: 'linkedin', icon: <Share2 className="w-4 h-4" />, label: 'LinkedIn' },
+                      { key: 'twitter', icon: <Twitter className="w-4 h-4" />, label: 'X (Twitter)' },
+                      { key: 'instagram', icon: <Instagram className="w-4 h-4" />, label: 'Instagram' },
+                      { key: 'linkedin', icon: <Linkedin className="w-4 h-4" />, label: 'LinkedIn' },
+                      { key: 'facebook', icon: <Facebook className="w-4 h-4" />, label: 'Facebook' },
+                      { key: 'youtube', icon: <Youtube className="w-4 h-4" />, label: 'YouTube' },
+                      { key: 'tiktok', icon: <Music className="w-4 h-4" />, label: 'TikTok' },
                       { key: 'discord', icon: <Monitor className="w-4 h-4" />, label: 'Discord' },
-                      { key: 'youtube', icon: <Globe className="w-4 h-4" />, label: 'YouTube' },
                   ].map((soc) => (
                       <div key={soc.key} className="space-y-3">
-                          <label className="text-[9px] font-black uppercase tracking-widest text-white/20 flex items-center gap-2">
-                            {soc.icon} {soc.label}
-                          </label>
-                          <Input 
-                            className="bg-white/5 border-white/5 h-12 rounded-xl text-xs px-5 focus:border-indigo-500/40 italic font-bold" 
-                            placeholder="@handle"
-                            value={(formData.socialLinks as any)[soc.key]}
-                            onChange={(e) => setFormData({
-                              ...formData,
-                              socialLinks: {
-                                ...formData.socialLinks,
-                                [soc.key]: e.target.value
-                              }
-                            })}
-                          />
+                           <label className="text-[9px] font-black uppercase tracking-widest text-white/60 flex items-center gap-2">
+                             {soc.icon} {soc.label}
+                           </label>
+                           <Input 
+                             className="bg-white/5 border-white/5 h-12 rounded-xl text-xs px-5 focus:border-indigo-500/40 italic font-bold" 
+                             placeholder="@handle"
+                             value={(formData.socialLinks as any)[soc.key]}
+                             onChange={(e) => setFormData({
+                               ...formData,
+                               socialLinks: {
+                                 ...formData.socialLinks,
+                                 [soc.key]: e.target.value
+                               }
+                             })}
+                           />
                       </div>
                   ))}
               </Card>

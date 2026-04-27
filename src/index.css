@@ -34,11 +34,11 @@
 }
 
 @utility text-muted {
-  @apply text-white/40;
+  @apply text-white/85;
 }
 
 @utility text-body {
-  @apply text-white/70;
+  @apply text-white;
 }
 
 @utility scrollbar-hide {

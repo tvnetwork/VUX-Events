@@ -8,42 +8,69 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider, useAuth } from './AuthContext';
 import { ScrollToTop } from './components/ScrollToTop';
-import { Landing } from './pages/Landing';
-import { RootLayout } from './layouts/RootLayout';
-import { Terms } from './pages/Terms';
-import { Privacy } from './pages/Privacy';
-import { Security } from './pages/Security';
-import { DMCA } from './pages/DMCA';
-import { Help } from './pages/Help';
-import { Discover } from './pages/Discover';
-import { LandingNavbar } from './components/LandingNavbar';
-import { Footer } from './components/Footer';
-import { AuthModal } from './components/AuthModal';
 import { PageShell } from './components/PageShell';
 import { Loader2 } from 'lucide-react';
-import { AnimatePresence } from 'motion/react';
-import { EventDetails } from './components/EventDetails';
-import { Event } from './types';
+import { AnimatePresence, motion } from 'motion/react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from './lib/firebase';
+import { Event } from './types';
 
-import { AdminDashboard } from './pages/AdminDashboard';
-import NotFound from './pages/NotFound';
-import ComingSoon from './pages/ComingSoon';
+// Lazy load pages for performance
+const Landing = lazy(() => import('./pages/Landing').then(m => ({ default: m.Landing })));
+const RootLayout = lazy(() => import('./layouts/RootLayout').then(m => ({ default: m.RootLayout })));
+const Terms = lazy(() => import('./pages/Terms').then(m => ({ default: m.Terms })));
+const Privacy = lazy(() => import('./pages/Privacy').then(m => ({ default: m.Privacy })));
+const Security = lazy(() => import('./pages/Security').then(m => ({ default: m.Security })));
+const DMCA = lazy(() => import('./pages/DMCA').then(m => ({ default: m.DMCA })));
+const Help = lazy(() => import('./pages/Help').then(m => ({ default: m.Help })));
+const Discover = lazy(() => import('./pages/Discover').then(m => ({ default: m.Discover })));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const ComingSoon = lazy(() => import('./pages/ComingSoon'));
+const EventDetails = lazy(() => import('./components/EventDetails').then(m => ({ default: m.EventDetails })));
+const MFAModal = lazy(() => import('./components/auth/MFAModal').then(m => ({ default: m.MFAModal })));
+
+function RouteTransition({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="h-screen w-full flex items-center justify-center bg-[#0b0b0f]">
+      <div className="space-y-6 flex flex-col items-center">
+        <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 animate-pulse">Loading platform</p>
+      </div>
+    </div>
+  );
+}
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user, profile, loading, mfaVerified } = useAuth();
 
   if (loading) {
+    return <LoadingFallback />;
+  }
+
+  // MFA Gateway
+  if (user && profile?.security?.twoFactorEnabled && !mfaVerified) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-[#0b0b0f]">
-        <Loader2 className="w-8 h-8 animate-spin text-white/10" />
-      </div>
+      <Suspense fallback={<LoadingFallback />}>
+        <MFAModal />
+      </Suspense>
     );
   }
 
@@ -57,18 +84,18 @@ function AppContent() {
 
   return (
     <Routes>
-      <Route path="/" element={user ? <RootLayout /> : <Landing />} />
+      <Route path="/" element={<RouteTransition>{user ? <RootLayout /> : <Landing />}</RouteTransition>} />
       <Route path="/discover" element={<DiscoverWrapper />} />
-      <Route path="/help" element={<PageShell><Help /></PageShell>} />
-      <Route path="/terms" element={<PageShell><Terms /></PageShell>} />
-      <Route path="/privacy" element={<PageShell><Privacy /></PageShell>} />
-      <Route path="/security" element={<PageShell><Security /></PageShell>} />
-      <Route path="/dmca" element={<PageShell><DMCA /></PageShell>} />
-      <Route path="/admin" element={user ? <RootLayout initialTab="admin" /> : <Navigate to="/" replace />} />
-      <Route path="/pricing" element={<ComingSoon />} />
-      <Route path="/synchronization" element={<ComingSoon />} />
-      <Route path="/upgrade" element={<ComingSoon />} />
-      <Route path="*" element={<NotFound />} />
+      <Route path="/help" element={<RouteTransition><PageShell><Help /></PageShell></RouteTransition>} />
+      <Route path="/terms" element={<RouteTransition><PageShell><Terms /></PageShell></RouteTransition>} />
+      <Route path="/privacy" element={<RouteTransition><PageShell><Privacy /></PageShell></RouteTransition>} />
+      <Route path="/security" element={<RouteTransition><PageShell><Security /></PageShell></RouteTransition>} />
+      <Route path="/dmca" element={<RouteTransition><PageShell><DMCA /></PageShell></RouteTransition>} />
+      <Route path="/admin" element={user ? <RouteTransition><RootLayout initialTab="admin" /></RouteTransition> : <Navigate to="/" replace />} />
+      <Route path="/pricing" element={<RouteTransition><ComingSoon /></RouteTransition>} />
+      <Route path="/synchronization" element={<RouteTransition><ComingSoon /></RouteTransition>} />
+      <Route path="/upgrade" element={<RouteTransition><ComingSoon /></RouteTransition>} />
+      <Route path="*" element={<RouteTransition><NotFound /></RouteTransition>} />
     </Routes>
   );
 }
@@ -120,7 +147,9 @@ export default function App() {
       <BrowserRouter>
         <ScrollToTop />
         <AuthProvider>
-          <AppContent />
+          <Suspense fallback={<LoadingFallback />}>
+            <AppContent />
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
     </HelmetProvider>

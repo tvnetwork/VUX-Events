@@ -1,11 +1,12 @@
 import { useAuth } from '../AuthContext';
 import { Navbar } from './Navbar';
 import { LandingNavbar } from './LandingNavbar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthModal } from './AuthModal';
 import { Footer } from './Footer';
 import { useNavigate } from 'react-router-dom';
 import { WatermarkBackground } from './WatermarkBackground';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface PageShellProps {
   children: React.ReactNode;
@@ -15,6 +16,12 @@ export function PageShell({ children }: PageShellProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [showScanner, setShowScanner] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowScanner(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleTabChange = (tab: string) => {
     if (tab === 'discover') {
@@ -27,6 +34,7 @@ export function PageShell({ children }: PageShellProps) {
   return (
     <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-[#0b0b0f] via-[#1a1023] to-[#0b0b0f]">
       <WatermarkBackground />
+
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar 
           activeTab="" 

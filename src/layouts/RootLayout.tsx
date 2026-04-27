@@ -3,32 +3,46 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Navbar } from '../components/Navbar';
-import { Dashboard } from '../pages/Dashboard';
 import { WatermarkBackground } from '../components/WatermarkBackground';
-import { Discover } from '../pages/Discover';
-import { Calendars } from '../pages/Calendars';
-import { Settings } from '../pages/Settings';
-import { Profile } from '../pages/Profile';
 import { CommandPalette } from '../components/CommandPalette';
-import { CreateEvent } from '../components/CreateEvent';
-import { EventDetails } from '../components/EventDetails';
-import { ManageAttendees } from '../components/ManageAttendees';
-import { OnboardingWizard } from '../components/OnboardingWizard';
-import { AdminDashboard } from '../pages/AdminDashboard';
-import { AnimatePresence } from 'motion/react';
+import { AnnouncementBanner } from '../components/AnnouncementBanner';
+import { AnimatePresence, motion } from 'motion/react';
 import { Event } from '../types';
 import { useAuth } from '../AuthContext';
 import { useSearchParams } from 'react-router-dom';
 import { Footer } from '../components/Footer';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { Loader2 } from 'lucide-react';
 
-export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 'calendars' | 'discover' | 'settings' | 'profile' | 'admin' }) {
+// Lazy load tabs
+const Dashboard = lazy(() => import('../pages/Dashboard').then(m => ({ default: m.Dashboard })));
+const Discover = lazy(() => import('../pages/Discover').then(m => ({ default: m.Discover })));
+const Settings = lazy(() => import('../pages/Settings').then(m => ({ default: m.Settings })));
+const Profile = lazy(() => import('../pages/Profile').then(m => ({ default: m.Profile })));
+const AdminDashboard = lazy(() => import('../pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+
+// Lazy load modals
+const CreateEvent = lazy(() => import('../components/CreateEvent').then(m => ({ default: m.CreateEvent })));
+const EventDetails = lazy(() => import('../components/EventDetails').then(m => ({ default: m.EventDetails })));
+const ManageAttendees = lazy(() => import('../components/ManageAttendees').then(m => ({ default: m.ManageAttendees })));
+const OnboardingWizard = lazy(() => import('../components/OnboardingWizard').then(m => ({ default: m.OnboardingWizard })));
+
+function TabLoading() {
+  return (
+    <div className="w-full py-32 flex flex-col items-center justify-center space-y-6">
+       <Loader2 className="w-8 h-8 animate-spin text-indigo-500/20" />
+       <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/5">Loading content</p>
+    </div>
+  );
+}
+
+export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 'discover' | 'settings' | 'profile' | 'admin' }) {
   const { profile: userProfile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<'events' | 'calendars' | 'discover' | 'settings' | 'profile' | 'admin'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'events' | 'discover' | 'settings' | 'profile' | 'admin'>(initialTab);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -67,28 +81,40 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
   }, [userProfile]);
 
   const renderContent = () => {
-    switch (activeTab) {
-      case 'events':
-        return <Dashboard onEventClick={setSelectedEvent} onCreateClick={() => setIsCreateModalOpen(true)} onEditEvent={setEditingEvent} />;
-      case 'discover':
-        return <Discover onCreateClick={() => setIsCreateModalOpen(true)} onEventClick={setSelectedEvent} />;
-      case 'calendars':
-        return <Calendars onEditEvent={setEditingEvent} onTabChange={setActiveTab} />;
-      case 'settings':
-        return <Settings />;
-      case 'profile':
-        return <Profile />;
-      case 'admin':
-        return <AdminDashboard />;
-      default:
-        return <Dashboard onEventClick={setSelectedEvent} onCreateClick={() => setIsCreateModalOpen(true)} onEditEvent={setEditingEvent} />;
-    }
+    return (
+      <Suspense fallback={<TabLoading />}>
+        <motion.div
+           key={activeTab}
+           initial={{ opacity: 0, x: 10 }}
+           animate={{ opacity: 1, x: 0 }}
+           transition={{ duration: 0.2 }}
+        >
+          {(() => {
+            switch (activeTab) {
+              case 'events':
+                return <Dashboard onEventClick={setSelectedEvent} onCreateClick={() => setIsCreateModalOpen(true)} onEditEvent={setEditingEvent} />;
+              case 'discover':
+                return <Discover onCreateClick={() => setIsCreateModalOpen(true)} onEventClick={setSelectedEvent} />;
+              case 'settings':
+                return <Settings />;
+              case 'profile':
+                return <Profile />;
+              case 'admin':
+                return <AdminDashboard />;
+              default:
+                return <Dashboard onEventClick={setSelectedEvent} onCreateClick={() => setIsCreateModalOpen(true)} onEditEvent={setEditingEvent} />;
+            }
+          })()}
+        </motion.div>
+      </Suspense>
+    );
   };
 
   return (
     <div className="min-h-screen flex flex-col relative bg-[#0b0b0f]">
       <WatermarkBackground />
       <div className="relative z-10 flex flex-col min-h-screen">
+        <AnnouncementBanner />
         <Navbar 
           activeTab={activeTab} 
           onTabChange={setActiveTab} 
@@ -112,33 +138,41 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
 
       <AnimatePresence>
         {(isCreateModalOpen || editingEvent) && (
-          <CreateEvent 
-            eventToEdit={editingEvent} 
-            onClose={() => {
-              setIsCreateModalOpen(false);
-              setEditingEvent(null);
-            }} 
-          />
+          <Suspense fallback={null}>
+            <CreateEvent 
+              eventToEdit={editingEvent} 
+              onClose={() => {
+                setIsCreateModalOpen(false);
+                setEditingEvent(null);
+              }} 
+            />
+          </Suspense>
         )}
         
         {selectedEvent && (
-          <EventDetails 
-            event={selectedEvent} 
-            onClose={() => setSelectedEvent(null)} 
-            onManage={setManagingEvent}
-            onEdit={setEditingEvent}
-          />
+          <Suspense fallback={null}>
+            <EventDetails 
+              event={selectedEvent} 
+              onClose={() => setSelectedEvent(null)} 
+              onManage={setManagingEvent}
+              onEdit={setEditingEvent}
+            />
+          </Suspense>
         )}
 
         {managingEvent && (
-          <ManageAttendees 
-            event={managingEvent} 
-            onClose={() => setManagingEvent(null)} 
-          />
+          <Suspense fallback={null}>
+            <ManageAttendees 
+              event={managingEvent} 
+              onClose={() => setManagingEvent(null)} 
+            />
+          </Suspense>
         )}
 
         {showOnboarding && (
-          <OnboardingWizard onComplete={() => setShowOnboarding(false)} />
+          <Suspense fallback={null}>
+            <OnboardingWizard onComplete={() => setShowOnboarding(false)} />
+          </Suspense>
         )}
       </AnimatePresence>
     </div>

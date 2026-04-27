@@ -92,6 +92,21 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "eventId", "userId", "status", "createdAt"]
+    },
+    "Collection": {
+      "title": "Collection",
+      "description": "A collection of events (e.g., a series or tour)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "creatorId": { "type": "string" },
+        "eventIds": { "type": "array", "items": { "type": "string" } },
+        "coverImageUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "creatorId", "createdAt"]
     }
   },
   "firestore": {
@@ -106,6 +121,10 @@
     "/events/{eventId}/rsvps/{rsvpId}": {
       "schema": "RSVP",
       "description": "RSVPs for a specific event"
+    },
+    "/collections/{collectionId}": {
+      "schema": "Collection",
+      "description": "Event collections"
     }
   }
 }

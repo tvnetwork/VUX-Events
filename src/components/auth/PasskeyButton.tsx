@@ -28,7 +28,7 @@ export function PasskeyButton({ onClick, loading }: PasskeyButtonProps) {
           <div className="absolute inset-0 blur-[4px] bg-amber-400/40 group-hover:bg-amber-400/60" />
         </div>
       )}
-      <span className="font-black uppercase tracking-widest relative z-10 text-sm">AUTHENTICATE WITH PASSKEY</span>
+      <span className="font-black uppercase tracking-widest relative z-10 text-sm">SIGN IN WITH PASSKEY</span>
     </Button>
   );
 }

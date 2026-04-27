@@ -1,11 +1,20 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight, Sparkles, Calendar, Users, Globe, ShieldCheck } from 'lucide-react';
 import { Button } from './ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { Logo } from './Logo';
+import { SiteConfigService } from '../services/SiteConfigService';
 
 export function Hero({ onStartClick }: { onStartClick: () => void }) {
   const navigate = useNavigate();
+  const [tagline, setTagline] = useState('Modern events for modern communities.');
+
+  useEffect(() => {
+    SiteConfigService.getConfig().then(config => {
+      setTagline(config.tagline);
+    });
+  }, []);
 
   return (
     <section className="relative min-h-screen flex items-center pt-24 pb-32 overflow-hidden">
@@ -39,8 +48,8 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
               <span className="text-white">Events </span>
               <span className="text-indigo-500 inline-block">Made Easy.</span>
             </h1>
-            <p className="text-xl md:text-2xl text-white/60 leading-relaxed font-bold italic uppercase tracking-wider max-w-lg border-l-4 border-indigo-500/40 pl-8">
-              The modern toolkit for organizers to create, promote, and manage high-impact community events and ticketing.
+            <p className="text-xl md:text-2xl text-white/80 leading-relaxed font-bold italic uppercase tracking-wider max-w-lg border-l-4 border-indigo-500/40 pl-8">
+              {tagline}
             </p>
           </motion.div>
 
@@ -61,7 +70,7 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
             <Button 
               variant="ghost" 
               onClick={() => navigate('/discover')}
-              className="text-white/40 hover:text-white font-black uppercase tracking-[0.3em] italic text-sm group h-16 px-8 rounded-2xl border border-transparent hover:border-white/5"
+              className="text-white/70 hover:text-white font-black uppercase tracking-[0.3em] italic text-sm group h-16 px-8 rounded-2xl border border-transparent hover:border-white/5"
             >
                 Explore Events
             </Button>
@@ -73,7 +82,7 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
             transition={{ duration: 1, delay: 0.8 }}
             className="flex items-center gap-12 pt-16 hidden md:flex"
           >
-            <span className="text-[10px] font-black tracking-[0.5em] text-white/30 uppercase italic">Trusted by Leading Platforms</span>
+            <span className="text-[10px] font-black tracking-[0.5em] text-white/60 uppercase italic">Trusted by Leading Platforms</span>
             <div className="flex gap-10 text-white/5">
                 <Globe className="w-8 h-8 hover:text-indigo-500/40 transition-colors" />
                 <Users className="w-8 h-8 hover:text-indigo-500/40 transition-colors" />
@@ -130,7 +139,7 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
                         <div className="h-4 w-12 bg-white/20 rounded-full" />
                     </div>
                     <div className="h-16 flex-[1.5] bg-white text-black font-black uppercase tracking-widest rounded-[2rem] flex items-center justify-center text-sm shadow-2xl shadow-indigo-500/20">
-                        INITIALIZE RSVP
+                        JOIN EVENT
                     </div>
                   </div>
                </div>
@@ -147,7 +156,7 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
                         <Users className="w-6 h-6 text-indigo-400" />
                     </div>
                     <div className="space-y-1">
-                        <div className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Node Population</div>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Attendees</div>
                         <div className="text-xl font-black italic tracking-tighter">1,248 GUESTS</div>
                     </div>
                 </div>
@@ -163,8 +172,8 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
                         <ShieldCheck className="w-6 h-6 text-emerald-400" />
                     </div>
                     <div className="space-y-1">
-                        <div className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Security Index</div>
-                        <div className="text-xl font-black italic tracking-tighter">VERIFIED SYNC</div>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Security</div>
+                        <div className="text-xl font-black italic tracking-tighter">VERIFIED ACCESS</div>
                     </div>
                 </div>
             </motion.div>

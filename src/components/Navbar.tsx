@@ -4,8 +4,8 @@
  */
 
 import { useState } from 'react';
-import { useAuth } from '../AuthContext';
-import { Search, Bell, Plus, User, LogOut, Settings as SettingsIcon, Shield } from 'lucide-react';
+ import { useAuth } from '../AuthContext';
+import { Search, Bell, Plus, User, LogOut, Settings as SettingsIcon, Shield, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from './ui/Button';
 import { Avatar } from './ui/Avatar';
@@ -23,13 +23,13 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
   const { profile, logout } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const isAdmin = profile?.email?.toLowerCase() === 'oladoyeheritage445@gmail.com'.toLowerCase();
 
   const navItems = [
-    { id: 'events', label: 'ROADMAP' },
-    { id: 'calendars', label: 'CALENDARS' },
-    { id: 'discover', label: 'DIRECTORY' },
+    { id: 'events', label: 'DASHBOARD' },
+    { id: 'discover', label: 'EXPLORE' },
   ];
 
   if (isAdmin) {
@@ -37,11 +37,22 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
   }
 
   return (
+    <>
     <nav className="sticky top-0 z-50 w-full glass border-b border-white/5 h-20 flex items-center justify-center px-4 lg:px-8">
       <div className="max-w-[1280px] w-full flex items-center justify-between">
-        {/* Left: Logo */}
-        <div className="cursor-pointer" onClick={() => onTabChange('events')}>
-          <Logo className="gap-2 sm:gap-4" />
+        <div className="flex items-center gap-4">
+          {/* Mobile Menu Button */}
+          <button 
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="md:hidden p-2 text-white/70 hover:text-white transition-colors"
+          >
+            {showMobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+
+          {/* Left: Logo */}
+          <div className="cursor-pointer" onClick={() => { onTabChange('events'); setShowMobileMenu(false); }}>
+            <Logo className="gap-2 sm:gap-4" />
+          </div>
         </div>
 
         {/* Center: Navigation */}
@@ -54,7 +65,7 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
                 'relative px-5 py-2 text-[10px] font-bold tracking-[0.2em] transition-all rounded-xl',
                 activeTab === item.id 
                     ? 'text-white bg-white/10 shadow-lg' 
-                    : 'text-white/30 hover:text-white/60'
+                    : 'text-white/60 hover:text-white/80'
               )}
             >
               {item.label}
@@ -71,7 +82,7 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
         {/* Right: Actions */}
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="hidden sm:flex items-center gap-1 bg-white/[0.02] p-1 rounded-2xl border border-white/5">
-            <Button variant="ghost" size="icon" onClick={onSearchClick} className="text-white/40 hover:text-white h-9 w-9">
+            <Button variant="ghost" size="icon" onClick={onSearchClick} className="text-white/70 hover:text-white h-9 w-9">
                 <Search className="w-4 h-4" />
             </Button>
             
@@ -81,7 +92,7 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
                 size="icon" 
                 onClick={() => setShowNotifications(!showNotifications)}
                 className={cn(
-                  "text-white/40 hover:text-white h-9 w-9 relative",
+                  "text-white/70 hover:text-white h-9 w-9 relative",
                    showNotifications && "text-white bg-white/5"
                 )}
               >
@@ -99,16 +110,16 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
                       className="absolute top-full right-0 mt-2 w-72 bg-[#0b0b0f]/95 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[60] origin-top-right"
                     >
-                      <h4 className="text-[10px] font-black italic uppercase tracking-tighter mb-4 text-white/40">COMMUNICATIONS</h4>
+                      <h4 className="text-[10px] font-black italic uppercase tracking-tighter mb-4 text-white/70">NOTIFICATIONS</h4>
                       <div className="space-y-3">
                         <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/5">
-                          <p className="text-[10px] font-black italic uppercase tracking-tighter text-purple-400 mb-1">SYSTEM UPDATE</p>
-                          <p className="text-[10px] font-bold text-white/60 leading-relaxed uppercase tracking-widest">
-                            Welcome to VUX Roadmaps v2.0. Explore the new directory.
+                          <p className="text-[10px] font-black italic uppercase tracking-tighter text-indigo-400 mb-1">SYSTEM UPDATE</p>
+                          <p className="text-[10px] font-bold text-white/80 leading-relaxed uppercase tracking-widest">
+                            Welcome to VUX 2.0. Explore the new event directory.
                           </p>
                         </div>
                         <div className="px-3 py-4 text-center">
-                          <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">End of Transmission</p>
+                          <p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.2em]">End of Notifications</p>
                         </div>
                       </div>
                     </motion.div>
@@ -132,7 +143,7 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
                 >
                   <div className="hidden xl:block text-right">
                       <p className="text-xs font-bold leading-none mb-1 group-hover:text-purple-300 transition-colors uppercase italic font-black tracking-tighter">{profile?.displayName?.split(' ')[0]}</p>
-                      <p className="text-[10px] font-bold text-white/20 tracking-widest leading-none">VERIFIED</p>
+                      <p className="text-[10px] font-bold text-white/50 tracking-widest leading-none">VERIFIED</p>
                   </div>
                   <div className="relative">
                       <Avatar 
@@ -156,33 +167,33 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
                       >
                          <div className="p-4 mb-2 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col gap-1">
                           <p className="text-sm font-black italic uppercase tracking-tighter truncate">{profile?.displayName}</p>
-                          <p className="text-[10px] font-bold text-white/20 tracking-widest truncate">{profile?.email}</p>
+                          <p className="text-[10px] font-bold text-white/50 tracking-widest truncate">{profile?.email}</p>
                         </div>
                         
                         <div className="space-y-1">
                           <button 
                             onClick={() => { onTabChange('profile'); setShowProfileMenu(false); }}
-                            className="w-full flex items-center gap-3 p-3 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                            className="w-full flex items-center gap-3 p-3 text-[10px] font-bold uppercase tracking-widest text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-all"
                           >
                             <User className="w-4 h-4" />
-                            <span>PROFILE STATION</span>
+                            <span>YOUR PROFILE</span>
                           </button>
                           
                           <button 
                             onClick={() => { onTabChange('settings'); setShowProfileMenu(false); }}
-                            className="w-full flex items-center gap-3 p-3 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                            className="w-full flex items-center gap-3 p-3 text-[10px] font-bold uppercase tracking-widest text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-all"
                           >
                             <SettingsIcon className="w-4 h-4" />
-                            <span>SYSTEM CONFIG</span>
+                            <span>ACCOUNT SETTINGS</span>
                           </button>
                           
                           {isAdmin && (
                             <button 
                               onClick={() => { onTabChange('admin'); setShowProfileMenu(false); }}
-                              className="w-full flex items-center gap-3 p-3 text-[10px] font-bold uppercase tracking-widest text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-xl transition-all border-t border-white/5 mt-1 pt-4"
+                              className="w-full flex items-center gap-3 p-3 text-[10px] font-bold uppercase tracking-widest text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 rounded-xl transition-all border-t border-white/5 mt-1 pt-4"
                             >
                               <Shield className="w-4 h-4" />
-                              <span>ADMIN STATION</span>
+                              <span>ADMIN PANEL</span>
                             </button>
                           )}
                           
@@ -191,7 +202,7 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
                             className="w-full flex items-center gap-3 p-3 text-[10px] font-bold uppercase tracking-widest text-pink-500 hover:bg-pink-500/5 rounded-xl transition-all"
                           >
                             <LogOut className="w-4 h-4" />
-                            <span>TERMINATE SESSION</span>
+                            <span>SIGN OUT</span>
                           </button>
                         </div>
                       </motion.div>
@@ -213,5 +224,66 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
         </div>
       </div>
     </nav>
+    <AnimatePresence>
+      {showMobileMenu && (
+        <>
+          <div className="fixed inset-0 z-40 md:hidden bg-black/20 backdrop-blur-sm" onClick={() => setShowMobileMenu(false)} />
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-x-0 top-20 z-[45] md:hidden bg-[#0b0b0f]/95 backdrop-blur-3xl border-b border-white/5 shadow-2xl p-6 space-y-6"
+          >
+            <div className="grid grid-cols-1 gap-2">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => { onTabChange(item.id); setShowMobileMenu(false); }}
+                  className={cn(
+                    'w-full text-left px-6 py-4 text-[11px] font-black tracking-[0.3em] transition-all rounded-2xl uppercase italic',
+                    activeTab === item.id 
+                        ? 'text-white bg-white/10 shadow-lg' 
+                        : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
+                  )}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            
+            <div className="pt-6 border-t border-white/5 flex flex-col gap-3">
+               <Button 
+                  variant="vux" 
+                  className="w-full h-14 rounded-2xl text-[10px] font-black uppercase tracking-widest gap-3"
+                  onClick={() => { onCreateClick(); setShowMobileMenu(false); }}
+               >
+                  <Plus className="w-4 h-4" />
+                  <span>CREATE EVENT</span>
+               </Button>
+               
+               <div className="flex gap-3">
+                  <Button 
+                    variant="ghost" 
+                    className="flex-1 h-12 rounded-xl bg-white/[0.03] border border-white/5 text-[10px] font-bold uppercase tracking-widest gap-2"
+                    onClick={() => { onSearchClick(); setShowMobileMenu(false); }}
+                  >
+                    <Search className="w-4 h-4" />
+                    <span>SEARCH</span>
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="flex-1 h-12 rounded-xl bg-white/[0.03] border border-white/5 text-[10px] font-bold uppercase tracking-widest gap-2"
+                    onClick={() => { setShowNotifications(true); setShowMobileMenu(false); }}
+                  >
+                    <Bell className="w-4 h-4" />
+                    <span>NOTIFICATIONS</span>
+                  </Button>
+               </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+    </>
   );
 }
