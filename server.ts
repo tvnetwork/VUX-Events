@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 // import { createServer as createViteServer } from 'vite'; -- Moved to dynamic import inside block
 import admin from 'firebase-admin';
+import { getFirestore } from 'firebase-admin/firestore';
 import nodemailer from 'nodemailer';
 import fs from 'fs';
 import {
@@ -22,6 +23,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Initialize Firebase Admin globally with robust error handling
+let databaseId: string | undefined;
+let projectId = 'ultra-badge-470321-a1';
+
+try {
+  const configPath = path.join(__dirname, 'firebase-applet-config.json');
+  if (fs.existsSync(configPath)) {
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    databaseId = config.firestoreDatabaseId;
+    projectId = config.projectId || projectId;
+  }
+} catch (e) {
+  console.error('Failed to read firebase-applet-config.json:', e);
+}
+
 try {
   if (admin.apps.length === 0) {
     const saVar = process.env.FIREBASE_SERVICE_ACCOUNT;
@@ -35,15 +50,17 @@ try {
         console.log('Firebase Admin initialized with service account.');
       } catch (e) {
         console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT. Falling back.', e);
-        admin.initializeApp({ projectId: 'ultra-badge-470321-a1' });
+        admin.initializeApp({ projectId });
       }
     } else {
-      admin.initializeApp({ projectId: 'ultra-badge-470321-a1' });
+      admin.initializeApp({ projectId });
     }
   }
 } catch (error) {
   console.error('Critical Firebase Admin Initialization Failure:', error);
 }
+
+const db = databaseId ? getFirestore(databaseId) : getFirestore();
 
 export async function createServer() {
   const app = express();
@@ -700,7 +717,7 @@ export async function createServer() {
 
     try {
       // Fetch user profile from Firestore to get their stored passkeys
-      const profileSnap = await admin.firestore().collection('users').doc(email).get();
+      const profileSnap = await db.collection('users').doc(email).get();
       if (!profileSnap.exists) {
         throw new Error('User not found');
       }
@@ -761,7 +778,7 @@ export async function createServer() {
           return k;
         });
 
-        await admin.firestore().collection('users').doc(email).update({
+        await db.collection('users').doc(email).update({
           passkeys: updatedPasskeys
         });
 
@@ -792,7 +809,7 @@ export async function createServer() {
       const twentyFiveHoursFromNow = new Date(now.getTime() + 25 * 60 * 60 * 1000);
 
       // Find events starting in the next 24-25 hours
-      const eventsSnap = await admin.firestore().collection('events')
+      const eventsSnap = await db.collection('events')
         .where('status', '==', 'published')
         .get();
 
