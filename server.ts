@@ -18,6 +18,7 @@ import type {
   RegistrationResponseJSON, 
   AuthenticationResponseJSON 
 } from '@simplewebauthn/types';
+import externalApiRouter from './src/api/external.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -87,6 +88,9 @@ export async function createServer() {
 
   // Use a router for all API routes to ensure they are handled as a group
   const apiRouter = express.Router();
+  
+  // Register external API routes (for DevOS integration)
+  apiRouter.use('/external', externalApiRouter);
   
   const getRpID = (hostname: string) => {
     // Dynamic RpID extraction - use the base domain
