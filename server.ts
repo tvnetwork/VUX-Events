@@ -1032,6 +1032,10 @@ export async function createServer() {
     } else {
       app.use(express.static(path.join(__dirname, 'dist')));
       app.get('*', (req, res) => {
+        // Prevent browser caching of the entry index.html file so dynamic chunk imports don't fail after a new deployment
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
         res.sendFile(path.join(__dirname, 'dist', 'index.html'));
       });
     }
