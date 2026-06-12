@@ -33,6 +33,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const ComingSoon = lazy(() => import('./pages/ComingSoon'));
 const EventDetails = lazy(() => import('./components/EventDetails').then(m => ({ default: m.EventDetails })));
 const MFAModal = lazy(() => import('./components/auth/MFAModal').then(m => ({ default: m.MFAModal })));
+const Embed = lazy(() => import('./pages/Embed').then(m => ({ default: m.Embed })));
 
 function RouteTransition({ children }: { children: React.ReactNode }) {
   return (
@@ -86,6 +87,7 @@ function AppContent() {
     <Routes>
       <Route path="/" element={<RouteTransition>{user ? <RootLayout /> : <Landing />}</RouteTransition>} />
       <Route path="/discover" element={<DiscoverWrapper />} />
+      <Route path="/embed" element={<Suspense fallback={<LoadingFallback />}><Embed /></Suspense>} />
       <Route path="/help" element={<RouteTransition><PageShell><Help /></PageShell></RouteTransition>} />
       <Route path="/terms" element={<RouteTransition><PageShell><Terms /></PageShell></RouteTransition>} />
       <Route path="/privacy" element={<RouteTransition><PageShell><Privacy /></PageShell></RouteTransition>} />
