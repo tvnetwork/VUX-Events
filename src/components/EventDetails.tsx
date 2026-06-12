@@ -270,11 +270,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
   const handleRSVP = async (isGuest = false) => {
     if (!event) return;
     
-    // Safety check for capacity
-    if (isFull) {
-      toast.error("This event has reached full capacity.");
-      return;
-    }
+    // If event is full, user will be placed on the waitlist automatically
 
     setIsRSVPLoading(true);
     setRsvpError(null);
@@ -327,7 +323,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
           eventTitle: event.title,
           eventDescription: event.description,
           eventDate: formatDate(event.date, { month: 'long', day: 'numeric', year: 'numeric' }),
-          eventLocation: event.location,
+          eventLocation: (event.isVirtual || event.category === 'Webinar') ? 'Virtual Meeting' : event.location,
           rawDate: event.date,
           rawTime: event.time,
           rsvpId: rsvpData.id,
@@ -413,7 +409,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
 
   if (needsPassword) {
     return (
-      <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-[#050508]/95 backdrop-blur-3xl">
+      <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-[#050508]/95 backdrop-blur-xl">
         <Helmet>
           <title>Encrypted Node | VUX</title>
         </Helmet>
@@ -497,11 +493,18 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
       </Helmet>
 
       {/* Immersive Backdrop */}
-      <div className="fixed inset-0 -z-10 bg-[#0b0b0f]">
-        <div className="absolute top-0 left-0 w-full h-[800px] overflow-hidden opacity-40">
-            <img src={event.coverImageUrl} className="w-full h-full object-cover blur-[120px] scale-125" />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0b0b0f]/80 to-[#0b0b0f]" />
-        </div>
+      <div 
+        className="fixed inset-0 -z-10 bg-[#0b0b0f]"
+        style={event.theme?.backgroundUrl ? { backgroundImage: `url(${event.theme.backgroundUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+      >
+        {!event.theme?.backgroundUrl ? (
+          <div className="absolute top-0 left-0 w-full h-[800px] overflow-hidden opacity-40">
+              <img src={event.coverImageUrl} className="w-full h-full object-cover blur-[120px] scale-125" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0b0b0f]/80 to-[#0b0b0f]" />
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-[#0b0b0f]/70" />
+        )}
       </div>
 
       <nav className="sticky top-0 z-50 glass border-b border-white/5 h-20 flex items-center justify-center px-4 lg:px-12">
@@ -591,7 +594,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                              <h4 className="text-xl font-black italic uppercase tracking-tighter text-white leading-none">{event.title}</h4>
                              <div className="flex items-center gap-4 text-[8px] font-bold text-white/40 uppercase tracking-widest">
                                 <span className="flex items-center gap-1.5"><Calendar className="w-2.5 h-2.5" /> {event.date}</span>
-                                <span className="flex items-center gap-1.5"><MapPin className="w-2.5 h-2.5" /> {event.location}</span>
+                                <span className="flex items-center gap-1.5">{(event.isVirtual || event.category === 'Webinar') ? <Video className="w-2.5 h-2.5" /> : <MapPin className="w-2.5 h-2.5" />} {(event.isVirtual || event.category === 'Webinar') ? 'Virtual Event' : event.location}</span>
                              </div>
                         </div>
                     </div>
@@ -796,7 +799,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                                 </div>
                             )}
                          </div>
-                         <div className="flex items-center gap-3 bg-black/40 backdrop-blur-3xl px-6 py-3 rounded-2xl border border-white/10">
+                         <div className="flex items-center gap-3 bg-black/40 backdrop-blur-xl px-6 py-3 rounded-2xl border border-white/10">
                             <Users className="w-4 h-4 text-purple-400" />
                             <span className="text-[10px] font-black text-white uppercase tracking-widest">{rsvps.length} / {event.capacity} GOING</span>
                          </div>
@@ -1168,15 +1171,25 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                             </div>
                             <div className="flex items-center gap-6">
                                 <div className="w-14 h-14 rounded-3xl bg-white/[0.03] border border-white/10 flex items-center justify-center shrink-0 shadow-inner group-hover:border-pink-500/20 transition-all duration-700">
-                                    <MapPin className="w-6 h-6 text-pink-500" />
+                                    {(event.isVirtual || event.category === 'Webinar') ? <Video className="w-6 h-6 text-pink-500" /> : <MapPin className="w-6 h-6 text-pink-500" />}
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60 leading-none">Venue</p>
-                                    <p className="text-lg font-black italic tracking-tighter uppercase text-white truncate max-w-[200px]">{event.location}</p>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60 leading-none">{(event.isVirtual || event.category === 'Webinar') ? 'Virtual' : 'Venue'}</p>
+                                    <p className="text-lg font-black italic tracking-tighter uppercase text-white truncate max-w-[200px]">
+                                      {(event.isVirtual || event.category === 'Webinar') ? 'Online Meeting' : event.location}
+                                    </p>
                                     <div className="flex items-center gap-1.5 text-[10px] font-black text-blue-400 italic tracking-widest">
                                         <Globe className="w-3 h-3" />
                                         <span>GLOBAL ACCESS</span>
                                     </div>
+                                    {(event.isVirtual || event.category === 'Webinar') && event.meetingLink && userRSVP?.status === 'approved' && (
+                                        <Button 
+                                            onClick={() => window.open(event.meetingLink, '_blank')}
+                                            className="h-8 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-500 mt-2 shadow-lg shadow-blue-500/20"
+                                        >
+                                            JOIN MEETING
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -1287,9 +1300,10 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                                 <Button 
                                     onClick={handleRSVPTrigger} 
                                     disabled={isRSVPLoading}
+                                    style={event.theme?.primaryColor ? { backgroundColor: event.theme.primaryColor, boxShadow: `0 25px 50px -12px ${event.theme.primaryColor}33` } : {}}
                                     className={cn(
-                                        "w-full h-20 rounded-[32px] text-xl font-black italic uppercase tracking-tighter shadow-2xl transition-all group/reg",
-                                        isFull ? "bg-blue-600 hover:bg-blue-500 shadow-blue-500/20" : "bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/20"
+                                        "w-full h-20 rounded-[32px] text-xl font-black italic uppercase tracking-tighter transition-all group/reg",
+                                        !event.theme?.primaryColor && (isFull ? "bg-blue-600 hover:bg-blue-500 shadow-2xl shadow-blue-500/20" : "bg-indigo-600 hover:bg-indigo-500 shadow-2xl shadow-indigo-500/20")
                                     )}
                                 >
                                 {isRSVPLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : (

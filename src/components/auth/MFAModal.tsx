@@ -46,7 +46,7 @@ export function MFAModal() {
       >
         <div className="absolute -inset-1 blur-3xl bg-blue-500/10 rounded-[3rem] pointer-events-none" />
         
-        <div className="bg-white/[0.02] border border-white/5 backdrop-blur-3xl rounded-[3rem] p-10 md:p-12 space-y-10 relative overflow-hidden">
+        <div className="bg-white/[0.02] border border-white/5 backdrop-blur-xl rounded-[3rem] p-10 md:p-12 space-y-10 relative overflow-hidden">
           {/* Progress ring background */}
           <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl -mr-24 -mt-24 pointer-events-none" />
 

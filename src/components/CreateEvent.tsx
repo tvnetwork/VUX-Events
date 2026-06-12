@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'react-hot-toast';
-import { X, Loader2, Plus, Check, ArrowRight, Calendar as CalendarIcon, Clock, MapPin, Globe2, Info, Image as ImageIcon, Trash2, ListChecks, Mic, Wrench, Users, PartyPopper, Video, TrendingUp, Sparkles, Building2, Ticket, Trophy, Upload, Shield, Mail } from 'lucide-react';
+import { X, Loader2, Plus, Check, ArrowRight, Calendar as CalendarIcon, Clock, MapPin, Globe2, Info, Image as ImageIcon, Trash2, ListChecks, Mic, Wrench, Users, PartyPopper, Video, TrendingUp, Sparkles, Building2, Ticket, Trophy, Upload, Shield, Mail, Link as LinkIcon } from 'lucide-react';
 import { doc, setDoc, serverTimestamp, collection, getDocs, query } from 'firebase/firestore';
 import { db, handleFirestoreError } from '../lib/firebase';
 import { useAuth } from '../AuthContext';
@@ -156,27 +156,30 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
   };
 
   const getStepConfig = () => {
-    const baseSteps = [
-      { step: 1, label: 'Type' },
-      { step: 2, label: 'Details' },
-      { step: 3, label: 'Location' },
-      { step: 4, label: 'Sponsors' },
+    const cat = formData.category || '';
+    const isVirtual = cat === 'Webinar' || formData.isVirtual;
+    const isSocial = cat === 'Social' || cat === 'Meetup';
+    const isContest = cat === 'Contest';
+
+    const stepsList = [
+      { id: 'type', label: 'Type' },
+      { id: 'details', label: 'Details' },
+      { id: isVirtual ? 'virtual' : 'location', label: isVirtual ? 'Virtual Link' : 'Location' }
     ];
 
-    const contestSteps = formData.category === 'Contest' ? [
-       { step: 5, label: 'Contestants' }
-    ] : [];
+    if (!isSocial && !isVirtual) stepsList.push({ id: 'sponsors', label: 'Sponsors' });
+    if (isContest) stepsList.push({ id: 'contestants', label: 'Contestants' });
+    if (!isSocial) stepsList.push({ id: 'speakers', label: 'Speakers' });
+    if (!isSocial) stepsList.push({ id: 'form', label: 'Form' });
+    
+    stepsList.push({ id: 'theme', label: 'Theme' });
+    stepsList.push({ id: 'preview', label: 'Preview' });
 
-    const remainingSteps = [
-      { step: contestSteps.length > 0 ? 6 : 5, label: 'Speakers' },
-      { step: contestSteps.length > 0 ? 7 : 6, label: 'Form' },
-      { step: contestSteps.length > 0 ? 8 : 7, label: 'Preview' }
-    ];
-
-    return [...baseSteps, ...contestSteps, ...remainingSteps];
+    return stepsList.map((s, index) => ({ ...s, step: index + 1 }));
   };
 
   const steps = getStepConfig();
+  const currentStepId = steps[step - 1]?.id;
   const totalSteps = steps.length;
 
   return (
@@ -292,7 +295,7 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
 
             <div className="flex-1 overflow-y-auto p-10 md:p-14 custom-scrollbar">
               <AnimatePresence mode="wait">
-                {step === 1 && (
+                {currentStepId === 'type' && (
                   <motion.div
                     key="step1"
                     initial={{ opacity: 0, x: 20 }}
@@ -345,7 +348,7 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                   </motion.div>
                 )}
 
-                {step === 2 && (
+                {currentStepId === 'details' && (
                   <motion.div
                     key="step2"
                     initial={{ opacity: 0, x: 20 }}
@@ -489,7 +492,7 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                   </motion.div>
                 )}
 
-                {step === 3 && (
+                {currentStepId === 'location' && (
                   <motion.div
                     key="step3"
                     initial={{ opacity: 0, x: 20 }}
@@ -595,7 +598,47 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                   </motion.div>
                 )}
 
-                {step === 4 && (
+                {currentStepId === 'virtual' && (
+                  <motion.div
+                    key="step_virtual"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-6"
+                  >
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-bold tracking-tight">Virtual Details</h3>
+                      <p className="text-xs text-white/50">Where will this virtual event take place?</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-white/40">Date</label>
+                        <div className="relative">
+                          <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                          <Input type="date" className="pl-12 h-14" value={formData.date || ''} onChange={e => setFormData({ ...formData, date: e.target.value })} />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-white/40">Time</label>
+                        <div className="relative">
+                          <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                          <Input type="time" className="pl-12 h-14" value={formData.time || ''} onChange={e => setFormData({ ...formData, time: e.target.value })} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-white/40">Meeting Link (Zoom, Meet, etc.)</label>
+                      <div className="relative">
+                        <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                        <Input placeholder="https://zoom.us/j/..." className="pl-12 h-14" value={formData.meetingLink || ''} onChange={e => setFormData({ ...formData, meetingLink: e.target.value })} />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {currentStepId === 'sponsors' && (
                   <motion.div
                     key="step4"
                     initial={{ opacity: 0, x: 20 }}
@@ -816,7 +859,7 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                   </motion.div>
                 )}
 
-                 {step === 5 && formData.category === 'Contest' && (
+                 {currentStepId === 'contestants' && (
                   <motion.div
                     key="contestants"
                     initial={{ opacity: 0, x: 20 }}
@@ -937,7 +980,7 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                   </motion.div>
                 )}
 
-                {step === (formData.category === 'Contest' ? 6 : 5) && (
+                {currentStepId === 'speakers' && (
                   <motion.div
                     key="step5"
                     initial={{ opacity: 0, x: 20 }}
@@ -1061,7 +1104,7 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                   </motion.div>
                 )}
 
-                {step === (formData.category === 'Contest' ? 7 : 6) && (
+                {currentStepId === 'form' && (
                   <motion.div
                     key="step6"
                     initial={{ opacity: 0, x: 20 }}
@@ -1249,7 +1292,50 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                      </motion.div>
                 )}
 
-                {step === (formData.category === 'Contest' ? 8 : 7) && (
+                {currentStepId === 'theme' && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-6"
+                  >
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-bold tracking-tight">White-Label Theming</h3>
+                      <p className="text-xs text-white/50">Customize the look and feel of your event page.</p>
+                    </div>
+                    
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-white/40">Primary Brand Color (Hex)</label>
+                        <div className="flex gap-4 items-center">
+                          <input
+                            type="color"
+                            value={formData.theme?.primaryColor || '#a855f7'}
+                            onChange={(e) => setFormData({ ...formData, theme: { ...formData.theme, primaryColor: e.target.value } })}
+                            className="w-12 h-12 rounded-xl cursor-pointer bg-transparent border-0"
+                          />
+                          <Input
+                            placeholder="#a855f7"
+                            value={formData.theme?.primaryColor || ''}
+                            onChange={(e) => setFormData({ ...formData, theme: { ...formData.theme, primaryColor: e.target.value } })}
+                            className="font-mono max-w-[150px]"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-white/40">Custom Background Image URL</label>
+                        <Input
+                          placeholder="https://example.com/background.jpg"
+                          value={formData.theme?.backgroundUrl || ''}
+                          onChange={(e) => setFormData({ ...formData, theme: { ...formData.theme, backgroundUrl: e.target.value } })}
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {currentStepId === 'preview' && (
                   <motion.div
                     key="step7"
                     initial={{ opacity: 0, x: 20 }}
@@ -1331,10 +1417,11 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                         <Button 
                             onClick={handleNext}
                             disabled={
-                              (step === 1 && !formData.category) ||
-                              (step === 2 && !formData.title) ||
-                              (step === 3 && (!formData.date || !formData.location || !formData.time)) ||
-                              (step === 5 && formData.category === 'Contest' && (!formData.contestants || formData.contestants.length === 0))
+                              (currentStepId === 'type' && !formData.category) ||
+                              (currentStepId === 'details' && !formData.title) ||
+                              (currentStepId === 'location' && (!formData.date || !formData.location || !formData.time)) ||
+                              (currentStepId === 'virtual' && (!formData.date || !formData.meetingLink || !formData.time)) ||
+                              (currentStepId === 'contestants' && (!formData.contestants || formData.contestants.length === 0))
                             }
                             className="h-14 px-10 rounded-2xl shadow-xl shadow-purple-500/20 gap-3"
                         >

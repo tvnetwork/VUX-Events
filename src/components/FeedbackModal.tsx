@@ -67,7 +67,7 @@ export function FeedbackModal({ event, onClose }: FeedbackModalProps) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-[#050508]/90 backdrop-blur-3xl"
+        className="absolute inset-0 bg-[#050508]/90 backdrop-blur-xl"
       />
       
       <motion.div

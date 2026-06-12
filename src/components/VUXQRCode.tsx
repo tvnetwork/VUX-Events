@@ -58,7 +58,7 @@ export function VUXQRCode({ value, size = 280, className, showMicrocopy = true }
 
         {/* The QR UI Card */}
         <div className="relative z-10 flex flex-col items-center gap-8">
-            <div className="relative p-6 rounded-[40px] bg-white/[0.02] border border-white/10 shadow-inner backdrop-blur-3xl overflow-hidden">
+            <div className="relative p-6 rounded-[40px] bg-white/[0.02] border border-white/10 shadow-inner backdrop-blur-xl overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
                 
                 <svg

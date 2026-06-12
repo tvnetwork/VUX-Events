@@ -266,7 +266,7 @@ const handleVerifyUser = async (userId: string) => {
           <h1 className="text-6xl md:text-8xl font-medium tracking-tight leading-[0.8] text-white">ADMIN<br/>CONTROLS</h1>
         </div>
         
-        <div className="flex items-center gap-2 bg-white/[0.02] backdrop-blur-xl border border-white/10 shadow-xl p-2 rounded-2xl border border-white/5 shadow-2xl backdrop-blur-xl">
+        <div className="flex items-center gap-2 bg-white/[0.02] border border-white/10 shadow-xl p-2 rounded-2xl border border-white/5 shadow-2xl backdrop-blur-xl">
             {[
                 { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
                 { id: 'analytics', label: 'Revenue', icon: <TrendingUp className="w-4 h-4" /> },
@@ -301,10 +301,10 @@ const handleVerifyUser = async (userId: string) => {
              { label: 'Published events', value: stats.events, icon: <Calendar className="w-6 h-6 text-indigo-400" />, trend: 'LIVE', trendUp: true, color: 'indigo' },
              { label: 'Server Availability', value: '99.9%', icon: <RefreshCcw className="w-6 h-6 text-emerald-400" />, trend: 'HEALTHY', trendUp: true, color: 'emerald' },
            ].map((stat, i) => (
-             <Card key={i} className="p-10 border-white/5 bg-white/[0.02] backdrop-blur-xl border border-white/10 shadow-xl space-y-8 rounded-2xl relative overflow-hidden group hover:bg-white/[0.02] backdrop-blur-xl border border-white/10 shadow-xl transition-all duration-700">
+             <Card key={i} className="p-10 border-white/5 bg-white/[0.02] border border-white/10 shadow-xl space-y-8 rounded-2xl relative overflow-hidden group hover:bg-white/[0.04] transition-all duration-700">
                 <div className={cn("absolute -top-20 -right-20 w-48 h-48 blur-3xl rounded-full transition-colors duration-700", i === 2 ? "bg-emerald-500/5 group-hover:bg-emerald-500/15" : "bg-indigo-500/5 group-hover:bg-indigo-500/15")} />
                 <div className="flex items-center justify-between">
-                    <div className="w-14 h-14 rounded-3xl bg-white/[0.02] backdrop-blur-xl border border-white/10 shadow-xl border border-white/10 flex items-center justify-center shadow-inner">
+                    <div className="w-14 h-14 rounded-3xl bg-white/[0.02] border border-white/10 shadow-xl border border-white/10 flex items-center justify-center shadow-inner">
                         {stat.icon}
                     </div>
                 </div>
@@ -332,7 +332,7 @@ const handleVerifyUser = async (userId: string) => {
                  { label: 'Avg. Order Value', value: '$85.00', icon: <Coins className="w-5 h-5" /> },
                  { label: 'Conversion Rate', value: '12.4%', icon: <Sparkles className="w-5 h-5" /> },
                ].map((s, i) => (
-                 <Card key={i} className="p-8 border-white/5 bg-white/[0.02] backdrop-blur-xl border border-white/10 shadow-xl rounded-3xl space-y-4">
+                 <Card key={i} className="p-8 border-white/5 bg-white/[0.02] border border-white/10 shadow-xl rounded-3xl space-y-4">
                     <div className="flex items-center justify-between">
                         <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
                             {s.icon}
@@ -347,7 +347,7 @@ const handleVerifyUser = async (userId: string) => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <Card className="p-10 border-white/5 bg-white/[0.02] backdrop-blur-xl border border-white/10 shadow-xl rounded-3xl space-y-10">
+                <Card className="p-10 border-white/5 bg-white/[0.02] border border-white/10 shadow-xl rounded-3xl space-y-10">
                     <div className="flex items-center justify-between">
                         <h3 className="text-xl font-medium tracking-tight">Registration Velocity</h3>
                         <Badge className="bg-emerald-500/10 text-emerald-400 border-none text-[8px] font-medium tracking-tight">+18% vs Last Month</Badge>
@@ -382,7 +382,7 @@ const handleVerifyUser = async (userId: string) => {
                     </div>
                 </Card>
 
-                <Card className="p-10 border-white/5 bg-white/[0.02] backdrop-blur-xl border border-white/10 shadow-xl rounded-3xl space-y-10">
+                <Card className="p-10 border-white/5 bg-white/[0.02] border border-white/10 shadow-xl rounded-3xl space-y-10">
                      <div className="flex items-center justify-between">
                         <h3 className="text-xl font-medium tracking-tight">Revenue Distribution</h3>
                         <Badge className="bg-indigo-500/10 text-indigo-400 border-none text-[8px] font-medium tracking-tight">Global Aggregation</Badge>
@@ -447,7 +447,7 @@ const handleVerifyUser = async (userId: string) => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {collectionsList.map((col, idx) => (
-                    <Card key={idx} className="p-8 border-white/5 bg-white/[0.02] backdrop-blur-xl border border-white/10 shadow-xl rounded-2xl space-y-6 group hover:bg-white/[0.02] backdrop-blur-xl border border-white/10 shadow-xl transition-all">
+                    <Card key={idx} className="p-8 border-white/5 bg-white/[0.02] border border-white/10 shadow-xl rounded-2xl space-y-6 group hover:bg-white/[0.04] transition-all">
                         <div className="flex items-center justify-between">
                             <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
                                 <Plus className="w-5 h-5 flex-shrink-0" />
@@ -484,7 +484,7 @@ const handleVerifyUser = async (userId: string) => {
                 <p className="text-[10px] font-medium tracking-tight text-indigo-500/40">Send official notifications to all platform members</p>
             </div>
 
-            <Card className="p-12 border-white/5 bg-white/[0.02] backdrop-blur-xl border border-white/10 shadow-xl rounded-3xl space-y-10">
+            <Card className="p-12 border-white/5 bg-white/[0.02] border border-white/10 shadow-xl rounded-3xl space-y-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                     <div className="space-y-4">
                         <label className="text-[10px] font-medium tracking-tight text-white/40 px-1">Message Subject</label>
@@ -557,7 +557,7 @@ const handleVerifyUser = async (userId: string) => {
                         value={broadcastMessage}
                         onChange={(e) => setBroadcastMessage(e.target.value)}
                         placeholder="Type your announcement here..."
-                        className="w-full min-h-[300px] bg-white/[0.02] backdrop-blur-xl border border-white/10 shadow-xl border border-white/5 rounded-2xl p-10 focus:outline-none focus:border-indigo-500/40 transition-all font-medium text-lg resize-none"
+                        className="w-full min-h-[300px] bg-white/[0.02] border border-white/10 shadow-xl rounded-2xl p-10 focus:outline-none focus:border-indigo-500/40 transition-all font-medium text-lg resize-none"
                     />
                 </div>
 
@@ -578,7 +578,7 @@ const handleVerifyUser = async (userId: string) => {
                 </div>
             </Card>
 
-            <Card className="p-12 border-white/5 bg-white/[0.02] backdrop-blur-xl border border-white/10 shadow-xl rounded-3xl space-y-10 border-dashed">
+            <Card className="p-12 border-white/5 bg-white/[0.02] border border-white/10 shadow-xl rounded-3xl space-y-10 border-dashed">
                 <div className="flex items-center justify-between">
                     <div className="space-y-1">
                         <h3 className="text-xl font-medium tracking-tight">Automated Sequences</h3>
@@ -657,7 +657,7 @@ const handleVerifyUser = async (userId: string) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <Card className="p-10 border-white/5 bg-white/[0.02] backdrop-blur-xl border border-white/10 shadow-xl rounded-3xl space-y-10">
+                <Card className="p-10 border-white/5 bg-white/[0.02] border border-white/10 shadow-xl rounded-3xl space-y-10">
                     <div className="flex items-center gap-4 border-b border-white/5 pb-6">
                         <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
                             <Globe className="w-5 h-5 text-indigo-500" />
@@ -726,7 +726,7 @@ const handleVerifyUser = async (userId: string) => {
                     </div>
                 </Card>
 
-                <Card className="p-10 border-white/5 bg-white/[0.02] backdrop-blur-xl border border-white/10 shadow-xl rounded-3xl space-y-10">
+                <Card className="p-10 border-white/5 bg-white/[0.02] border border-white/10 shadow-xl rounded-3xl space-y-10">
                     <div className="flex items-center gap-4 border-b border-white/5 pb-6">
                         <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
                             <Activity className="w-5 h-5 text-purple-500" />
@@ -815,7 +815,7 @@ const handleVerifyUser = async (userId: string) => {
                        placeholder={`Search for ${activeView}...`}
                        value={searchQuery}
                        onChange={(e) => setSearchQuery(e.target.value)}
-                       className="w-full bg-white/[0.02] backdrop-blur-xl border border-white/10 shadow-xl border border-white/5 rounded-3xl h-16 pl-16 pr-8 text-sm focus:outline-none focus:border-purple-500/40 transition-all font-medium placeholder: placeholder:text-white/10"
+                       className="w-full bg-white/[0.02] border border-white/10 shadow-xl rounded-3xl h-16 pl-16 pr-8 text-sm focus:outline-none focus:border-purple-500/40 transition-all font-medium placeholder: placeholder:text-white/10"
                     />
                 </div>
                 
@@ -836,12 +836,12 @@ const handleVerifyUser = async (userId: string) => {
                     </div>
                 )}
 
-                <Button variant="ghost" size="icon" onClick={fetchData} className="w-16 h-16 rounded-3xl border border-white/5 bg-white/[0.02] backdrop-blur-xl border border-white/10 shadow-xl hover:bg-white/5 transition-all">
+                <Button variant="ghost" size="icon" onClick={fetchData} className="w-16 h-16 rounded-3xl border border-white/5 bg-white/[0.02] border border-white/10 shadow-xl hover:bg-white/5 transition-all">
                     <RefreshCcw className={cn("w-5 h-5 text-white/40", loading && "animate-spin")} />
                 </Button>
             </div>
 
-            <Card className="overflow-hidden border-white/5 bg-white/[0.02] backdrop-blur-xl border border-white/10 shadow-xl rounded-2xl shadow-2xl">
+            <Card className="overflow-hidden border-white/5 bg-white/[0.02] border border-white/10 shadow-xl rounded-2xl shadow-2xl">
                 <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>

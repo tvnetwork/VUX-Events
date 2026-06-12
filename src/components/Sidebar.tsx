@@ -54,7 +54,7 @@ export function Sidebar({ onSearchClick, onCreateClick, onLoginClick }: {
 
       {/* Sidebar Navigation */}
       <nav className={cn(
-        "fixed inset-y-0 left-0 z-40 w-64 bg-[#07070a]/60 backdrop-blur-2xl border-r border-white/5 transition-transform duration-300 ease-in-out md:translate-x-0 flex flex-col",
+        "fixed inset-y-0 left-0 z-40 w-64 bg-[#07070a]/60 backdrop-blur-lg border-r border-white/5 transition-transform duration-300 ease-in-out md:translate-x-0 flex flex-col",
         showMobileMenu ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="h-20 flex items-center px-6 border-b border-white/5 mt-16 md:mt-0 cursor-pointer" onClick={() => navigateTo('/')}>

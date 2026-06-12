@@ -108,7 +108,7 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute top-full right-0 mt-2 w-72 bg-[#0b0b0f]/95 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[60] origin-top-right"
+                      className="absolute top-full right-0 mt-2 w-72 bg-[#0b0b0f]/95 backdrop-blur-lg border border-white/10 rounded-[2rem] p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[60] origin-top-right"
                     >
                       <h4 className="text-[10px] font-black italic uppercase tracking-tighter mb-4 text-white/70">NOTIFICATIONS</h4>
                       <div className="space-y-3">
@@ -163,7 +163,7 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute top-full right-0 mt-2 w-64 bg-[#0b0b0f]/95 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-3 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden origin-top-right z-[60]"
+                        className="absolute top-full right-0 mt-2 w-64 bg-[#0b0b0f]/95 backdrop-blur-lg border border-white/10 rounded-[2rem] p-3 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden origin-top-right z-[60]"
                       >
                          <div className="p-4 mb-2 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col gap-1">
                           <p className="text-sm font-black italic uppercase tracking-tighter truncate">{profile?.displayName}</p>
@@ -232,7 +232,7 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-x-0 top-20 z-[45] md:hidden bg-[#0b0b0f]/95 backdrop-blur-3xl border-b border-white/5 shadow-2xl p-6 space-y-6"
+            className="fixed inset-x-0 top-20 z-[45] md:hidden bg-[#0b0b0f]/95 backdrop-blur-xl border-b border-white/5 shadow-2xl p-6 space-y-6"
           >
             <div className="grid grid-cols-1 gap-2">
               {navItems.map((item) => (

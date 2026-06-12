@@ -151,6 +151,8 @@ export interface Event {
   endTime?: string;
   location: string;
   coordinates?: { lat: number; lng: number };
+  isVirtual?: boolean;
+  meetingLink?: string;
   category: string;
   visibility: 'public' | 'private';
   password?: string;
@@ -169,6 +171,10 @@ export interface Event {
   polls?: Poll[];
   contestants?: Contestant[];
   collectionId?: string;
+  theme?: {
+    primaryColor?: string;
+    backgroundUrl?: string;
+  };
   createdAt: string;
   updatedAt: string;
   surveySent?: boolean;

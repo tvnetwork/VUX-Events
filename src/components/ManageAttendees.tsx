@@ -16,6 +16,7 @@ import { Avatar } from './ui/Avatar';
 import { Card } from './ui/Card';
 import { Input } from './ui/Input';
 import { VUXQRCode } from './VUXQRCode';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 import toast from 'react-hot-toast';
 
@@ -117,12 +118,76 @@ export function ManageAttendees({ event, onClose }: { event: Event, onClose: () 
     return unsubscribe;
   }, [event.id]);
 
+  useEffect(() => {
+    let scanner: Html5QrcodeScanner | null = null;
+    if (mode === 'scanner') {
+      try {
+        scanner = new Html5QrcodeScanner('reader', { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+        scanner.render((text) => {
+          const urlParams = new URLSearchParams(text.split('?')[1] || '');
+          const uid = urlParams.get('user') || text;
+          
+          const rsvp = rsvps.find(r => r.userId === uid || r.id === uid);
+          if (rsvp) {
+            if (!rsvp.checkedIn) {
+               toggleCheckIn(rsvp.id, false);
+               toast.success(`Successfully checked in ${rsvp.userDisplayName}!`);
+            } else {
+               toast.error(`${rsvp.userDisplayName} is already checked in.`);
+            }
+          } else {
+            toast.error('Invalid Ticket / User not found.');
+          }
+        }, (err) => {
+          // ignore scan errors
+        });
+      } catch (e) {
+        console.error("Scanner init error", e);
+      }
+    }
+
+    return () => {
+      if (scanner) {
+        scanner.clear().catch(e => console.error("Failed to clear scanner", e));
+      }
+    };
+  }, [mode, rsvps]);
+
   const updateStatus = async (rsvpId: string, status: RSVP['status']) => {
     try {
       await updateDoc(doc(db, 'events', event.id, 'rsvps', rsvpId), {
         status,
         updatedAt: serverTimestamp()
       });
+
+      // Handle Waitlist Auto-Promotion
+      if (status === 'declined' && event.capacity) {
+        // Calculate approved without the newly declined user
+        const currentApproved = rsvps.filter(r => r.status === 'approved' && r.id !== rsvpId).length;
+        
+        if (currentApproved < event.capacity) {
+           const waitlisted = rsvps.filter(r => r.status === 'waitlist').sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+           if (waitlisted.length > 0) {
+              const nextPerson = waitlisted[0];
+              await updateDoc(doc(db, 'events', event.id, 'rsvps', nextPerson.id), { 
+                status: 'approved',
+                updatedAt: serverTimestamp() 
+              });
+              
+              fetch('/api/email/waitlist-promoted', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  email: nextPerson.userEmail, 
+                  displayName: nextPerson.userDisplayName, 
+                  eventTitle: event.title 
+                })
+              }).catch(console.error);
+              
+              toast.success(`${nextPerson.userDisplayName} was auto-promoted from the waitlist!`);
+           }
+        }
+      }
     } catch (e) {
       console.error(e);
     }
@@ -242,7 +307,7 @@ export function ManageAttendees({ event, onClose }: { event: Event, onClose: () 
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 order-1 md:order-2 overflow-hidden">
-        <header className="p-8 border-b border-white/5 flex flex-col sm:flex-row gap-6 justify-between items-start sm:items-center bg-black/20 backdrop-blur-3xl">
+        <header className="p-8 border-b border-white/5 flex flex-col sm:flex-row gap-6 justify-between items-start sm:items-center bg-black/20 backdrop-blur-xl">
           <div className="space-y-1">
              <div className="flex items-center gap-2 text-indigo-400 mb-1">
                 <Sparkles className="w-4 h-4" />
@@ -405,8 +470,8 @@ export function ManageAttendees({ event, onClose }: { event: Event, onClose: () 
                        />
 
                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-64 h-64 border-2 border-white/10 rounded-3xl flex items-center justify-center">
-                             <QrCode className="w-32 h-32 text-white/5 animate-pulse" />
+                          <div id="reader" className="w-full h-full max-w-[400px] bg-black/50 backdrop-blur-md rounded-3xl overflow-hidden flex flex-col items-center justify-center relative z-20">
+                             <QrCode className="w-32 h-32 text-white/5 animate-pulse absolute -z-10" />
                           </div>
                        </div>
                     </div>

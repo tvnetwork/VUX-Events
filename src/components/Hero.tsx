@@ -84,7 +84,7 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
         >
           <div className="relative z-10 w-full max-w-[420px] mx-auto">
             {/* Main Frosted Glass Card */}
-            <div className="bg-white/[0.02] backdrop-blur-2xl rounded-3xl border border-white/10 p-6 shadow-2xl">
+            <div className="bg-white/[0.02] backdrop-blur-lg rounded-3xl border border-white/10 p-6 shadow-2xl">
                <div className="h-48 w-full bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-2xl mb-8 relative overflow-hidden flex items-center justify-center border border-white/5">
                     <Logo size="md" showText={false} className="opacity-50" />
                </div>

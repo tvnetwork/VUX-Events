@@ -68,7 +68,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl overflow-y-auto custom-scrollbar">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-lg overflow-y-auto custom-scrollbar">
       {/* Immersive Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-[50rem] h-[50rem] bg-indigo-600/10 blur-[150px] rounded-full animate-pulse" />
@@ -80,7 +80,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         className="w-full max-w-2xl overflow-hidden my-auto relative z-10"
       >
-        <Card className="p-0 border-white/[0.03] bg-black/40 backdrop-blur-3xl shadow-2xl relative overflow-y-auto max-h-[92vh] rounded-[3rem] custom-scrollbar">
+        <Card className="p-0 border-white/[0.03] bg-black/40 backdrop-blur-xl shadow-2xl relative overflow-y-auto max-h-[92vh] rounded-[3rem] custom-scrollbar">
           {/* Top Decorative bar */}
           <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
           

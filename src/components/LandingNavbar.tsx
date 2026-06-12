@@ -23,7 +23,7 @@ export function LandingNavbar({ onAuthClick }: { onAuthClick: () => void }) {
       <div className={cn(
         "max-w-[1000px] w-full flex items-center justify-between px-6 transition-all duration-500",
         scrolled 
-          ? "py-3 bg-white/[0.02] backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-full" 
+          ? "py-3 bg-white/[0.02] backdrop-blur-lg border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-full" 
           : "py-6 bg-transparent"
       )}>
         {/* Logo */}

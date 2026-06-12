@@ -190,6 +190,24 @@ export async function createServer() {
     }
   });
   
+  apiRouter.get('/ping', (req, res) => {
+    res.send('pong');
+  });
+
+  apiRouter.get('/speed', (req, res) => {
+    const start = performance.now();
+    setImmediate(() => {
+      const end = performance.now();
+      res.json({
+        status: 'fast',
+        eventLoopDelayMs: parseFloat((end - start).toFixed(3)),
+        uptimeSeconds: parseFloat(process.uptime().toFixed(2)),
+        memoryUsageMb: parseFloat((process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)),
+        timestamp: Date.now()
+      });
+    });
+  });
+
   apiRouter.get('/health', (req, res) => {
     res.json({ 
       status: 'ok', 
@@ -200,8 +218,52 @@ export async function createServer() {
     });
   });
 
-  apiRouter.post('/email/welcome', async (req, res) => {
+  apiRouter.post('/email/waitlist-promoted', async (req, res) => {
     try {
+      const { email, displayName, eventTitle } = req.body;
+      if (!email || !eventTitle) return res.status(400).json({ error: 'Email and eventTitle are required' });
+
+      const userSmtp = process.env.SMTP_USER || 'vuxevents@gmail.com';
+      const pass = process.env.SMTP_PASS;
+      if (!pass) return res.status(503).json({ error: 'SMTP_PASS not configured' });
+
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_PORT === '465',
+        auth: { user: userSmtp, pass },
+      });
+
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+      const logoUrl = req ? `${protocol}://${req.get('host')}/logo.svg` : 'https://vuxevents.zone.id/logo.svg';
+      
+      const htmlContent = `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0f; color: white; padding: 48px; border-radius: 48px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+          <img src="${logoUrl}" style="width: 64px; border-radius: 18px; margin-bottom: 32px;" />
+          <h1 style="font-size: 24px; font-weight: 800; margin-bottom: 8px;">YOU'RE IN! 🎉</h1>
+          <p style="color: rgba(255,255,255,0.6); font-size: 16px; margin-bottom: 32px; line-height: 1.6;">
+            Hi ${displayName || 'there'},<br/><br/>
+            Great news! A spot just opened up for <strong>${eventTitle}</strong> and you have been officially moved off the waitlist. Your RSVP is now approved!
+          </p>
+          <p style="font-size: 11px; color: rgba(255,255,255,0.2); text-transform: uppercase; letter-spacing: 0.3em; font-weight: 900; margin-top: 40px;">THE PREMIER EVENT PLATFORM</p>
+        </div>
+      `;
+
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM || `"VUX Events" <${userSmtp}>`,
+        to: email,
+        subject: `🎉 You're off the waitlist for ${eventTitle}!`,
+        html: htmlContent,
+      });
+
+      return res.json({ success: true });
+    } catch (error: any) {
+      console.error('[SMTP] Waitlist Email Error:', error);
+      return res.status(500).json({ error: 'Failed to send waitlist email' });
+    }
+  });
+
+  apiRouter.post('/email/welcome', async (req, res) => {
       const email = req.body?.email;
       const displayName = req.body?.displayName;
       if (!email) return res.status(400).json({ error: 'Email is required' });
