@@ -55,7 +55,6 @@ export function Settings() {
     { id: 'security', label: 'Security', icon: Shield },
     { id: 'integrations', label: 'Integrations', icon: Zap },
     { id: 'account', label: 'Account', icon: User },
-    { id: 'developer', label: 'Developer API', icon: Terminal },
   ];
 
    return (
@@ -421,9 +420,6 @@ export function Settings() {
             </motion.div>
           )}
 
-          {activeTab === 'developer' && (
-            <DeveloperHub />
-          )}
         </div>
       </div>
     </div>

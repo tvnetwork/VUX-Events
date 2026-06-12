@@ -60,6 +60,23 @@ export interface UserProfile {
       lastSync?: string;
     };
   };
+  developer?: {
+    apiKeys?: {
+      id: string;
+      name: string;
+      key: string; // usually hashed or masked in real prod, but we'll store masked key here
+      createdAt: string;
+      lastUsed?: string;
+    }[];
+    webhooks?: {
+      id: string;
+      url: string;
+      events: string[];
+      secret: string;
+      isActive: boolean;
+      createdAt: string;
+    }[];
+  };
 }
 
 export interface TicketType {

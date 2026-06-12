@@ -1,8 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { Sidebar } from '../components/Sidebar';
 import { WatermarkBackground } from '../components/WatermarkBackground';
@@ -11,18 +6,11 @@ import { AnnouncementBanner } from '../components/AnnouncementBanner';
 import { AnimatePresence, motion } from 'motion/react';
 import { Event } from '../types';
 import { useAuth } from '../AuthContext';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Outlet, useLocation } from 'react-router-dom';
 import { Footer } from '../components/Footer';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Loader2 } from 'lucide-react';
-
-// Lazy load tabs
-const Dashboard = lazy(() => import('../pages/Dashboard').then(m => ({ default: m.Dashboard })));
-const Discover = lazy(() => import('../pages/Discover').then(m => ({ default: m.Discover })));
-const Settings = lazy(() => import('../pages/Settings').then(m => ({ default: m.Settings })));
-const Profile = lazy(() => import('../pages/Profile').then(m => ({ default: m.Profile })));
-const AdminDashboard = lazy(() => import('../pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 
 // Lazy load modals
 const CreateEvent = lazy(() => import('../components/CreateEvent').then(m => ({ default: m.CreateEvent })));
@@ -31,19 +19,25 @@ const ManageAttendees = lazy(() => import('../components/ManageAttendees').then(
 const OnboardingWizard = lazy(() => import('../components/OnboardingWizard').then(m => ({ default: m.OnboardingWizard })));
 const FeedbackModal = lazy(() => import('../components/FeedbackModal').then(m => ({ default: m.FeedbackModal })));
 
-function TabLoading() {
+function RouteTransition({ children, locationKey }: { children: React.ReactNode, locationKey: string }) {
   return (
-    <div className="w-full py-32 flex flex-col items-center justify-center space-y-4">
-       <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-       <p className="text-sm font-medium text-white/40">Loading content...</p>
-    </div>
+    <motion.div
+      key={locationKey}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3 }}
+      className="w-full"
+    >
+      {children}
+    </motion.div>
   );
 }
 
-export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 'discover' | 'settings' | 'profile' | 'admin' }) {
+export function RootLayout() {
   const { profile: userProfile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<'events' | 'discover' | 'settings' | 'profile' | 'admin'>(initialTab);
+  const location = useLocation();
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -52,10 +46,10 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Scroll to top on tab change
+  // Scroll to top on route change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [activeTab]);
+  }, [location.pathname]);
 
   // Check for event ID in URL
   useEffect(() => {
@@ -104,8 +98,6 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
       <WatermarkBackground />
 
       <Sidebar 
-        activeTab={activeTab} 
-        onTabChange={(tab) => setActiveTab(tab)} 
         onSearchClick={() => setIsCommandPaletteOpen(true)}
         onCreateClick={() => setIsCreateModalOpen(true)}
       />
@@ -116,37 +108,11 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
         
         <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 md:p-8 pt-20 md:pt-8">
           <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-              className="w-full"
-            >
-              <Suspense fallback={<TabLoading />}>
-                {activeTab === 'events' && (
-                  <Dashboard 
-                    onViewEvent={setSelectedEvent} 
-                    onManageAttendees={setManagingEvent}
-                    onEditEvent={setEditingEvent}
-                    onCreateClick={() => setIsCreateModalOpen(true)}
-                  />
-                )}
-                {activeTab === 'discover' && (
-                  <Discover onViewEvent={setSelectedEvent} />
-                )}
-                {activeTab === 'profile' && (
-                  <Profile onViewEvent={setSelectedEvent} />
-                )}
-                {activeTab === 'settings' && (
-                  <Settings />
-                )}
-                {activeTab === 'admin' && (
-                  <AdminDashboard />
-                )}
-              </Suspense>
-            </motion.div>
+             <RouteTransition locationKey={location.pathname}>
+               {/* Context provider logic for Modals is now handled in App or passed down if necessary */}
+               {/* The Outlet renders the child routes from react-router */}
+               <Outlet context={{ setSelectedEvent, setManagingEvent, setEditingEvent, setIsCreateModalOpen }} />
+             </RouteTransition>
           </AnimatePresence>
         </main>
         
