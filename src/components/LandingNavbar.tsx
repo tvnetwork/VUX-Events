@@ -18,20 +18,24 @@ export function LandingNavbar({ onAuthClick }: { onAuthClick: () => void }) {
 
   return (
     <nav className={cn(
-      "fixed top-0 inset-x-0 z-[60] transition-all duration-500 px-6",
-      scrolled ? "py-4 bg-[#0b0b0f]/80 backdrop-blur-xl border-b border-white/[0.03] shadow-[0_20px_50px_rgba(0,0,0,0.5)]" : "py-10 bg-transparent"
+      "fixed top-4 inset-x-0 z-[60] transition-all duration-500 px-4 sm:px-6 flex justify-center",
     )}>
-      <div className="max-w-[1400px] mx-auto flex items-center justify-between">
+      <div className={cn(
+        "max-w-[1000px] w-full flex items-center justify-between px-6 transition-all duration-500",
+        scrolled 
+          ? "py-3 bg-white/[0.02] backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-full" 
+          : "py-6 bg-transparent"
+      )}>
         {/* Logo */}
-        <Link to="/" className="hover:scale-105 transition-transform">
-          <Logo />
+        <Link to="/" className="hover:scale-105 transition-transform flex-shrink-0">
+          <Logo size="sm" showText={true} />
         </Link>
 
         {/* Center - Links */}
-        <div className="hidden md:flex items-center gap-12">
-          <Link to="/discover" className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 hover:text-indigo-400 transition-all">Explore</Link>
-          <Link to="/upgrade" className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 hover:text-indigo-400 transition-all">Features</Link>
-          <Link to="/pricing" className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 hover:text-indigo-400 transition-all">Pricing</Link>
+        <div className="hidden md:flex items-center gap-8">
+          <Link to="/discover" className="text-xs font-medium text-white/60 hover:text-white transition-colors">Explore</Link>
+          <Link to="/upgrade" className="text-xs font-medium text-white/60 hover:text-white transition-colors">Features</Link>
+          <Link to="/pricing" className="text-xs font-medium text-white/60 hover:text-white transition-colors">Pricing</Link>
         </div>
 
         {/* Auth CTA */}
@@ -39,9 +43,9 @@ export function LandingNavbar({ onAuthClick }: { onAuthClick: () => void }) {
             <Button 
                 variant="vux"
                 onClick={onAuthClick}
-                className="px-10 h-14 text-sm font-black italic tracking-tighter uppercase rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-indigo-500/10"
+                className="px-6 h-10 text-xs font-medium rounded-full bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center gap-2"
             >
-                Login
+                Get Started
             </Button>
         </div>
       </div>

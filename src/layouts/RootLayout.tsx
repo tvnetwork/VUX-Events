@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { Navbar } from '../components/Navbar';
+import { Sidebar } from '../components/Sidebar';
 import { WatermarkBackground } from '../components/WatermarkBackground';
 import { CommandPalette } from '../components/CommandPalette';
 import { AnnouncementBanner } from '../components/AnnouncementBanner';
@@ -33,9 +33,9 @@ const FeedbackModal = lazy(() => import('../components/FeedbackModal').then(m =>
 
 function TabLoading() {
   return (
-    <div className="w-full py-32 flex flex-col items-center justify-center space-y-6">
-       <Loader2 className="w-8 h-8 animate-spin text-indigo-500/20" />
-       <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/5">Loading content</p>
+    <div className="w-full py-32 flex flex-col items-center justify-center space-y-4">
+       <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+       <p className="text-sm font-medium text-white/40">Loading content...</p>
     </div>
   );
 }
@@ -98,82 +98,89 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
     }
   }, [userProfile]);
 
-  const renderContent = () => {
-    return (
-      <Suspense fallback={<TabLoading />}>
-        <motion.div
-           key={activeTab}
-           initial={{ opacity: 0, x: 10 }}
-           animate={{ opacity: 1, x: 0 }}
-           transition={{ duration: 0.2 }}
-        >
-          {(() => {
-            switch (activeTab) {
-              case 'events':
-                return <Dashboard onEventClick={setSelectedEvent} onCreateClick={() => setIsCreateModalOpen(true)} onEditEvent={setEditingEvent} />;
-              case 'discover':
-                return <Discover onCreateClick={() => setIsCreateModalOpen(true)} onEventClick={setSelectedEvent} />;
-              case 'settings':
-                return <Settings />;
-              case 'profile':
-                return <Profile />;
-              case 'admin':
-                return <AdminDashboard />;
-              default:
-                return <Dashboard onEventClick={setSelectedEvent} onCreateClick={() => setIsCreateModalOpen(true)} onEditEvent={setEditingEvent} />;
-            }
-          })()}
-        </motion.div>
-      </Suspense>
-    );
-  };
-
   return (
-    <div className="min-h-screen flex flex-col relative bg-[#0b0b0f]">
+    <div className="min-h-screen bg-[#07070a] text-white selection:bg-indigo-500/30 overflow-x-hidden font-sans flex">
+      {/* Dynamic ambient background is handled by individual pages, but Watermark remains for texture */}
       <WatermarkBackground />
-      <div className="relative z-10 flex flex-col min-h-screen">
+
+      <Sidebar 
+        activeTab={activeTab} 
+        onTabChange={(tab) => setActiveTab(tab)} 
+        onSearchClick={() => setIsCommandPaletteOpen(true)}
+        onCreateClick={() => setIsCreateModalOpen(true)}
+      />
+
+      {/* Main Content Area next to Sidebar */}
+      <div className="flex-1 flex flex-col min-h-screen md:ml-64 relative z-10 transition-all duration-300">
         <AnnouncementBanner />
-        <Navbar 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab} 
-          onSearchClick={() => setIsCommandPaletteOpen(true)}
-          onCreateClick={() => setIsCreateModalOpen(true)}
-          onLoginClick={() => {}}
-        />
         
-        <main className="flex-1 w-full max-w-[1280px] mx-auto px-6 py-12 md:py-16">
-          {renderContent()}
+        <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 md:p-8 pt-20 md:pt-8">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="w-full"
+            >
+              <Suspense fallback={<TabLoading />}>
+                {activeTab === 'events' && (
+                  <Dashboard 
+                    onViewEvent={setSelectedEvent} 
+                    onManageAttendees={setManagingEvent}
+                    onEditEvent={setEditingEvent}
+                    onCreateClick={() => setIsCreateModalOpen(true)}
+                  />
+                )}
+                {activeTab === 'discover' && (
+                  <Discover onViewEvent={setSelectedEvent} />
+                )}
+                {activeTab === 'profile' && (
+                  <Profile onViewEvent={setSelectedEvent} />
+                )}
+                {activeTab === 'settings' && (
+                  <Settings />
+                )}
+                {activeTab === 'admin' && (
+                  <AdminDashboard />
+                )}
+              </Suspense>
+            </motion.div>
+          </AnimatePresence>
         </main>
-        <Footer onAuthClick={() => setIsCreateModalOpen(true)} />
+        
+        <Footer onAuthClick={() => {}} />
       </div>
 
       <CommandPalette 
         isOpen={isCommandPaletteOpen} 
-        onClose={() => setIsCommandPaletteOpen(false)} 
-        onTabChange={setActiveTab}
-        onCreateClick={() => setIsCreateModalOpen(true)}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onSelectEvent={setSelectedEvent}
       />
 
       <AnimatePresence>
-        {(isCreateModalOpen || editingEvent) && (
+        {isCreateModalOpen && (
           <Suspense fallback={null}>
             <CreateEvent 
-              eventToEdit={editingEvent} 
               onClose={() => {
                 setIsCreateModalOpen(false);
                 setEditingEvent(null);
-              }} 
+              }}
+              eventToEdit={editingEvent || undefined}
             />
           </Suspense>
         )}
-        
+
         {selectedEvent && (
           <Suspense fallback={null}>
             <EventDetails 
               event={selectedEvent} 
-              onClose={() => setSelectedEvent(null)} 
-              onManage={setManagingEvent}
-              onEdit={setEditingEvent}
+              onClose={() => setSelectedEvent(null)}
+              onManageAttendees={() => {
+                setSelectedEvent(null);
+                setManagingEvent(selectedEvent);
+              }}
             />
           </Suspense>
         )}
@@ -187,9 +194,12 @@ export function RootLayout({ initialTab = 'events' }: { initialTab?: 'events' | 
           </Suspense>
         )}
 
-        {showOnboarding && (
+        {showOnboarding && userProfile && (
           <Suspense fallback={null}>
-            <OnboardingWizard onComplete={() => setShowOnboarding(false)} />
+            <OnboardingWizard 
+              profile={userProfile} 
+              onComplete={() => setShowOnboarding(false)} 
+            />
           </Suspense>
         )}
 

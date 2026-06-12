@@ -49,38 +49,37 @@ export function WatermarkBackground() {
     <Flame className="w-5 h-5" />
   ];
 
-  // We'll create a grid of these elements
+  // PERFORMANCE FIX: Reduce the massive number of DOM nodes from 120 to 30.
+  // 120 continuously animating Framer Motion components causes severe CPU/GPU bottlenecking.
   const pattern = [];
-  for (let i = 0; i < 120; i++) {
+  for (let i = 0; i < 30; i++) {
     const word = words[i % words.length];
     const icon = icons[i % icons.length];
     pattern.push({ word, icon, id: i });
   }
 
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-[1] select-none">
-      <div className="flex flex-wrap gap-x-24 gap-y-20 rotate-[-15deg] scale-125 origin-center justify-center p-20 min-w-[300vw] min-h-[300vh] -translate-x-1/3 -translate-y-1/3">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-[1] select-none opacity-50">
+      <div className="flex flex-wrap gap-x-32 gap-y-24 rotate-[-15deg] scale-125 origin-center justify-center p-20 min-w-[200vw] min-h-[200vh] -translate-x-1/4 -translate-y-1/4">
         {pattern.map((item, idx) => (
           <motion.div
             key={item.id}
             initial={{ opacity: 0 }}
             animate={{ 
-              opacity: [0.1, 0.18, 0.1],
-              y: [0, -10, 0],
-              x: [0, 5, 0]
+              opacity: [0.05, 0.1, 0.05],
             }}
             transition={{ 
-              duration: 15 + (idx % 20), 
+              duration: 20 + (idx % 10), 
               repeat: Infinity, 
-              delay: idx * 0.05,
-              ease: "easeInOut" 
+              delay: idx * 0.1,
+              ease: "linear" 
             }}
             className="flex items-center gap-4 whitespace-nowrap"
           >
-            <div className="text-white/40">
+            <div className="text-white/30">
               {item.icon}
             </div>
-            <span className="text-2xl font-black tracking-tighter uppercase italic text-white/35 leading-none">
+            <span className="text-xl font-semibold tracking-widest uppercase text-white/20 leading-none">
               {item.word}
             </span>
           </motion.div>
