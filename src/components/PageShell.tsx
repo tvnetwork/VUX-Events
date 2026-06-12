@@ -1,5 +1,4 @@
 import { useAuth } from '../AuthContext';
-import { Navbar } from './Navbar';
 import { LandingNavbar } from './LandingNavbar';
 import { useState, useEffect } from 'react';
 import { AuthModal } from './AuthModal';
@@ -16,35 +15,19 @@ export function PageShell({ children }: PageShellProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [showScanner, setShowScanner] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowScanner(false), 2000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleTabChange = (tab: string) => {
-    if (tab === 'discover') {
-      navigate('/discover');
-    } else {
-      navigate('/');
-    }
-  };
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-[#0b0b0f] via-[#1a1023] to-[#0b0b0f]">
+    <div className="relative min-h-screen flex flex-col bg-[#07070a] text-white">
+      {/* Background gradients to match new elegant layout */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none" />
       <WatermarkBackground />
 
       <div className="relative z-10 flex flex-col min-h-screen">
-        <Navbar 
-          activeTab="" 
-          onTabChange={handleTabChange}
-          onSearchClick={() => navigate('/')}
-          onCreateClick={() => user ? navigate('/') : setIsAuthOpen(true)}
-          onLoginClick={() => setIsAuthOpen(true)}
+        <LandingNavbar 
+          onAuthClick={() => setIsAuthOpen(true)}
         />
         
-        <main className="flex-1">
+        <main className="flex-1 pt-24 pb-16">
           {children}
         </main>
 
