@@ -5,14 +5,12 @@ import QRCode from 'qrcode';
 
 const router = express.Router();
 
-// Mock DevOS Webhook URL for this phase
-const DEVOS_WEBHOOK_URL = process.env.DEVOS_WEBHOOK_URL || 'https://devos-webhook-placeholder.com/api/vux-webhook';
-
 // Webhook Dispatcher
-const dispatchWebhook = async (event: string, data: any) => {
+const dispatchWebhook = async (webhookUrl: string, event: string, data: any) => {
+  if (!webhookUrl) return;
   try {
-    console.log(`[Webhook Dispatch] Sending ${event} to ${DEVOS_WEBHOOK_URL}`);
-    // await fetch(DEVOS_WEBHOOK_URL, {
+    console.log(`[Webhook Dispatch] Sending ${event} to ${webhookUrl}`);
+    // await fetch(webhookUrl, {
     //   method: 'POST',
     //   headers: { 'Content-Type': 'application/json', 'x-vux-signature': 'mock_signature' },
     //   body: JSON.stringify({ event, data, timestamp: new Date().toISOString() })
@@ -23,15 +21,28 @@ const dispatchWebhook = async (event: string, data: any) => {
 };
 
 // Middleware to check API key
-const authenticateApiKey = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+const authenticateApiKey = async (req: any, res: express.Response, next: express.NextFunction) => {
   const apiKey = req.headers['x-api-key'] || req.query.apiKey;
   if (!apiKey) {
     return res.status(401).json({ error: 'Missing API key' });
   }
-  if (apiKey !== 'vux_test_123' && !apiKey.toString().startsWith('vux_')) {
-    return res.status(401).json({ error: 'Invalid API key' });
+  
+  if (apiKey === 'vux_test_123') {
+    req.webhookUrl = 'https://devos-webhook-placeholder.com/api/vux-webhook';
+    return next();
   }
-  next();
+
+  try {
+    const keysSnap = await admin.firestore().collection('api_keys').where('key', '==', apiKey).limit(1).get();
+    if (keysSnap.empty) {
+      return res.status(401).json({ error: 'Invalid API key' });
+    }
+    
+    req.webhookUrl = keysSnap.docs[0].data().webhookUrl;
+    next();
+  } catch (e) {
+    res.status(500).json({ error: 'Authentication error' });
+  }
 };
 
 router.use(authenticateApiKey);
@@ -66,7 +77,7 @@ router.post('/events/create', async (req, res) => {
     const responsePayload = { id: eventRef.id, ...eventData, createdAt: new Date().toISOString() };
     
     // Dispatch webhook for creation
-    await dispatchWebhook('event.created', responsePayload);
+    await dispatchWebhook((req as any).webhookUrl, 'event.created', responsePayload);
 
     res.status(201).json({
       success: true,
@@ -125,7 +136,7 @@ router.post('/events/:id/rsvp', async (req, res) => {
     const responsePayload = { id: rsvpRef.id, ...rsvpData, timestamp: new Date().toISOString() };
     
     // Dispatch webhook for RSVP
-    await dispatchWebhook('event.rsvp.created', { eventId, rsvp: responsePayload });
+    await dispatchWebhook((req as any).webhookUrl, 'event.rsvp.created', { eventId, rsvp: responsePayload });
 
     res.json({ success: true, message: 'RSVP successful, ticket sent.', rsvp: responsePayload });
   } catch (error: any) {

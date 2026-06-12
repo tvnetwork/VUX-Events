@@ -22,7 +22,8 @@ import {
   User,
   ExternalLink,
   ShieldCheck,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Terminal
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -30,8 +31,9 @@ import { useAuth } from '../AuthContext';
 import { cn } from '../lib/utils';
 import { TwoFactorSetup } from '../components/auth/TwoFactorSetup';
 import { GoogleCalendarService } from '../services/GoogleCalendarService';
+import { DeveloperHub } from '../components/DeveloperHub';
 
-type SettingsTab = 'security' | 'integrations' | 'account';
+type SettingsTab = 'security' | 'integrations' | 'account' | 'developer';
 
 export function Settings() {
   const { user, profile, updateProfileData, registerPasskey } = useAuth();
@@ -62,6 +64,7 @@ export function Settings() {
     { id: 'security', label: 'Security', icon: Shield },
     { id: 'integrations', label: 'Integrations', icon: Zap },
     { id: 'account', label: 'Account', icon: User },
+    { id: 'developer', label: 'Developer API', icon: Terminal },
   ];
 
    return (
@@ -246,7 +249,11 @@ export function Settings() {
                     </Card>
                   </motion.div>
                 )}
-              </AnimatePresence>
+            
+            {activeTab === 'developer' && (
+              <DeveloperHub />
+            )}
+          </AnimatePresence>
  
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                  <section className="space-y-4 p-8 md:p-10 bg-white/[0.01] rounded-[2rem] md:rounded-[3rem] border border-white/5">
