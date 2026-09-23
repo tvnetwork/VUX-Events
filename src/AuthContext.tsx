@@ -15,7 +15,7 @@ import {
 } from 'firebase/auth';
 import { TOTP, NobleCryptoPlugin, ScureBase32Plugin } from 'otplib';
 import { auth, db } from './lib/firebase';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp, arrayUnion } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, arrayUnion, collection, query, where, getDocs } from 'firebase/firestore';
 import { UserProfile, Passkey } from './types';
 import { PulseService } from './services/PulseService';
 import { getAvatarUrl } from './lib/utils';
@@ -164,41 +164,95 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         setUser(user);
         if (user) {
-          // Sync profile - use email as ID if available for easier lookup
-          const docId = user.email || user.uid;
-          const profileRef = doc(db, 'users', docId);
-          const profileSnap = await getDoc(profileRef);
-          
-          if (!profileSnap.exists()) {
-            const newProfile: UserProfile = {
-              uid: user.uid,
-              email: user.email || (user.uid.includes('@') ? user.uid : ''),
-              displayName: user.displayName || 'Guest',
-              photoURL: user.photoURL || getAvatarUrl(user.uid),
-              createdAt: new Date().toISOString(),
-              onboardingCompleted: false,
-            };
-            await setDoc(profileRef, {
-              ...newProfile,
-              createdAt: serverTimestamp()
-            });
-            setProfile(newProfile);
-            
-            // Send welcome email
-            fetch('/api/email/welcome', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                email: newProfile.email, 
-                displayName: newProfile.displayName 
-              }),
-            }).catch(e => console.error('Failed to send welcome email:', e));
+          // 1. Resolve canonical email across Firebase user, token claims, and session storage
+          let resolvedEmail = user.email || null;
+          if (!resolvedEmail) {
+            const cachedEmail = sessionStorage.getItem('kontyra_sso_email');
+            if (cachedEmail) resolvedEmail = cachedEmail;
+          }
+          if (!resolvedEmail) {
+            try {
+              const idTokenResult = await user.getIdTokenResult();
+              resolvedEmail = (idTokenResult.claims.email as string) || (idTokenResult.claims.userEmail as string) || null;
+            } catch (e) {
+              console.warn('Could not fetch ID token claims:', e);
+            }
+          }
 
-            PulseService.sendPulse('REGISTRATION', `New user registered: ${newProfile.displayName}`, user.uid, { email: newProfile.email });
-          } else {
-            const existingProfile = profileSnap.data() as UserProfile;
+          // 2. Locate existing profile document
+          let existingProfile: UserProfile | null = null;
+          let profileRef = null;
+
+          // Priority A: Try by resolved email
+          if (resolvedEmail) {
+            const emailRef = doc(db, 'users', resolvedEmail);
+            const emailSnap = await getDoc(emailRef);
+            if (emailSnap.exists()) {
+              existingProfile = emailSnap.data() as UserProfile;
+              profileRef = emailRef;
+            }
+          }
+
+          // Priority B: Try by user.uid
+          if (!existingProfile) {
+            const uidRef = doc(db, 'users', user.uid);
+            const uidSnap = await getDoc(uidRef);
+            if (uidSnap.exists()) {
+              const data = uidSnap.data() as any;
+              if (data.linkedEmail) {
+                const linkedRef = doc(db, 'users', data.linkedEmail);
+                const linkedSnap = await getDoc(linkedRef);
+                if (linkedSnap.exists()) {
+                  existingProfile = linkedSnap.data() as UserProfile;
+                  profileRef = linkedRef;
+                } else {
+                  existingProfile = data as UserProfile;
+                  profileRef = uidRef;
+                }
+              } else {
+                existingProfile = data as UserProfile;
+                profileRef = uidRef;
+              }
+            }
+          }
+
+          // Priority C: Query by email in users collection
+          if (!existingProfile && resolvedEmail) {
+            try {
+              const q = query(collection(db, 'users'), where('email', '==', resolvedEmail));
+              const querySnap = await getDocs(q);
+              if (!querySnap.empty) {
+                existingProfile = querySnap.docs[0].data() as UserProfile;
+                profileRef = querySnap.docs[0].ref;
+              }
+            } catch (e) {
+              console.warn('User query by email failed:', e);
+            }
+          }
+
+          // 3. Handle existing profile vs new registration
+          if (existingProfile && profileRef) {
+            // Link Kontyra UID and update activity
+            const updates: any = {
+              lastLoginAt: new Date().toISOString()
+            };
+            if (user.uid !== existingProfile.uid) {
+              updates.kontyraUid = user.uid;
+              updates.linkedAccounts = arrayUnion('kontyra');
+              
+              // Maintain pointer at users/{user.uid} so any direct UID queries resolve seamlessly
+              setDoc(doc(db, 'users', user.uid), {
+                ...existingProfile,
+                linkedEmail: existingProfile.email || resolvedEmail,
+                kontyraUid: user.uid,
+                isLinkedPointer: true,
+                updatedAt: new Date().toISOString()
+              }, { merge: true }).catch(() => {});
+            }
+
+            updateDoc(profileRef, updates).catch(() => {});
             setProfile(existingProfile);
-            
+
             // Send login notification (Security)
             fetch('/api/email/login-notification', {
               method: 'POST',
@@ -211,6 +265,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }).catch(e => console.error('Failed to send login notification:', e));
 
             PulseService.sendPulse('LOGIN', `User logged in: ${existingProfile.displayName}`, user.uid);
+          } else {
+            // New profile creation
+            const targetDocId = resolvedEmail || user.uid;
+            const newProfileRef = doc(db, 'users', targetDocId);
+            const newProfile: UserProfile = {
+              uid: user.uid,
+              email: resolvedEmail || (user.uid.includes('@') ? user.uid : ''),
+              displayName: user.displayName || 'Guest',
+              photoURL: user.photoURL || getAvatarUrl(user.uid),
+              createdAt: new Date().toISOString(),
+              onboardingCompleted: false,
+            };
+            await setDoc(newProfileRef, {
+              ...newProfile,
+              createdAt: serverTimestamp()
+            });
+            setProfile(newProfile);
+
+            // Send welcome email
+            fetch('/api/email/welcome', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                email: newProfile.email, 
+                displayName: newProfile.displayName 
+              }),
+            }).catch(e => console.error('Failed to send welcome email:', e));
+
+            PulseService.sendPulse('REGISTRATION', `New user registered: ${newProfile.displayName}`, user.uid, { email: newProfile.email });
           }
         } else {
           setProfile(null);
@@ -339,7 +422,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const addPasskey = async (passkey: Passkey) => {
     if (!user) throw new Error('Must be logged in to add a passkey.');
-    const docId = user.email || user.uid;
+    const docId = profile?.email || user.email || user.uid;
     const userRef = doc(db, 'users', docId);
     await updateDoc(userRef, {
       passkeys: arrayUnion(passkey)
@@ -354,7 +437,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updateProfileData = async (data: Partial<UserProfile>) => {
     if (!user) throw new Error('Must be logged in to update profile.');
-    const docId = user.email || user.uid;
+    const docId = profile?.email || user.email || user.uid;
     const userRef = doc(db, 'users', docId);
     
     const updatePayload = {

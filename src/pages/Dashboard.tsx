@@ -35,7 +35,7 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
   onCreateClick: () => void,
   onEditEvent?: (e: Event) => void
 }) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'attending' | 'hosting'>('attending');
@@ -58,15 +58,16 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
 
   useEffect(() => {
     if (!user) return;
+    const targetUids = Array.from(new Set([user.uid, profile?.uid, profile?.email, user.email].filter(Boolean) as string[]));
     // Query rsvps using collectionGroup for better performance across all events
-    const q = query(collectionGroup(db, 'rsvps'), where('userId', '==', user.uid));
+    const q = query(collectionGroup(db, 'rsvps'), where('userId', 'in', targetUids.slice(0, 10)));
     const unsubscribe = onSnapshot(q, (snap) => {
       setRSVPs(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as RSVP)));
     }, (error) => {
       console.error('Dashboard RSVPs error:', error);
     });
     return unsubscribe;
-  }, [user]);
+  }, [user, profile]);
 
   const attendingEvents = useMemo(() => 
     events.filter(e => rsvps.some(r => r.eventId === e.id && r.status === 'approved')),
@@ -74,8 +75,14 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
   );
 
   const hostedEvents = useMemo(() => 
-    events.filter(e => e.hostId === user?.uid),
-    [events, user]
+    events.filter(e => 
+      (user?.uid && e.hostId === user.uid) || 
+      (profile?.email && e.hostId === profile.email) || 
+      (profile?.uid && e.hostId === profile.uid) ||
+      (profile?.email && e.coHostIds?.includes(profile.email)) ||
+      (user?.email && e.coHostIds?.includes(user.email))
+    ),
+    [events, user, profile]
   );
 
   const filteredEvents = viewMode === 'attending' ? attendingEvents : hostedEvents;
@@ -324,10 +331,14 @@ const TimelineSection = memo(({ date, events, onEventClick, onEditEvent, index, 
 const TimelineItem = memo(({ event, onClick, onEdit, isManageMode }: { event: Event, onClick: () => void, onEdit: () => void, isManageMode?: boolean }) => {
   const { user, profile } = useAuth();
   const [attendees, setAttendees] = useState<RSVP[]>([]);
-  const isHost = user && (
-    event.hostId === user.uid || 
-    event.coHostIds?.includes(user.email || '') ||
-    profile?.email === 'oladoyeheritage445@gmail.com'
+  const isHost = (user || profile) && (
+    (user?.uid && event.hostId === user.uid) || 
+    (profile?.uid && event.hostId === profile.uid) ||
+    (profile?.email && event.hostId === profile.email) ||
+    event.coHostIds?.includes(user?.email || '') ||
+    (profile?.email && event.coHostIds?.includes(profile.email)) ||
+    profile?.email?.toLowerCase() === 'oladoyeheritage445@gmail.com'.toLowerCase() ||
+    user?.email?.toLowerCase() === 'oladoyeheritage445@gmail.com'.toLowerCase()
   );
   
   const [isDeleting, setIsDeleting] = useState(false);

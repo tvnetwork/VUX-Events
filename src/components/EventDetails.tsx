@@ -368,10 +368,14 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
     }
   };
 
-  const isHost = user && (
-    user.uid === event.hostId || 
-    event.coHostIds?.includes(user.email || '') ||
-    profile?.email === 'oladoyeheritage445@gmail.com'
+  const isHost = (user || profile) && (
+    (user?.uid && event.hostId === user.uid) || 
+    (profile?.uid && profile.uid === event.hostId) ||
+    (profile?.email && event.hostId === profile.email) ||
+    event.coHostIds?.includes(user?.email || '') ||
+    (profile?.email && event.coHostIds?.includes(profile.email)) ||
+    profile?.email?.toLowerCase() === 'oladoyeheritage445@gmail.com'.toLowerCase() ||
+    user?.email?.toLowerCase() === 'oladoyeheritage445@gmail.com'.toLowerCase()
   );
   const needsPassword = event.visibility === 'private' && event.password && !isUnlocked && !isHost;
 

@@ -6,6 +6,24 @@ import { motion } from 'motion/react';
 import { Loader2, AlertCircle, ShieldCheck } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 
+function decodeJwt(jwt: string) {
+  try {
+    const parts = jwt.split('.');
+    if (parts.length < 2) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+}
+
 export function SSOCallback() {
   const navigate = useNavigate();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -32,9 +50,33 @@ export function SSOCallback() {
       return;
     }
 
+    // Extract potential email claim from the token payload
+    const jwtPayload = decodeJwt(token);
+    const extractedEmail = 
+      jwtPayload?.claims?.email || 
+      jwtPayload?.email || 
+      jwtPayload?.claims?.userEmail || 
+      (jwtPayload?.uid && jwtPayload.uid.includes('@') ? jwtPayload.uid : null);
+
+    if (extractedEmail) {
+      sessionStorage.setItem('kontyra_sso_email', extractedEmail);
+    }
+
     const processAuth = async () => {
       try {
-        await signInWithCustomToken(auth, token);
+        const userCred = await signInWithCustomToken(auth, token);
+        
+        // Also check refreshed ID token claims
+        try {
+          const idToken = await userCred.user.getIdTokenResult(true);
+          const claimEmail = (idToken.claims.email as string) || (idToken.claims.userEmail as string);
+          if (claimEmail) {
+            sessionStorage.setItem('kontyra_sso_email', claimEmail);
+          }
+        } catch (e) {
+          console.warn('ID token claims check skipped:', e);
+        }
+
         setStatus('success');
         // Brief moment to show success state before redirecting
         setTimeout(() => {
