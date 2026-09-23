@@ -51,7 +51,7 @@ export function Security() {
           </div>
           <div className="space-y-2">
             <h1 className="text-5xl font-black tracking-tight text-white uppercase italic leading-none">Security<br/><span className="text-blue-500">Center</span></h1>
-            <p className="text-[10px] text-white/70 font-black uppercase tracking-[0.4em]">Protocol Version 4.0.1 • Authorized Personnel Only</p>
+            <p className="text-[10px] text-white/50 font-bold uppercase tracking-wider">Account Security Settings</p>
           </div>
         </header>
 
@@ -63,16 +63,16 @@ export function Security() {
                 <div className="space-y-10 relative z-10">
                     <div className="flex items-center justify-between">
                         <div className="space-y-1">
-                            <h2 className="text-2xl font-black italic tracking-tighter uppercase text-white">Identity Protection</h2>
-                            <p className="text-[10px] text-white/70 font-bold uppercase tracking-widest">Multi-Layer Authentication Layers</p>
+                            <h2 className="text-2xl font-black italic tracking-tighter uppercase text-white">Two-Factor Authentication</h2>
+                            <p className="text-xs text-white/60 font-medium">Protect your account with an extra verification step</p>
                         </div>
                         <div className={cn(
-                            "px-4 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest italic",
+                            "px-4 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest",
                             profile?.security?.twoFactorEnabled 
                                 ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" 
-                                : "bg-red-500/10 border-red-500/20 text-red-400"
+                                : "bg-amber-500/10 border-amber-500/20 text-amber-400"
                         )}>
-                            {profile?.security?.twoFactorEnabled ? 'Fortified' : 'Vulnerable'}
+                            {profile?.security?.twoFactorEnabled ? 'Protected' : 'Not Enabled'}
                         </div>
                     </div>
 
@@ -83,16 +83,16 @@ export function Security() {
                                     <Smartphone className="w-6 h-6 text-blue-400" />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <h3 className="text-sm font-black uppercase tracking-widest text-white">2FA (TOTP)</h3>
-                                    <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest italic leading-relaxed max-w-[200px]">Secure your terminal with a unique rotating security core.</p>
+                                    <h3 className="text-sm font-black uppercase tracking-widest text-white">Authenticator App (2FA)</h3>
+                                    <p className="text-xs text-white/40 font-medium leading-relaxed max-w-[220px]">Get verification codes from apps like Google Authenticator.</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-6">
                                 <span className={cn(
-                                    "text-[10px] font-black uppercase tracking-widest italic",
-                                    profile?.security?.twoFactorEnabled ? "text-emerald-500" : "text-white/10"
+                                    "text-xs font-bold uppercase tracking-wider",
+                                    profile?.security?.twoFactorEnabled ? "text-emerald-400" : "text-white/30"
                                 )}>
-                                    {profile?.security?.twoFactorEnabled ? 'Protocol Enabled' : 'Protocol Inactive'}
+                                    {profile?.security?.twoFactorEnabled ? 'Enabled' : 'Disabled'}
                                 </span>
                                 {profile?.security?.twoFactorEnabled ? (
                                     <Button 
@@ -175,8 +175,8 @@ export function Security() {
         </div>
 
         <footer className="pt-20 border-t border-white/5 text-center">
-            <p className="text-[10px] text-white/30 font-black uppercase tracking-[0.4em] leading-loose italic">
-                © 2026 VUX Events • Neural Core Hardened • v4.0.1
+            <p className="text-[10px] text-white/30 font-bold uppercase tracking-wider leading-loose">
+                © 2026 VUX Events • Secure & Encrypted
             </p>
         </footer>
       </div>

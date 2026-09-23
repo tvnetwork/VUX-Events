@@ -153,7 +153,7 @@ export function FeedbackModal({ event, onClose }: FeedbackModalProps) {
                   {loading ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      Uploading Protocol
+                      Submitting feedback...
                     </>
                   ) : (
                     <>

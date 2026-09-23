@@ -242,16 +242,16 @@ export function TwoFactorSetup({ onComplete, onCancel }: { onComplete: () => voi
             </div>
             
             <div className="space-y-3">
-              <h3 className="text-3xl font-black italic tracking-tighter uppercase text-white">Security Hardened</h3>
-              <p className="text-[10px] text-emerald-400/60 font-black uppercase tracking-[0.3em]">Neural Verification Protocol Initialized</p>
+              <h3 className="text-3xl font-black italic tracking-tighter uppercase text-white">Two-Factor Enabled</h3>
+              <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Your account is now protected</p>
             </div>
 
-            <p className="text-xs text-white/30 leading-relaxed max-w-xs mx-auto">
-              Your account is now protected with two-factor authentication. You will be prompted for a verification code whenever you access this terminal.
+            <p className="text-xs text-white/50 leading-relaxed max-w-xs mx-auto">
+              Your account is protected with two-factor authentication. You will be asked for a verification code when you sign in.
             </p>
 
-            <Button onClick={onComplete} variant="vux" className="w-full h-18 rounded-2xl uppercase tracking-widest text-[10px] font-black">
-              Return to Interface
+            <Button onClick={onComplete} variant="vux" className="w-full h-14 rounded-2xl uppercase tracking-wider text-xs font-bold">
+              Done
             </Button>
           </motion.div>
         )}

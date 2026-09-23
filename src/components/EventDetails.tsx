@@ -109,20 +109,19 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
       setVotedPolls(prev => new Set(prev).add(pollId));
       localStorage.setItem(`voted_poll_${event.id}_${pollId}`, 'true');
       
-      toast.success('Signal Synchronized', {
-        icon: '📡',
+      toast.success('Vote recorded!', {
+        icon: '✅',
         style: {
           background: '#0b0b0f',
           color: '#fff',
           border: '1px solid rgba(99, 102, 241, 0.2)',
           fontSize: '11px',
-          fontWeight: '900',
-          letterSpacing: '0.1em'
+          fontWeight: '700',
         }
       });
     } catch (error) {
       console.error('Error voting:', error);
-      toast.error('Sync Failed');
+      toast.error('Could not submit vote');
     }
   };
   const [unlockPassword, setUnlockPassword] = useState('');
@@ -217,12 +216,12 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
         if (navigator.share) {
             await navigator.share({
                 title: event.title,
-                text: `Synchronize with this node: ${event.description}`,
+                text: `Check out this event: ${event.title} - ${event.description}`,
                 url: window.location.href,
             });
         } else {
             await navigator.clipboard.writeText(window.location.href);
-            import('react-hot-toast').then(t => t.default.success("Signal Copied to Clipboard"));
+            import('react-hot-toast').then(t => t.default.success("Event link copied to clipboard"));
         }
     } catch (err) {
         console.error("Share failed", err);
@@ -384,28 +383,26 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
       setIsUnlocked(true);
       setPasswordError(false);
       localStorage.setItem(`event_unlock_${event.id}`, 'true');
-      toast.success('ACCESS GRANTED', {
+      toast.success('Access granted', {
         icon: '🔓',
         style: {
           background: '#0b1a0e',
           color: '#10b981',
           border: '1px solid rgba(16, 185, 129, 0.2)',
-          fontSize: '10px',
-          fontWeight: '900',
-          letterSpacing: '0.2em'
+          fontSize: '11px',
+          fontWeight: '700',
         }
       });
     } else {
       setPasswordError(true);
-      toast.error('INVALID PROTOCOL KEY', {
+      toast.error('Incorrect password', {
         icon: '⚠️',
         style: {
           background: '#1a0b0b',
           color: '#ef4444',
           border: '1px solid rgba(239, 68, 68, 0.2)',
-          fontSize: '10px',
-          fontWeight: '900',
-          letterSpacing: '0.2em'
+          fontSize: '11px',
+          fontWeight: '700',
         }
       });
     }
@@ -415,7 +412,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
     return (
       <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-[#050508]/95 backdrop-blur-xl">
         <Helmet>
-          <title>Encrypted Node | VUX</title>
+          <title>Private Event | VUX Events</title>
         </Helmet>
         <motion.div 
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -436,15 +433,15 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
               <ShieldCheck className="w-10 h-10 text-indigo-400" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-3xl font-black italic uppercase tracking-tighter">ENCRYPTED NODE</h3>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Restricted Access Protocol</p>
+              <h3 className="text-3xl font-black italic uppercase tracking-tighter">PRIVATE EVENT</h3>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Password Required</p>
             </div>
           </div>
 
           <div className="space-y-6 relative">
             <div className="space-y-2">
-              <p className="text-xs font-medium text-white/40 leading-relaxed italic">
-                This event has been flagged as private. Please input the security clearance password to synchronize with this node.
+              <p className="text-xs font-medium text-white/60 leading-relaxed">
+                This event is private. Please enter the password to view the event details.
               </p>
             </div>
 
@@ -847,8 +844,8 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
               <section className="space-y-12">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <h3 className="text-3xl font-black italic uppercase tracking-tighter">LIVE BROADCAST</h3>
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Real-time audience interaction</p>
+                    <h3 className="text-3xl font-black italic uppercase tracking-tighter">LIVE POLLS</h3>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Audience voting & feedback</p>
                   </div>
                 </div>
 
@@ -861,7 +858,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                       
                       <div className="space-y-2 relative">
                         <h4 className="text-2xl font-black italic uppercase tracking-tight leading-tight">{poll.question}</h4>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Select one option to cast signal</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Choose an option below</p>
                       </div>
 
                       <div className="space-y-3 relative">
@@ -906,9 +903,9 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                           <motion.p 
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="text-center text-[10px] font-black uppercase tracking-[0.3em] text-white/20 pt-4"
+                            className="text-center text-[10px] font-black uppercase tracking-[0.3em] text-white/40 pt-4"
                           >
-                              Signal Recorded. Results Syncing...
+                              Vote recorded. Updating live results...
                           </motion.p>
                       )}
                     </div>
@@ -1008,11 +1005,11 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                                 <span className="text-[12px] font-black uppercase tracking-[0.4em] text-indigo-500">HEADLINERS</span>
                             </div>
                             <h3 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter leading-none">THE STAGE</h3>
-                            <p className="text-sm font-medium text-white/40 max-w-md">Our visionaries and industry leaders taking the node to broadcast the next generation of ideas.</p>
+                            <p className="text-sm font-medium text-white/50 max-w-md">Featured speakers and creators taking the stage to share their ideas.</p>
                         </div>
                         <div className="hidden md:block">
-                            <Badge className="bg-white/5 text-white/40 border-none font-mono text-[10px] tracking-widest px-4 py-2">
-                                {event.speakers.length} VISIONARIES ACTIVE
+                            <Badge className="bg-white/5 text-white/60 border-none font-sans text-[10px] font-bold tracking-wider px-4 py-2 uppercase">
+                                {event.speakers.length} Featured Speakers
                             </Badge>
                         </div>
                     </div>
@@ -1383,8 +1380,8 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                                             </svg>
                                         </div>
                                         <div className="space-y-0.5">
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-white">DISCORD SIGNAL</p>
-                                            <p className="text-[8px] font-black text-white/20 uppercase tracking-tighter italic">Join the node</p>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-white">DISCORD COMMUNITY</p>
+                                            <p className="text-[8px] font-bold text-white/40 uppercase tracking-wider">Join chat</p>
                                         </div>
                                     </div>
                                     <ArrowRight className="w-4 h-4 text-white/10 group-hover/link:text-indigo-400 group-hover/link:translate-x-1 transition-all" />

@@ -66,8 +66,8 @@ export default function NotFound() {
         </motion.div>
       </div>
 
-      <div className="absolute bottom-12 text-[10px] font-black tracking-[0.5em] text-white/10 uppercase italic">
-        VUX EVENT MANAGEMENT PROTOCOL // ERROR 404
+      <div className="absolute bottom-12 text-[10px] font-black tracking-[0.3em] text-white/20 uppercase">
+        VUX EVENTS // PAGE NOT FOUND
       </div>
     </div>
   );

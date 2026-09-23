@@ -38,65 +38,65 @@ export function DMCA() {
           <section className="space-y-6 relative">
             <h2 className="text-3xl font-black italic text-white tracking-tighter uppercase flex items-center gap-4">
                 <span className="text-indigo-500 font-mono text-sm opacity-40">01</span>
-                Compliance Registry
+                Copyright Policy
             </h2>
-            <p className="text-white/40 leading-relaxed font-bold italic text-lg uppercase tracking-wide">
-              VUX Events Matrix respects the intellectual property nodes of all entities. In accordance with total DMCA protocols, we respond instantly to notices of alleged data infringement reported to our legal agents.
+            <p className="text-white/70 leading-relaxed font-medium text-base">
+              VUX Events respects the intellectual property rights of creators. In accordance with the Digital Millennium Copyright Act (DMCA), we respond promptly to notices of alleged copyright infringement.
             </p>
           </section>
 
-          <section className="space-y-6 relative">
-            <h2 className="text-3xl font-black italic text-white tracking-tighter uppercase flex items-center gap-4">
+          <section className="space-y-4 relative">
+            <h2 className="text-2xl font-black italic text-white tracking-tight uppercase flex items-center gap-4">
                 <span className="text-indigo-500 font-mono text-sm opacity-40">02</span>
-                Infringement Query
+                Filing a Notice
             </h2>
-            <p className="text-white/40 leading-relaxed font-bold italic text-lg uppercase tracking-wide">
-              If your digital assets have been synchronized without authorization, provide our Legal Agent with an encrypted notice containing:
+            <p className="text-white/70 leading-relaxed font-medium text-base">
+              If your copyrighted work has been posted on VUX Events without permission, please send a notice to our copyright team containing:
             </p>
-            <ul className="space-y-4 ml-8">
+            <ul className="space-y-3 ml-6">
               {[
-                'Digital signature of authorized legal representative.',
-                'Identification of the copyrighted node string.',
-                'Specific protocol path of the infringing material.',
-                'Contact vector (Signal, Mail, or Matrix ID).',
-                'Good faith belief statement of protocol violation.',
-                'Accuracy affirmation under penalty of matrix law.'
+                'A signature of the authorized copyright owner or agent.',
+                'Identification of the copyrighted work claimed to be infringed.',
+                'The URL or link of the infringing event or image on our site.',
+                'Your contact information (name, address, email, and phone number).',
+                'A statement that you have a good-faith belief the use is not authorized.',
+                'A statement made under penalty of perjury that your notice is accurate.'
               ].map((item, i) => (
-                <li key={i} className="flex items-start gap-4">
+                <li key={i} className="flex items-start gap-3">
                   <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full mt-2 shrink-0" />
-                  <span className="text-white/40 font-bold italic text-sm uppercase tracking-wider">{item}</span>
+                  <span className="text-white/60 text-sm">{item}</span>
                 </li>
               ))}
             </ul>
-            <p className="text-white/20 leading-relaxed font-black uppercase italic tracking-widest text-xs pt-6">
-                Broadcast terminal: <span className="text-indigo-400">legal@vuxevents.com</span>
+            <p className="text-white/50 text-sm pt-4">
+              Send notices to: <span className="text-indigo-400 font-semibold">legal@vuxevents.com</span>
             </p>
           </section>
 
-          <section className="space-y-6 relative">
-            <h2 className="text-3xl font-black italic text-white tracking-tighter uppercase flex items-center gap-4">
+          <section className="space-y-4 relative">
+            <h2 className="text-2xl font-black italic text-white tracking-tight uppercase flex items-center gap-4">
                 <span className="text-indigo-500 font-mono text-sm opacity-40">03</span>
-                Counter-Sync
+                Counter-Notices
             </h2>
-            <p className="text-white/40 leading-relaxed font-bold italic text-lg uppercase tracking-wide">
-              If your content nodes were terminated by error, you may deploy a counter-notification. This must include ID verification and an affirmation under penalty of matrix law regarding the mistake.
+            <p className="text-white/70 leading-relaxed font-medium text-base">
+              If you believe your event or content was removed by mistake or misidentification, you may submit a counter-notice with your contact details and an explanation of the error.
             </p>
           </section>
 
-          <section className="space-y-6 relative">
-            <h2 className="text-3xl font-black italic text-white tracking-tighter uppercase flex items-center gap-4">
+          <section className="space-y-4 relative">
+            <h2 className="text-2xl font-black italic text-white tracking-tight uppercase flex items-center gap-4">
                 <span className="text-indigo-500 font-mono text-sm opacity-40">04</span>
-                Red-List Protocol
+                Repeat Infringers
             </h2>
-            <p className="text-white/40 leading-relaxed font-bold italic text-lg uppercase tracking-wide">
-              Repeat data infringers will face permanent identity termination from the VUX substrate. We maintain a zero-tolerance harmony protocol for all creators and orchestrators.
+            <p className="text-white/70 leading-relaxed font-medium text-base">
+              Accounts that repeatedly violate copyright or post unauthorized media may be permanently suspended from VUX Events.
             </p>
           </section>
         </div>
 
         <footer className="pt-24 border-t border-white/5 text-center">
-            <p className="text-[10px] text-white/10 font-bold uppercase tracking-[0.4em] font-mono leading-loose">
-                © 2026 VUX Events Matrix • Secure Protocol v2.0 • Assets Protected
+            <p className="text-[10px] text-white/30 font-bold uppercase tracking-wider">
+                &copy; 2026 VUX Events. All rights reserved.
             </p>
         </footer>
       </div>

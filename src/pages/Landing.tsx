@@ -37,19 +37,19 @@ export function Landing() {
             <div className="max-w-[1200px] mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
               <div className="space-y-1">
                 <p className="text-3xl md:text-4xl font-black italic tracking-tight text-white">45K+</p>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-white/40">Verified Attendees</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-white/40">Happy Attendees</p>
               </div>
               <div className="space-y-1">
                 <p className="text-3xl md:text-4xl font-black italic tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">1,200+</p>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-white/40">Global Events Hosted</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-white/40">Events Hosted</p>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl md:text-4xl font-black italic tracking-tight text-white">&lt;0.5s</p>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-white/40">Door Check-in Latency</p>
+                <p className="text-3xl md:text-4xl font-black italic tracking-tight text-white">&lt;1 sec</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-white/40">Average Check-in Time</p>
               </div>
               <div className="space-y-1">
                 <p className="text-3xl md:text-4xl font-black italic tracking-tight text-emerald-400">99.98%</p>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-white/40">Network Uptime</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-white/40">System Uptime</p>
               </div>
             </div>
           </section>
@@ -59,16 +59,16 @@ export function Landing() {
             <div className="max-w-[1200px] mx-auto space-y-20">
               <div className="space-y-4 max-w-2xl text-center mx-auto">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-widest">
-                  Architecture & Features
+                  Key Features
                 </div>
                 <h2 className="text-4xl md:text-6xl font-black italic tracking-tight text-white uppercase leading-none">
-                  Built for scale. <br />
+                  Everything you need. <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
-                    Engineered for trust.
+                    Nothing you don&apos;t.
                   </span>
                 </h2>
                 <p className="text-white/50 text-base font-light leading-relaxed">
-                  A high-velocity platform orchestrating ticketing, authentication, attendee workflows, and developer APIs in one cohesive ecosystem.
+                  Easily create events, manage guest lists, scan tickets at the door, and share live updates.
                 </p>
               </div>
 
@@ -82,19 +82,19 @@ export function Landing() {
                     <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
                       <QrCode className="w-6 h-6" />
                     </div>
-                    <h3 className="text-2xl font-black text-white italic tracking-tight uppercase">High-Speed FastPass QR</h3>
+                    <h3 className="text-2xl font-black text-white italic tracking-tight uppercase">Fast QR Code Check-ins</h3>
                     <p className="text-white/50 text-sm leading-relaxed font-light">
-                      Sub-second gate check-ins with tamper-resistant dynamic QR codes. Native support for device cameras, offline caching, and automated pass validations.
+                      Check guests in quickly at the door using any phone camera. Fast, smooth, and works reliably without confusing equipment.
                     </p>
                   </div>
 
                   <div className="mt-8 pt-6 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-4 relative z-10">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                      <span className="text-xs font-semibold text-white/70">Hardware & Browser Scanner Support</span>
+                      <span className="text-xs font-semibold text-white/70">Works on phones, tablets, and computers</span>
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
-                      Zero Friction
+                      Instant Scan
                     </span>
                   </div>
                 </div>
@@ -107,16 +107,16 @@ export function Landing() {
                     <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
                       <ShieldCheck className="w-6 h-6" />
                     </div>
-                    <h3 className="text-2xl font-black text-white italic tracking-tight uppercase">Kontyra Identity SSO</h3>
+                    <h3 className="text-2xl font-black text-white italic tracking-tight uppercase">Easy & Secure Sign-in</h3>
                     <p className="text-white/50 text-sm leading-relaxed font-light">
-                      Zero passwords required. Sign in seamlessly with your Kontyra ecosystem credentials, Google, or device biometrics via FIDO2 passkeys.
+                      Sign in with one click using Kontyra, Google, or your fingerprint and face recognition. No passwords to remember.
                     </p>
                   </div>
 
                   <div className="mt-8 pt-6 border-t border-white/[0.06] flex items-center justify-between relative z-10">
-                    <span className="text-xs font-semibold text-white/70">Unified Ecosystem</span>
+                    <span className="text-xs font-semibold text-white/70">One-Click Access</span>
                     <span className="text-[10px] font-black uppercase tracking-widest text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/20">
-                      FIDO2 & OAuth
+                      Password-Free
                     </span>
                   </div>
                 </div>
@@ -127,16 +127,16 @@ export function Landing() {
                     <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
                       <Users className="w-6 h-6" />
                     </div>
-                    <h3 className="text-2xl font-black text-white italic tracking-tight uppercase">Capacity & Waitlists</h3>
+                    <h3 className="text-2xl font-black text-white italic tracking-tight uppercase">Waitlists & Guest Limits</h3>
                     <p className="text-white/50 text-sm leading-relaxed font-light">
-                      Automated waitlist management that moves eager attendees into confirmed slots as soon as capacity opens up, with instant email dispatch.
+                      When an event fills up, guests can join a waitlist. If someone cancels their RSVP, the next person gets their spot automatically.
                     </p>
                   </div>
 
                   <div className="mt-8 pt-6 border-t border-white/[0.06] flex items-center justify-between relative z-10">
-                    <span className="text-xs font-semibold text-white/70">Autonomous Dispatch</span>
+                    <span className="text-xs font-semibold text-white/70">Automatic Updates</span>
                     <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                      Auto-RSVP
+                      Auto-Waitlist
                     </span>
                   </div>
                 </div>
@@ -149,9 +149,9 @@ export function Landing() {
                     <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
                       <Globe className="w-6 h-6" />
                     </div>
-                    <h3 className="text-2xl font-black text-white italic tracking-tight uppercase">Global Webhooks & Developer Hub</h3>
+                    <h3 className="text-2xl font-black text-white italic tracking-tight uppercase">Connect to Discord, Slack & Apps</h3>
                     <p className="text-white/50 text-sm leading-relaxed font-light">
-                      Build your own event experiences on top of our hardened API. Stream attendee check-ins directly into your CRM, Discord, Slack, or custom database in real-time.
+                      Send new sign-ups, ticket updates, and guest arrivals straight into your Discord, Slack, email list, or website in real time.
                     </p>
                   </div>
 
@@ -161,7 +161,7 @@ export function Landing() {
                       <span>/api/external/events/:id/rsvps</span>
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20">
-                      HMAC Signed
+                      Instant Webhooks
                     </span>
                   </div>
                 </div>

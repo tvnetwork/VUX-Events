@@ -46,7 +46,7 @@ export default function ComingSoon() {
                     <span className="text-indigo-500">SOON.</span>
                 </h1>
                 <p className="text-xl md:text-2xl text-white/60 leading-relaxed font-bold italic uppercase tracking-wider max-w-lg mx-auto">
-                    We are currently building this node. Synchronization with the main grid is imminent.
+                    We are currently building this feature. It will be available very soon.
                 </p>
             </motion.div>
         </div>

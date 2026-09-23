@@ -198,7 +198,7 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
               </div>
               <div className="space-y-2">
                 <h2 className="text-5xl font-black italic uppercase tracking-tighter">Event Published!</h2>
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30">Your signal is live on the network</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Your event is now live</p>
               </div>
             </div>
 
@@ -447,8 +447,8 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                         <div className="space-y-6 pt-10 border-t border-white/5">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-1">
-                                    <h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Project Collaboration</h4>
-                                    <p className="text-[10px] text-white/30 font-black uppercase tracking-widest">Add Co-Hosts to this signal</p>
+                                     <h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Project Collaboration</h4>
+                                     <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Add co-hosts to help manage this event</p>
                                 </div>
                                 <Shield className="w-6 h-6 text-indigo-500/40" />
                             </div>
@@ -1344,8 +1344,8 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                     className="space-y-10"
                   >
                      <div className="space-y-2">
-                        <h3 className="text-3xl font-bold tracking-tighter">FINAL VERIFICATION</h3>
-                        <p className="text-white/40 text-sm">Preview of the visual signal before deployment.</p>
+                        <h3 className="text-3xl font-bold tracking-tighter">PREVIEW & CONFIRM</h3>
+                        <p className="text-white/50 text-sm">Preview your event cover and details before publishing.</p>
                      </div>
 
                      <div className="space-y-8">

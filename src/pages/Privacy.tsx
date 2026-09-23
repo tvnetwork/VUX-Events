@@ -35,60 +35,60 @@ export function Privacy() {
         <div className="space-y-16 bg-white/[0.01] p-12 md:p-20 rounded-[4rem] border border-white/[0.03] shadow-2xl relative overflow-hidden backdrop-blur-xl">
           <div className="absolute top-0 right-0 w-[30rem] h-[30rem] bg-indigo-600/5 blur-[150px] rounded-full -mr-60 -mt-60" />
           
-          <section className="space-y-6 relative">
-            <h2 className="text-3xl font-black italic text-white tracking-tighter uppercase flex items-center gap-4">
+          <section className="space-y-4 relative">
+            <h2 className="text-2xl font-black italic text-white tracking-tight uppercase flex items-center gap-4">
                 <span className="text-indigo-500 font-mono text-sm opacity-40">01</span>
-                Data Harvesting
+                Information We Collect
             </h2>
-            <p className="text-white/80 leading-relaxed font-bold italic text-lg uppercase tracking-wide">
-              We collect information to optimize the VUX substrate for all entities. This includes provided biometric data (name, email, avatar) and interaction logs within the decentralized synchronization layer.
+            <p className="text-white/70 leading-relaxed font-medium text-base">
+              We collect the information you provide when using VUX Events, including your name, email address, profile picture, and the events you create or RSVP to.
             </p>
           </section>
 
-          <section className="space-y-6 relative">
-            <h2 className="text-3xl font-black italic text-white tracking-tighter uppercase flex items-center gap-4">
+          <section className="space-y-4 relative">
+            <h2 className="text-2xl font-black italic text-white tracking-tight uppercase flex items-center gap-4">
                 <span className="text-indigo-500 font-mono text-sm opacity-40">02</span>
-                Protocol Utilization
+                How We Use Your Information
             </h2>
-            <p className="text-white/80 leading-relaxed font-bold italic text-lg uppercase tracking-wide">
-              Data is utilized to maintain, protect, and augment the VUX infrastructure. We process interaction metadata to architect personalized event recommendations within the global directory.
+            <p className="text-white/70 leading-relaxed font-medium text-base">
+              We use your information to manage your event registrations, send confirmations and reminder emails, and provide organizers with attendee lists for check-ins.
             </p>
           </section>
 
-          <section className="space-y-6 relative">
-            <h2 className="text-3xl font-black italic text-white tracking-tighter uppercase flex items-center gap-4">
+          <section className="space-y-4 relative">
+            <h2 className="text-2xl font-black italic text-white tracking-tight uppercase flex items-center gap-4">
                 <span className="text-indigo-500 font-mono text-sm opacity-40">03</span>
-                Security Matrix
+                Security & Encryption
             </h2>
-            <p className="text-white/80 leading-relaxed font-bold italic text-lg uppercase tracking-wide">
-              Enterprise-grade encryption guards the VUX network. We implement SSL-hardened sessions and continuous security audits of our collection and storage protocols to ensure absolute data sovereignty.
+            <p className="text-white/70 leading-relaxed font-medium text-base">
+              Your account is protected using modern encryption standards. All network traffic is encrypted over TLS, and sensitive credentials are handled securely.
             </p>
           </section>
 
-          <section className="space-y-6 relative">
-            <h2 className="text-3xl font-black italic text-white tracking-tighter uppercase flex items-center gap-4">
+          <section className="space-y-4 relative">
+            <h2 className="text-2xl font-black italic text-white tracking-tight uppercase flex items-center gap-4">
                 <span className="text-indigo-500 font-mono text-sm opacity-40">04</span>
-                Public Broadcasts
+                Event Visibility & Networking
             </h2>
-            <p className="text-white/80 leading-relaxed font-bold italic text-lg uppercase tracking-wide">
-              Interaction within the community is public by design. When registering for a roadmap, your identity node is visible to the orchestrator and other verified participants.
+            <p className="text-white/70 leading-relaxed font-medium text-base">
+              When you RSVP to an event, the host receives your details so they can check you in. You have full control over whether your profile is shown in attendee lists.
             </p>
           </section>
 
-          <section className="space-y-6 relative">
-            <h2 className="text-3xl font-black italic text-white tracking-tighter uppercase flex items-center gap-4">
+          <section className="space-y-4 relative">
+            <h2 className="text-2xl font-black italic text-white tracking-tight uppercase flex items-center gap-4">
                 <span className="text-indigo-500 font-mono text-sm opacity-40">05</span>
-                Identity Sovereignty
+                Your Privacy Rights
             </h2>
-            <p className="text-white/80 leading-relaxed font-bold italic text-lg uppercase tracking-wide">
-              You maintain total control over your digital avatar. The system provides integrated tools for rapid data augmentation or complete identity termination unless prohibited by legal smart-contracts.
+            <p className="text-white/70 leading-relaxed font-medium text-base">
+              You own your personal data. You can edit your profile details, manage your communication preferences, or delete your account at any time in your Settings.
             </p>
           </section>
         </div>
 
         <footer className="pt-24 border-t border-white/5 text-center">
-            <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.4em] font-mono leading-loose">
-                © 2026 VUX Events Matrix • Secure Protocol v2.0 • Identity Confirmed
+            <p className="text-[10px] text-white/30 font-bold uppercase tracking-wider">
+                &copy; 2026 VUX Events. All rights reserved.
             </p>
         </footer>
       </div>

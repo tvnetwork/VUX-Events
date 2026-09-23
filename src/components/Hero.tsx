@@ -35,7 +35,7 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/10 text-xs font-medium text-indigo-300 backdrop-blur-md"
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>The next generation of event management</span>
+            <span>Modern event planning made simple</span>
           </motion.div>
 
           <motion.div
@@ -45,11 +45,11 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
             className="space-y-6"
           >
             <h1 className="text-5xl md:text-7xl font-semibold leading-[1.1] tracking-tight text-white">
-              Elevate your <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">community events.</span>
+              Create events <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">people will love.</span>
             </h1>
             <p className="text-lg text-white/60 leading-relaxed max-w-lg font-light">
-              {tagline} A seamless, white-label API and beautiful RSVP interfaces designed for the modern web.
+              Simple event pages, fast RSVPs, and smooth check-ins for communities and organizers.
             </p>
           </motion.div>
 
@@ -63,14 +63,14 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
               onClick={onStartClick}
               className="w-full sm:w-auto h-12 px-8 text-sm font-medium rounded-full bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center gap-2"
             >
-              Start Building <ArrowRight className="w-4 h-4" />
+              Create an Event <ArrowRight className="w-4 h-4" />
             </Button>
             <Button 
               variant="ghost" 
               onClick={() => navigate('/discover')}
               className="w-full sm:w-auto h-12 px-8 text-sm font-medium text-white/70 hover:text-white rounded-full hover:bg-white/[0.05] transition-all flex items-center justify-center gap-2"
             >
-              Explore Platform <ChevronRight className="w-4 h-4" />
+              Find Events <ChevronRight className="w-4 h-4" />
             </Button>
           </motion.div>
         </div>

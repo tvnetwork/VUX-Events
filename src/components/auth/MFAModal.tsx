@@ -55,15 +55,15 @@ export function MFAModal() {
                 <div className="absolute inset-0 bg-blue-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                 <Shield className="w-10 h-10 text-blue-400 relative z-10" />
             </div>
-            <div className="space-y-3">
-                <h2 className="text-3xl font-black italic tracking-tighter uppercase text-white">Neural Sync Required</h2>
-                <p className="text-[10px] text-white/30 font-black uppercase tracking-[0.3em]">Identity Verification Protocol Active</p>
+            <div className="space-y-2">
+                <h2 className="text-3xl font-black italic tracking-tighter uppercase text-white">Security Verification</h2>
+                <p className="text-[10px] text-white/50 font-bold uppercase tracking-wider">Enter your two-factor code</p>
             </div>
           </header>
 
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="space-y-4">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400/60 block text-center">Enter 6-digit Security Core</label>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-blue-400 block text-center">Enter 6-digit code</label>
               <div className="relative group">
                 <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/10 group-focus-within:text-blue-500/40 transition-colors" />
                 <Input 

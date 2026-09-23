@@ -95,14 +95,14 @@ export function Help() {
               </div>
               <div className="space-y-4">
                 <h1 className="text-7xl md:text-9xl font-black tracking-tighter text-white uppercase italic leading-[0.8]">HELP<br/>CENTER</h1>
-                <p className="text-white/70 text-sm font-bold uppercase tracking-[0.3em] italic">Omni-Channel Protocol Assistance</p>
+                <p className="text-white/70 text-sm font-bold uppercase tracking-wider">Guides, FAQs & Support</p>
               </div>
             </div>
 
             <div className="relative w-full md:w-96 group">
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 group-focus-within:text-white transition-colors" />
               <Input 
-                placeholder="Query System Database..."
+                placeholder="Search help articles..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-14 bg-white/[0.02] border-white/5 focus:border-indigo-500/40 rounded-3xl h-16 italic font-bold text-lg transition-all"
@@ -114,9 +114,9 @@ export function Help() {
         {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
-            { icon: <BookOpen className="w-7 h-7 text-indigo-400" />, title: 'User Manuals', desc: 'Step-by-step cryptographic tutorials.' },
-            { icon: <Zap className="w-7 h-7 text-amber-500" />, title: 'Prime Protocol', desc: 'Maximize your community engagement.' },
-            { icon: <Shield className="w-7 h-7 text-emerald-400" />, title: 'Trust Matrix', desc: 'Understanding your data sovereignty.' }
+            { icon: <BookOpen className="w-7 h-7 text-indigo-400" />, title: 'User Guides', desc: 'Step-by-step guides for hosting events.' },
+            { icon: <Zap className="w-7 h-7 text-amber-500" />, title: 'Organizer Tips', desc: 'Get more attendees and engagement.' },
+            { icon: <Shield className="w-7 h-7 text-emerald-400" />, title: 'Privacy & Security', desc: 'How we keep your account safe.' }
           ].map((item, i) => (
             <Card key={i} className="p-10 border-white/[0.03] bg-white/[0.01] hover:bg-white/[0.03] transition-all rounded-[40px] group cursor-pointer relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -126,7 +126,7 @@ export function Help() {
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-2xl font-black italic uppercase tracking-tighter transition-colors group-hover:text-indigo-400">{item.title}</h3>
-                  <p className="text-[10px] text-white/50 font-black uppercase tracking-widest leading-relaxed italic">{item.desc}</p>
+                  <p className="text-xs text-white/50 font-medium leading-relaxed">{item.desc}</p>
                 </div>
               </div>
             </Card>
@@ -189,7 +189,7 @@ export function Help() {
             ) : (
               <div className="py-32 text-center space-y-6 bg-white/[0.01] rounded-[48px] border border-dashed border-white/[0.05]">
                 <Search className="w-12 h-12 text-white/5 mx-auto" />
-                <p className="text-[10px] italic font-black uppercase tracking-[0.4em] text-white/30">No protocol match for query: "{searchQuery}"</p>
+                <p className="text-xs text-white/40 font-bold uppercase tracking-wider">No results found for &ldquo;{searchQuery}&rdquo;</p>
               </div>
             )}
           </div>
@@ -202,26 +202,26 @@ export function Help() {
              <div className="w-24 h-24 bg-indigo-500/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 border border-indigo-500/20 shadow-2xl shadow-indigo-500/10 ring-4 ring-indigo-500/5">
                 <MessageCircle className="w-12 h-12 text-indigo-400" />
              </div>
-             <h2 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter leading-tight">Need Direct<br/>Access?</h2>
-             <p className="text-white/50 max-w-lg mx-auto text-sm font-black italic leading-relaxed uppercase tracking-[0.2em]">
-                Our support agents are on standby 24/7. Access the high-priority communication channel below.
+             <h2 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter leading-tight">Need Help?</h2>
+             <p className="text-white/60 max-w-lg mx-auto text-sm font-medium leading-relaxed">
+                Our support team is happy to help you. Send us an email or join our community Discord.
              </p>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 relative">
              <a href="mailto:vuxevents@gmail.com" className="w-full sm:w-auto">
                <Button variant="vux" className="w-full sm:w-auto h-20 px-14 rounded-3xl text-lg font-black uppercase tracking-widest gap-3 shadow-2xl shadow-indigo-500/20">
-                 <Mail className="w-5 h-5" /> Open Ticket
+                 <Mail className="w-5 h-5" /> Email Us
                </Button>
              </a>
              <Button variant="ghost" className="w-full sm:w-auto h-20 px-14 rounded-3xl border border-white/5 font-black uppercase tracking-widest gap-3 hover:bg-white/[0.03] transition-all">
-                <ExternalLink className="w-5 h-5" /> HQ Discord
+                <ExternalLink className="w-5 h-5" /> Discord Community
              </Button>
           </div>
         </section>
 
         <footer className="pt-24 border-t border-white/5 text-center flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
-            <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.3em] font-mono">
-                [PROTOCOL 2.0] VUX Events Matrix • © 2026 • Encrypted Documentation
+            <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">
+                VUX Events • © 2026 • Help Center
             </p>
             <div className="flex items-center gap-12">
               <Link to="/terms" className="text-[10px] font-black text-white/50 hover:text-indigo-400 uppercase tracking-widest transition-all">Terms of Access</Link>

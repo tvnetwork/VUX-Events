@@ -590,7 +590,7 @@ export function ManageAttendees({ event, onClose }: { event: Event, onClose: () 
                           <div className="flex justify-between items-start">
                             <div className="space-y-1">
                                <h4 className="text-lg font-black italic uppercase tracking-tighter">{poll.question}</h4>
-                               <p className="text-[9px] font-black uppercase tracking-widest text-white/20">{poll.isActive ? 'Signal Active' : 'Broadcast Terminated'}</p>
+                               <p className="text-[9px] font-bold uppercase tracking-wider text-white/40">{poll.isActive ? 'Poll Active' : 'Poll Closed'}</p>
                             </div>
                             <button 
                               onClick={() => togglePoll(poll.id)}
@@ -766,8 +766,8 @@ export function ManageAttendees({ event, onClose }: { event: Event, onClose: () 
                 
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <h3 className="text-3xl font-black italic uppercase tracking-tighter">SHARE NODE</h3>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">Broadcast this signal</p>
+                    <h3 className="text-3xl font-black italic uppercase tracking-tighter">SHARE EVENT</h3>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">Invite attendees to this event</p>
                   </div>
                   <Button variant="ghost" size="icon" onClick={() => setShowShareModal(false)} className="w-12 h-12 rounded-2xl">
                     <X className="w-5 h-5" />
@@ -778,17 +778,17 @@ export function ManageAttendees({ event, onClose }: { event: Event, onClose: () 
                   <VUXQRCode value={shareUrl} size={240} className="border-none bg-transparent p-0" />
                   <div className="flex items-center gap-2 text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] animate-pulse">
                      <Zap className="w-3 h-3 fill-indigo-500" />
-                     <span>Live Signal URL</span>
+                     <span>Event Link</span>
                   </div>
                 </div>
 
                 <div className="p-6 rounded-[32px] bg-white/[0.02] border border-white/10 flex items-center justify-between gap-4">
-                    <p className="text-[10px] font-bold truncate text-white/20 uppercase tracking-widest pl-2">{shareUrl}</p>
+                    <p className="text-[10px] font-bold truncate text-white/40 uppercase tracking-widest pl-2">{shareUrl}</p>
                     <Button 
                       variant="ghost" 
                       onClick={() => {
                         navigator.clipboard.writeText(shareUrl);
-                        toast.success('Signal URL copied');
+                        toast.success('Event link copied');
                       }}
                       className="h-12 w-12 rounded-2xl text-white/40 hover:text-white"
                     >
