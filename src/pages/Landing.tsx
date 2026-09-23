@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { Helmet } from 'react-helmet-async';
-import { QrCode, ShieldCheck, Globe, Users } from 'lucide-react';
+import { QrCode, ShieldCheck, Globe, Users, ArrowRight } from 'lucide-react';
 import { Hero } from '../components/Hero';
 import { Footer } from '../components/Footer';
 import { LandingNavbar } from '../components/LandingNavbar';

@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Helmet } from 'react-helmet-async';
-import { X, Calendar, MapPin, Users, CheckCircle2, Loader2, ChevronLeft, Share2, Heart, Clock, Ticket, Copy, QrCode, Globe, Info, Zap, ArrowRight, ShieldCheck, Share, Ghost, Sparkles, Trophy, Download, Mic } from 'lucide-react';
+import { X, Calendar, MapPin, Users, CheckCircle2, Loader2, ChevronLeft, Share2, Heart, Clock, Ticket, Copy, QrCode, Globe, Info, Zap, ArrowRight, ShieldCheck, Share, Ghost, Sparkles, Trophy, Download, Mic, Video } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import toast from 'react-hot-toast';
