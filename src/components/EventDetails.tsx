@@ -1152,8 +1152,8 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
           {/* Intelligence Sidebar */}
           <div className="lg:col-span-4">
             <div className="sticky top-32 space-y-10">
-                <Card className="p-10 space-y-10 border-white/5 bg-white/[0.01] rounded-[48px] shadow-2xl relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent pointer-events-none" />
+                <Card className="p-8 md:p-10 space-y-10 border-white/10 bg-[#0e0f17]/90 backdrop-blur-2xl rounded-[40px] shadow-2xl relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.05] via-transparent to-purple-500/[0.05] pointer-events-none" />
                     
                     <div className="space-y-8">
                         <div className="space-y-6">

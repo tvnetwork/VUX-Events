@@ -20,12 +20,16 @@ import { Countdown } from '../components/Countdown';
 
 function StatItem({ label, value, icon }: { label: string, value: string | number, icon: React.ReactNode }) {
   return (
-    <div className="space-y-1">
-      <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-widest text-white/90">
+    <div className="flex items-center gap-3.5">
+      <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center shrink-0 shadow-inner">
         {icon}
-        <span>{label}</span>
       </div>
-      <p className="text-xl font-black italic text-white tracking-tighter leading-none">{value}</p>
+      <div className="space-y-0.5">
+        <div className="text-[9px] font-black uppercase tracking-[0.18em] text-white/50 leading-none">
+          {label}
+        </div>
+        <p className="text-xl font-black italic text-white tracking-tight leading-none">{value}</p>
+      </div>
     </div>
   );
 }
@@ -197,48 +201,68 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
           </div>
 
           <div className="flex flex-col gap-6">
-            <div className="flex items-center bg-white/[0.03] p-1.5 rounded-2xl border border-white/10 self-end">
+            <div className="inline-flex items-center p-1.5 rounded-2xl bg-[#0e0f17]/90 border border-white/10 backdrop-blur-xl self-start lg:self-end shadow-xl">
               <button
                 onClick={() => setViewMode('attending')}
                 className={cn(
-                  "px-6 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all gap-2 flex items-center",
-                  viewMode === 'attending' ? "bg-white text-black shadow-lg" : "text-white/70 hover:text-white"
+                  "px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 gap-2 flex items-center",
+                  viewMode === 'attending' 
+                    ? "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-[0_0_20px_rgba(99,102,241,0.35)]" 
+                    : "text-white/60 hover:text-white hover:bg-white/5"
                 )}
               >
-                Going {attendingEventsCount > 0 && <span className="w-5 h-5 flex items-center justify-center bg-indigo-500 text-white rounded-full text-[8px]">{attendingEventsCount}</span>}
+                <span>Going</span>
+                {attendingEventsCount > 0 && (
+                  <span className={cn(
+                    "px-2 py-0.5 rounded-full text-[8px] font-black",
+                    viewMode === 'attending' ? "bg-white/20 text-white" : "bg-indigo-500/20 text-indigo-300"
+                  )}>
+                    {attendingEventsCount}
+                  </span>
+                )}
               </button>
               <button
                 onClick={() => setViewMode('hosting')}
                 className={cn(
-                  "px-6 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all gap-2 flex items-center",
-                  viewMode === 'hosting' ? "bg-white text-black shadow-lg" : "text-white/70 hover:text-white"
+                  "px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 gap-2 flex items-center",
+                  viewMode === 'hosting' 
+                    ? "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-[0_0_20px_rgba(99,102,241,0.35)]" 
+                    : "text-white/60 hover:text-white hover:bg-white/5"
                 )}
               >
-                Hosting {hostedEventsCount > 0 && <span className="w-5 h-5 flex items-center justify-center bg-indigo-500 text-white rounded-full text-[8px]">{hostedEventsCount}</span>}
+                <span>Hosting</span>
+                {hostedEventsCount > 0 && (
+                  <span className={cn(
+                    "px-2 py-0.5 rounded-full text-[8px] font-black",
+                    viewMode === 'hosting' ? "bg-white/20 text-white" : "bg-indigo-500/20 text-indigo-300"
+                  )}>
+                    {hostedEventsCount}
+                  </span>
+                )}
               </button>
             </div>
 
-            <div className="flex flex-wrap items-center justify-end gap-3">
+            <div className="flex flex-wrap items-center justify-start lg:justify-end gap-3">
               {viewMode === 'attending' ? (
-                 <div className="flex items-center gap-8 px-8 py-4 bg-white/[0.02] border border-white/10 rounded-[2rem]">
-                  <StatItem label="CONFIRMED" value={attendingEventsCount} icon={<CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />} />
-                  <div className="w-px h-8 bg-white/5" />
-                  <StatItem label="UPCOMING" value={attendingEvents.filter(e => new Date(e.date) > new Date()).length} icon={<Calendar className="w-3.5 h-3.5 text-indigo-400" />} />
+                 <div className="flex items-center gap-6 px-6 py-3.5 bg-[#0e0f17]/70 border border-white/10 backdrop-blur-xl rounded-2xl shadow-lg">
+                  <StatItem label="CONFIRMED" value={attendingEventsCount} icon={<CheckCircle2 className="w-4 h-4 text-emerald-400" />} />
+                  <div className="w-px h-8 bg-white/10" />
+                  <StatItem label="UPCOMING" value={attendingEvents.filter(e => new Date(e.date) > new Date()).length} icon={<Calendar className="w-4 h-4 text-indigo-400" />} />
                 </div>
               ) : (
-                <div className="flex items-center gap-8 px-8 py-4 bg-white/[0.02] border border-white/10 rounded-[2rem]">
-                  <StatItem label="TOTAL RSVPS" value={hostedEvents.length} icon={<Users className="w-3.5 h-3.5 text-indigo-400" />} />
-                  <div className="w-px h-8 bg-white/5" />
-                  <StatItem label="LISTINGS" value={hostedEventsCount} icon={<BarChart3 className="w-3.5 h-3.5 text-purple-400" />} />
+                <div className="flex items-center gap-6 px-6 py-3.5 bg-[#0e0f17]/70 border border-white/10 backdrop-blur-xl rounded-2xl shadow-lg">
+                  <StatItem label="TOTAL RSVPS" value={hostedEvents.length} icon={<Users className="w-4 h-4 text-indigo-400" />} />
+                  <div className="w-px h-8 bg-white/10" />
+                  <StatItem label="LISTINGS" value={hostedEventsCount} icon={<BarChart3 className="w-4 h-4 text-purple-400" />} />
                 </div>
               )}
               <div className="w-px h-10 bg-white/5 mx-2 hidden lg:block" />
               <Button 
                   onClick={onCreateClick}
-                  className="rounded-2xl h-12 px-6 shadow-xl shadow-indigo-500/10 gap-2 border border-indigo-500/20"
+                  className="rounded-2xl h-12 px-6 shadow-xl shadow-indigo-500/15 gap-2 border border-indigo-500/30 bg-indigo-600 hover:bg-indigo-500 text-white font-black"
               >
-                  <Plus className="w-5 h-5" />
-                  <span className="font-bold uppercase tracking-widest text-[10px]">Create Event</span>
+                  <Plus className="w-4 h-4" />
+                  <span className="font-black uppercase tracking-widest text-[10px]">Create Event</span>
               </Button>
             </div>
           </div>
@@ -304,11 +328,11 @@ const TimelineSection = memo(({ date, events, onEventClick, onEditEvent, index, 
     <div className="relative space-y-12 md:space-y-16">
       {/* Enhanced Date Marker */}
       <div className="absolute -left-2 md:-left-[103px] -top-8 flex md:flex-col items-center gap-4 md:gap-0 z-10">
-        <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-[#0b0b0f] border-2 border-white/5 flex items-center justify-center text-sm md:text-xl font-black italic tracking-tighter shadow-2xl relative">
-            <span className="text-indigo-500">0{index + 1}</span>
+        <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-[#0e0f17] border border-indigo-500/30 flex items-center justify-center text-sm md:text-xl font-black italic tracking-tighter shadow-xl shadow-indigo-500/10 relative">
+            <span className="text-indigo-400">0{index + 1}</span>
         </div>
         <div className="md:mt-4 text-left md:text-center">
-            <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-white/80 block leading-none mb-1">{date.split(' ')[0]}</span>
+            <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-indigo-400 block leading-none mb-1">{date.split(' ')[0]}</span>
             <span className="text-lg md:text-2xl font-black tracking-tighter leading-none text-white italic">{date.split(' ')[1]}</span>
         </div>
       </div>
@@ -405,11 +429,10 @@ const TimelineItem = memo(({ event, onClick, onEdit, isManageMode }: { event: Ev
       <Card 
           onClick={onClick}
           hover={true}
-          className="group relative cursor-pointer p-0 overflow-hidden flex flex-col xl:flex-row items-stretch border-white/5 bg-white/[0.01] hover:bg-white/[0.04] transition-all duration-700 rounded-[32px] md:rounded-[40px] shadow-2xl hover:shadow-purple-500/5"
+          className="group relative cursor-pointer p-0 overflow-hidden flex flex-col xl:flex-row items-stretch border-white/10 bg-[#0e0f17]/80 hover:bg-[#12131f]/95 backdrop-blur-xl transition-all duration-500 rounded-[32px] md:rounded-[40px] shadow-2xl hover:shadow-[0_20px_50px_rgba(99,102,241,0.12)] hover:border-indigo-500/40"
       >
-          {/* Holographic Overlays */}
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/0 via-white/0 to-purple-500/0 group-hover:from-indigo-500/5 group-hover:via-white/5 group-hover:to-purple-500/5 transition-all duration-1000 pointer-events-none" />
-            <div className="absolute -inset-[100%] bg-gradient-to-r from-transparent via-white/5 to-transparent rotate-45 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none" />
+          {/* Subtle Ambient Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.03] via-transparent to-purple-500/[0.03] group-hover:from-indigo-500/[0.08] group-hover:to-purple-500/[0.08] transition-all duration-700 pointer-events-none" />
             
             <div className="flex-1 p-6 md:p-14 space-y-6 md:space-y-10">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
