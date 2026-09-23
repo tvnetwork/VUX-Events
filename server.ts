@@ -264,6 +264,7 @@ export async function createServer() {
   });
 
   apiRouter.post('/email/welcome', async (req, res) => {
+    try {
       const email = req.body?.email;
       const displayName = req.body?.displayName;
       if (!email) return res.status(400).json({ error: 'Email is required' });
