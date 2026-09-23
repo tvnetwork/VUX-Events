@@ -29,6 +29,7 @@ const ComingSoon = lazy(() => import('./pages/ComingSoon'));
 const EventDetails = lazy(() => import('./components/EventDetails').then(m => ({ default: m.EventDetails })));
 const MFAModal = lazy(() => import('./components/auth/MFAModal').then(m => ({ default: m.MFAModal })));
 const Embed = lazy(() => import('./pages/Embed').then(m => ({ default: m.Embed })));
+const SSOCallback = lazy(() => import('./pages/SSOCallback').then(m => ({ default: m.SSOCallback })));
 
 function RouteTransition({ children }: { children: React.ReactNode }) {
   return (
@@ -110,6 +111,7 @@ function AppContent() {
          <Route path="/discover" element={<DiscoverWrapper />} />
       )}
 
+      <Route path="/sso-callback" element={<Suspense fallback={<LoadingFallback />}><SSOCallback /></Suspense>} />
       <Route path="/embed" element={<Suspense fallback={<LoadingFallback />}><Embed /></Suspense>} />
       <Route path="/help" element={<RouteTransition><PageShell><Help /></PageShell></RouteTransition>} />
       <Route path="/terms" element={<RouteTransition><PageShell><Terms /></PageShell></RouteTransition>} />

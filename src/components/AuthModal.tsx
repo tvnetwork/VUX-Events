@@ -24,7 +24,21 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
   const [setupPasskey, setSetupPasskey] = useState(false);
   const [loading, setLoading] = useState(false);
   const [passkeyLoading, setPasskeyLoading] = useState(false);
+  const [kontyraLoading, setKontyraLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const handleKontyra = () => {
+    setKontyraLoading(true);
+    try {
+      const appId = import.meta.env.VITE_KONTYRA_APP_ID || 'vux-events';
+      const kontyraAuthUrl = import.meta.env.VITE_KONTYRA_AUTH_URL || 'https://accounts.kontyra.name.ng/auth';
+      const returnUrl = encodeURIComponent(`${window.location.origin}/sso-callback`);
+      window.location.href = `${kontyraAuthUrl}?targetApp=${appId}&returnUrl=${returnUrl}`;
+    } catch (err: any) {
+      setError(err.message || 'Failed to initialize Kontyra sign in');
+      setKontyraLoading(false);
+    }
+  };
 
   const handleGoogle = async () => {
     setLoading(true);
@@ -229,7 +243,7 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
                   <div className="grid grid-cols-1 gap-4">
                     <Button 
                       onClick={handleGoogle}
-                      disabled={loading}
+                      disabled={loading || kontyraLoading}
                       variant="vux"
                       className="w-full h-16 flex items-center justify-center gap-4 transition-all font-black text-sm shadow-xl shadow-indigo-500/10"
                     >
@@ -240,6 +254,24 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
                         <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                       </svg>
                       <span>CONTINUE WITH GOOGLE</span>
+                    </Button>
+
+                    <Button 
+                      onClick={handleKontyra}
+                      disabled={loading || kontyraLoading}
+                      variant="kontyra"
+                      className="w-full h-16 flex items-center justify-center gap-4 transition-all font-black text-sm"
+                    >
+                      {kontyraLoading ? (
+                        <Loader2 className="w-6 h-6 animate-spin text-blue-400 shrink-0" />
+                      ) : (
+                        <img 
+                          src="/kontyra-logo.svg" 
+                          alt="Kontyra Identity" 
+                          className="w-6 h-6 shrink-0 rounded-lg object-contain shadow-sm"
+                        />
+                      )}
+                      <span>CONTINUE WITH KONTYRA</span>
                     </Button>
                     
                     <PasskeyButton 
