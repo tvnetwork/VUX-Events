@@ -126,7 +126,7 @@ export async function createServer() {
       otpStore.set(email, { code, expires: Date.now() + 10 * 60 * 1000 });
       console.log(`[OTP][${rid}] Code generated`);
 
-      const user = process.env.SMTP_USER || 'vuxevents@gmail.com';
+      const user = process.env.SMTP_USER || 'events@kontyra.name.ng';
       const pass = process.env.SMTP_PASS;
 
       if (!pass) {
@@ -149,9 +149,9 @@ export async function createServer() {
 
       const protocol = req.headers['x-forwarded-proto'] || req.protocol;
       console.log(`[OTP][${rid}] Attempting sendMail...`);
-      const logoUrl = req ? `${protocol}://${req.get('host')}/logo.svg` : 'https://vuxevents.zone.id/logo.svg';
+      const logoUrl = req ? `${protocol}://${req.get('host')}/logo.svg` : 'https://events.kontyra.name.ng/logo.svg';
       const info = await transporter.sendMail({
-        from: process.env.SMTP_FROM || `"VUX Events" <${user}>`,
+        from: process.env.SMTP_FROM || `"VUX Events" <events@kontyra.name.ng>`,
         to: email,
         subject: `${code} is your VUX verification code`,
         html: `
