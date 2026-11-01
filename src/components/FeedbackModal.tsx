@@ -61,7 +61,7 @@ export function FeedbackModal({ event, onClose }: FeedbackModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 md:p-12">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 overflow-y-auto custom-scrollbar">
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -74,7 +74,7 @@ export function FeedbackModal({ event, onClose }: FeedbackModalProps) {
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className="relative w-full max-w-[500px] bg-[#0d0d12] border border-white/5 rounded-[2.5rem] md:rounded-[3rem] shadow-2xl overflow-hidden"
+        className="relative w-full max-w-[500px] max-h-[90vh] bg-[#0d0d12] border border-white/5 rounded-[2.5rem] md:rounded-[3rem] shadow-2xl overflow-y-auto custom-scrollbar my-auto"
       >
         <button 
           onClick={onClose}
