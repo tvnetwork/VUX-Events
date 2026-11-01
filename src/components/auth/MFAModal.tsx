@@ -31,7 +31,7 @@ export function MFAModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0b0b0f] p-6 overflow-hidden">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0b0b0f] p-4 md:p-6 overflow-y-auto custom-scrollbar">
       {/* Matrix-like background effect */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
         <div className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent top-1/4 animate-scan" />
@@ -42,11 +42,11 @@ export function MFAModal() {
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="w-full max-w-md relative"
+        className="w-full max-w-md relative my-auto"
       >
         <div className="absolute -inset-1 blur-3xl bg-blue-500/10 rounded-[3rem] pointer-events-none" />
         
-        <div className="bg-white/[0.02] border border-white/5 backdrop-blur-xl rounded-[3rem] p-10 md:p-12 space-y-10 relative overflow-hidden">
+        <div className="bg-white/[0.02] border border-white/5 backdrop-blur-xl rounded-[3rem] p-8 md:p-12 space-y-10 relative overflow-y-auto max-h-[90vh] custom-scrollbar">
           {/* Progress ring background */}
           <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl -mr-24 -mt-24 pointer-events-none" />
 

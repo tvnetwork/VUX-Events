@@ -1,4 +1,5 @@
-import { motion } from 'motion/react';
+import { useMemo } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
 import { 
   Sparkles, 
   Zap, 
@@ -19,6 +20,7 @@ import {
 } from 'lucide-react';
 
 export function WatermarkBackground() {
+  const shouldReduceMotion = useReducedMotion();
   const words = [
     "VUX Events",
     "Discovery",
@@ -49,17 +51,22 @@ export function WatermarkBackground() {
     <Flame className="w-5 h-5" />
   ];
 
-  // PERFORMANCE FIX: Reduce the massive number of DOM nodes from 120 to 30.
-  // 120 continuously animating Framer Motion components causes severe CPU/GPU bottlenecking.
-  const pattern = [];
-  for (let i = 0; i < 30; i++) {
-    const word = words[i % words.length];
-    const icon = icons[i % icons.length];
-    pattern.push({ word, icon, id: i });
+  const pattern = useMemo(() => {
+    const items = [];
+    for (let i = 0; i < 16; i++) {
+      const word = words[i % words.length];
+      const icon = icons[i % icons.length];
+      items.push({ word, icon, id: i });
+    }
+    return items;
+  }, []);
+
+  if (shouldReduceMotion) {
+    return null;
   }
 
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-[1] select-none opacity-50">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-[1] select-none opacity-50 hidden lg:block">
       <div className="flex flex-wrap gap-x-32 gap-y-24 rotate-[-15deg] scale-125 origin-center justify-center p-20 min-w-[200vw] min-h-[200vh] -translate-x-1/4 -translate-y-1/4">
         {pattern.map((item, idx) => (
           <motion.div
