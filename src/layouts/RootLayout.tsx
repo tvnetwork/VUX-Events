@@ -143,9 +143,9 @@ export function RootLayout() {
             <EventDetails 
               event={selectedEvent} 
               onClose={() => setSelectedEvent(null)}
-              onManageAttendees={() => {
+              onManage={(ev) => {
                 setSelectedEvent(null);
-                setManagingEvent(selectedEvent);
+                setManagingEvent(ev || selectedEvent);
               }}
             />
           </Suspense>

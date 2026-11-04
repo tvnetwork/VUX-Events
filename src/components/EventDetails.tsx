@@ -23,6 +23,7 @@ import { Badge } from './ui/Badge';
 import { Avatar } from './ui/Avatar';
 import { Card } from './ui/Card';
 import { Select } from './ui/Select';
+import { ModalShell } from './ui/ModalShell';
 import { AddToCalendar } from './AddToCalendar';
 import { PulseService } from '../services/PulseService';
 import confetti from 'canvas-confetti';
@@ -414,64 +415,46 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
         <Helmet>
           <title>Private Event | VUX Events</title>
         </Helmet>
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="w-full max-w-md p-12 rounded-[48px] bg-[#0b0b0f] border border-white/5 shadow-2xl text-center space-y-10 relative overflow-hidden"
+        <ModalShell
+          onClose={onClose}
+          badge={
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-[11px] font-medium text-blue-400">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Password Required</span>
+            </div>
+          }
+          title="Private Event"
+          subtitle="This gathering is private. Enter the organizer's password to access details."
+          maxWidth="sm"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent pointer-events-none" />
-          
-          <button 
-            onClick={onClose}
-            className="absolute top-8 right-8 p-3 rounded-2xl hover:bg-white/5 transition-all group"
-          >
-            <X className="w-5 h-5 text-white/20 group-hover:text-white" />
-          </button>
-
-          <div className="space-y-6 relative">
-            <div className="w-20 h-20 rounded-3xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 mx-auto shadow-2xl shadow-indigo-500/10 animate-pulse">
-              <ShieldCheck className="w-10 h-10 text-indigo-400" />
-            </div>
+          <div className="space-y-4 pt-1">
             <div className="space-y-2">
-              <h3 className="text-3xl font-black italic uppercase tracking-tighter">PRIVATE EVENT</h3>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Password Required</p>
+              <input 
+                type="password"
+                value={unlockPassword}
+                onChange={(e) => setUnlockPassword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleUnlock()}
+                placeholder="Enter event password"
+                className={cn(
+                  "w-full h-12 bg-white/[0.03] border rounded-xl px-4 text-center text-base font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all",
+                  passwordError ? "border-rose-500/50 text-rose-300" : "border-white/10 text-white focus:border-blue-500/70"
+                )}
+                autoFocus
+              />
+              <Button 
+                onClick={handleUnlock}
+                variant="kontyra"
+                className="w-full h-12 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-blue-900/20"
+              >
+                Unlock Event
+              </Button>
             </div>
+
+            <p className="text-center text-xs text-zinc-500">
+              Contact the host if you don't have the password.
+            </p>
           </div>
-
-          <div className="space-y-6 relative">
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-white/60 leading-relaxed">
-                This event is private. Please enter the password to view the event details.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-               <input 
-                 type="password"
-                 value={unlockPassword}
-                 onChange={(e) => setUnlockPassword(e.target.value)}
-                 onKeyDown={(e) => e.key === 'Enter' && handleUnlock()}
-                 placeholder="Clearance Password"
-                 className={cn(
-                   "w-full h-16 bg-white/[0.02] border rounded-2xl p-6 text-center text-xl font-bold tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all",
-                   passwordError ? "border-red-500/40 text-red-400" : "border-white/5 text-white"
-                 )}
-                 autoFocus
-               />
-               <Button 
-                 onClick={handleUnlock}
-                 className="w-full h-16 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-600/20 gap-3"
-               >
-                 <Zap className="w-5 h-5" />
-                 <span className="text-xs font-black uppercase tracking-widest">Authorize Access</span>
-               </Button>
-            </div>
-          </div>
-
-          <p className="text-[10px] font-black uppercase tracking-widest text-white/10 italic">
-            SECURED BY VUX QUANTUM LAYER
-          </p>
-        </motion.div>
+        </ModalShell>
       </div>
     );
   }
@@ -533,252 +516,208 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
 
       <AnimatePresence>
         {showShareDialog && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md overflow-y-auto custom-scrollbar">
-             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-md my-auto"
-            >
-              <Card className="p-12 border-white/10 bg-[#0b0b0f] space-y-10 rounded-[48px] shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-y-auto max-h-[90vh] custom-scrollbar">
+          <ModalShell
+            onClose={() => setShowShareDialog(false)}
+            badge={
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-[11px] font-medium text-blue-400">
+                <Zap className="w-3.5 h-3.5 text-blue-400" />
+                <span>Share Event</span>
+              </div>
+            }
+            title="Share & Invite"
+            subtitle="Attendees can register directly via this link or QR code"
+            maxWidth="sm"
+          >
+            <div className="space-y-4 text-center">
+              <div className="p-4 bg-white rounded-2xl inline-block shadow-lg mx-auto">
+                <VUXQRCode value={shareUrl} size={180} className="border-none bg-transparent p-0" />
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-2">
+                <p className="text-xs font-mono truncate text-zinc-400 pl-1 select-all">{shareUrl}</p>
+                <button 
+                  type="button"
+                  onClick={copyToClipboard}
+                  className={cn(
+                    "p-1.5 rounded-lg transition-all shrink-0 cursor-pointer",
+                    copied ? "text-emerald-400 bg-emerald-500/10" : "bg-blue-600 hover:bg-blue-500 text-white"
+                  )}
+                  title="Copy link"
+                >
+                  {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </div>
+
+              {/* Social Card Preview & Export */}
+              <div className="space-y-3 pt-3 border-t border-white/[0.08] text-left">
                 <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <h3 className="text-3xl font-black italic uppercase tracking-tighter">SHARE EVENT</h3>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">Invite friends to this event</p>
-                  </div>
-                  <Button variant="ghost" size="icon" onClick={() => setShowShareDialog(false)} className="w-12 h-12 rounded-2xl">
-                    <X className="w-5 h-5" />
+                  <p className="text-xs font-semibold text-zinc-300">Social Share Card</p>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleExportOG}
+                    className="h-7 px-2 rounded-lg text-xs font-medium gap-1 text-zinc-400 hover:text-white"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download</span>
                   </Button>
                 </div>
 
-                <div className="flex flex-col items-center gap-8 py-4">
-                  <VUXQRCode value={shareUrl} size={240} className="border-none bg-transparent p-0" />
-                  <div className="flex items-center gap-2 text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em] animate-pulse">
-                     <Zap className="w-3 h-3 fill-emerald-500" />
-                     <span>Live Link</span>
+                <div id="og-preview-card" className="aspect-[1.91/1] w-full rounded-xl bg-black border border-white/10 overflow-hidden relative group">
+                  <img src={event.coverImageUrl} className="absolute inset-0 w-full h-full object-cover opacity-50" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4 space-y-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-5 h-5 rounded-md bg-blue-600 flex items-center justify-center">
+                        <Sparkles className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">VUX Events</span>
+                    </div>
+                    <h4 className="text-sm sm:text-base font-bold text-white line-clamp-1">{event.title}</h4>
+                    <div className="flex items-center gap-3 text-[11px] text-zinc-300">
+                      <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {event.date}</span>
+                      <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {event.location || 'Virtual'}</span>
+                    </div>
                   </div>
                 </div>
-
-                <div className="p-6 rounded-[32px] bg-white/[0.02] border border-white/10 flex items-center justify-between gap-4">
-                    <p className="text-[10px] font-bold truncate text-white/20 uppercase tracking-widest pl-2">{shareUrl}</p>
-                    <Button 
-                      variant="ghost" 
-                      onClick={copyToClipboard}
-                      className={cn("h-12 w-12 rounded-2xl transition-all shrink-0", copied ? "text-emerald-400 bg-emerald-500/10" : "text-white/40")}
-                    >
-                      {copied ? <CheckCircle2 className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                    </Button>
-                </div>
-
-                <div className="space-y-6 pt-4 border-t border-white/5">
-                    <div className="flex items-center justify-between">
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Social Card</p>
-                        <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={handleExportOG}
-                            className="h-8 rounded-xl text-[8px] font-black uppercase tracking-widest gap-2 text-white/40 hover:text-white"
-                        >
-                            <Download className="w-3 h-3" />
-                            Download
-                        </Button>
-                    </div>
-
-                    <div id="og-preview-card" className="aspect-[1.91/1] w-full rounded-2xl bg-black border border-white/10 overflow-hidden relative group">
-                        <img src={event.coverImageUrl} className="absolute inset-0 w-full h-full object-cover opacity-50 gray-scale group-hover:grayscale-0 transition-all duration-700" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                        <div className="absolute bottom-6 left-6 right-6 space-y-2">
-                             <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-lg bg-indigo-500 flex items-center justify-center">
-                                    <Sparkles className="w-3 h-3 text-white" />
-                                </div>
-                                <span className="text-[8px] font-black uppercase tracking-[0.3em] text-indigo-400">VUX NETWORK</span>
-                             </div>
-                             <h4 className="text-xl font-black italic uppercase tracking-tighter text-white leading-none">{event.title}</h4>
-                             <div className="flex items-center gap-4 text-[8px] font-bold text-white/40 uppercase tracking-widest">
-                                <span className="flex items-center gap-1.5"><Calendar className="w-2.5 h-2.5" /> {event.date}</span>
-                                <span className="flex items-center gap-1.5">{(event.isVirtual || event.category === 'Webinar') ? <Video className="w-2.5 h-2.5" /> : <MapPin className="w-2.5 h-2.5" />} {(event.isVirtual || event.category === 'Webinar') ? 'Virtual Event' : event.location}</span>
-                             </div>
-                        </div>
-                    </div>
-                    <p className="text-[8px] text-center text-white/20 font-medium italic">Optimized for Twitter, LinkedIn, and Instagram previews</p>
-                </div>
-              </Card>
-            </motion.div>
-          </div>
+              </div>
+            </div>
+          </ModalShell>
         )}
 
         {showGuestForm && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md overflow-y-auto custom-scrollbar">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }} 
-              animate={{ opacity: 1, scale: 1, y: 0 }} 
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-2xl my-auto"
+          <ModalShell
+            onClose={() => setShowGuestForm(false)}
+            badge={
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-[11px] font-medium text-blue-400">
+                <Ticket className="w-3.5 h-3.5" />
+                <span>RSVP Registration</span>
+              </div>
+            }
+            title="Complete Registration"
+            subtitle="Provide your contact details to receive your digital ticket"
+            maxWidth="md"
+          >
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleRSVP(!user);
+              }}
+              className="space-y-4 pt-1"
             >
-              <Card className="p-12 border-white/10 bg-[#0b0b0f] space-y-10 rounded-[48px] shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-y-auto max-h-[90vh] custom-scrollbar">
-                <div className="flex items-center justify-between">
+              {!user && (
+                <div className="space-y-3">
                   <div className="space-y-1">
-                    <h3 className="text-3xl font-black italic uppercase tracking-tighter">REGISTRATION</h3>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">Complete your entry details</p>
+                    <label className="text-xs font-semibold text-zinc-300">Full Name</label>
+                    <input
+                      required
+                      type="text"
+                      value={guestInfo.name}
+                      onChange={(e) => setGuestInfo(prev => ({ ...prev, name: e.target.value }))}
+                      className="w-full h-11 bg-white/[0.03] border border-white/10 rounded-xl px-3.5 text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-blue-500/70 focus:bg-white/[0.06] transition-all"
+                      placeholder="Enter your name"
+                    />
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => setShowGuestForm(false)} className="w-12 h-12 rounded-2xl">
-                    <X className="w-5 h-5" />
-                  </Button>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-zinc-300">Email Address</label>
+                    <input
+                      required
+                      type="email"
+                      value={guestInfo.email}
+                      onChange={(e) => setGuestInfo(prev => ({ ...prev, email: e.target.value }))}
+                      className={cn(
+                        "w-full h-11 bg-white/[0.03] border rounded-xl px-3.5 text-white text-sm placeholder:text-zinc-500 focus:outline-none transition-all",
+                        rsvpError ? "border-rose-500/50" : "border-white/10 focus:border-blue-500/70 focus:bg-white/[0.06]"
+                      )}
+                      placeholder="your@email.com"
+                    />
+                  </div>
                 </div>
+              )}
 
-                <form 
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleRSVP(!user);
-                  }}
-                  className="space-y-10"
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {!user && (
-                      <>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold uppercase tracking-widest text-white/60 ml-2">Full Name</label>
-                          <input
-                            required
-                            type="text"
-                            value={guestInfo.name}
-                            onChange={(e) => setGuestInfo(prev => ({ ...prev, name: e.target.value }))}
-                            className="w-full h-14 bg-white/[0.03] border border-white/10 rounded-2xl px-6 text-white text-sm focus:outline-none focus:border-purple-500/50 transition-colors"
-                            placeholder="Enter your name"
+              {rsvpError && (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-medium text-center">
+                  {rsvpError}
+                </div>
+              )}
+
+              {event.registrationFields && event.registrationFields.length > 0 && (
+                <div className="space-y-3 pt-3 border-t border-white/[0.08]">
+                  <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Additional Information</p>
+                  <div className="space-y-3">
+                    {event.registrationFields.map((field, idx) => (
+                      <div key={idx} className="space-y-1">
+                        <label className="text-xs font-semibold text-zinc-300">
+                          {field.label} {field.required && <span className="text-rose-400">*</span>}
+                        </label>
+                        
+                        {field.type === 'longtext' ? (
+                          <textarea
+                            required={field.required}
+                            value={customFields[field.label] || ''}
+                            onChange={(e) => setCustomFields(prev => ({ ...prev, [field.label]: e.target.value }))}
+                            className="w-full h-24 bg-white/[0.03] border border-white/10 rounded-xl p-3 text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-blue-500/70 transition-all resize-none"
+                            placeholder={`Enter ${field.label.toLowerCase()}...`}
                           />
-                        </div>
-
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold uppercase tracking-widest text-white/60 ml-2">Email Address</label>
-                          <input
-                            required
-                            type="email"
-                            value={guestInfo.email}
-                            onChange={(e) => setGuestInfo(prev => ({ ...prev, email: e.target.value }))}
+                        ) : field.type === 'select' ? (
+                          <Select 
+                            value={customFields[field.label] || ''}
+                            onChange={(val) => setCustomFields(prev => ({ ...prev, [field.label]: val }))}
+                            options={(field.options || []).map(opt => ({ value: opt, label: opt }))}
+                            placeholder="Select an option"
+                            className="h-11"
+                          />
+                        ) : field.type === 'checkbox' ? (
+                          <button
+                            type="button"
+                            onClick={() => setCustomFields(prev => ({ ...prev, [field.label]: prev[field.label] === 'true' ? 'false' : 'true' }))}
                             className={cn(
-                              "w-full h-14 bg-white/[0.03] border rounded-2xl px-6 text-white text-sm focus:outline-none transition-colors",
-                              rsvpError ? "border-pink-500/50" : "border-white/10 focus:border-purple-500/50"
+                              "w-full h-11 rounded-xl border px-4 flex items-center justify-between transition-all",
+                              customFields[field.label] === 'true' ? "bg-blue-500/10 border-blue-500/40 text-blue-300" : "bg-white/[0.02] border-white/10 text-zinc-400 hover:text-white"
                             )}
-                            placeholder="your@email.com"
+                          >
+                            <span className="text-xs font-medium">{field.label}</span>
+                            <div className={cn(
+                              "w-5 h-5 rounded-md border flex items-center justify-center transition-all",
+                              customFields[field.label] === 'true' ? "bg-blue-600 border-blue-600 text-white" : "border-white/20"
+                            )}>
+                              {customFields[field.label] === 'true' && <CheckCircle2 className="w-3.5 h-3.5" />}
+                            </div>
+                          </button>
+                        ) : (
+                          <input
+                            required={field.required}
+                            type={field.type === 'phone' ? 'tel' : field.type}
+                            value={customFields[field.label] || ''}
+                            onChange={(e) => setCustomFields(prev => ({ ...prev, [field.label]: e.target.value }))}
+                            className="w-full h-11 bg-white/[0.03] border border-white/10 rounded-xl px-3.5 text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-blue-500/70 transition-all"
+                            placeholder={`Enter your ${field.label.toLowerCase()}`}
                           />
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {rsvpError && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="p-4 rounded-xl bg-pink-500/10 border border-pink-500/20 text-pink-500 text-[10px] font-black uppercase tracking-widest text-center"
-                    >
-                      {rsvpError}
-                    </motion.div>
-                  )}
-
-                  {event.registrationFields && event.registrationFields.length > 0 && (
-                    <div className="space-y-8 pt-6 border-t border-white/5">
-                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">REGISTRATION DETAILS</p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {event.registrationFields.map((field, idx) => (
-                          <div key={idx} className={cn("space-y-3", (field.type === 'longtext' || field.type === 'multichoice') ? "md:col-span-2" : "")}>
-                            <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-2">
-                              {field.label} {field.required && <span className="text-pink-500 font-black">*</span>}
-                            </label>
-                            
-                            {field.type === 'longtext' ? (
-                              <textarea
-                                required={field.required}
-                                value={customFields[field.label] || ''}
-                                onChange={(e) => setCustomFields(prev => ({ ...prev, [field.label]: e.target.value }))}
-                                className="w-full h-40 bg-white/[0.03] border border-white/10 rounded-2xl p-6 text-white text-sm focus:outline-none focus:border-indigo-500/50 transition-colors resize-none font-medium"
-                                placeholder={`Enter ${field.label.toLowerCase()}...`}
-                              />
-                            ) : field.type === 'select' ? (
-                              <Select 
-                                value={customFields[field.label] || ''}
-                                onChange={(val) => setCustomFields(prev => ({ ...prev, [field.label]: val }))}
-                                options={(field.options || []).map(opt => ({ value: opt, label: opt }))}
-                                placeholder="Select an option"
-                                className="h-16"
-                              />
-                            ) : field.type === 'multichoice' ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {(field.options || []).map(opt => {
-                                        const values = (customFields[field.label] || '').split(',').filter(Boolean);
-                                        const isSelected = values.includes(opt);
-                                        return (
-                                            <button
-                                                key={opt}
-                                                type="button"
-                                                onClick={() => {
-                                                    let newValues;
-                                                    if (isSelected) {
-                                                        newValues = values.filter(v => v !== opt);
-                                                    } else {
-                                                        newValues = [...values, opt];
-                                                    }
-                                                    setCustomFields(prev => ({ ...prev, [field.label]: newValues.join(',') }));
-                                                }}
-                                                className={cn(
-                                                    "h-14 rounded-2xl border px-6 flex items-center justify-between transition-all group/opt",
-                                                    isSelected ? "bg-indigo-500/10 border-indigo-500/40" : "bg-white/[0.02] border-white/10 hover:border-white/20"
-                                                )}
-                                            >
-                                                <span className={cn("text-xs font-bold uppercase tracking-widest", isSelected ? "text-indigo-400" : "text-white/40 group-hover/opt:text-white")}>{opt}</span>
-                                                <div className={cn(
-                                                    "w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all",
-                                                    isSelected ? "bg-indigo-500 border-indigo-500" : "border-white/10 group-hover/opt:border-white/20"
-                                                )}>
-                                                    {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            ) : field.type === 'checkbox' ? (
-                                <button
-                                    type="button"
-                                    onClick={() => setCustomFields(prev => ({ ...prev, [field.label]: prev[field.label] === 'true' ? 'false' : 'true' }))}
-                                    className={cn(
-                                        "w-full h-16 rounded-2xl border px-6 flex items-center justify-between transition-all group/chk",
-                                        customFields[field.label] === 'true' ? "bg-indigo-500/10 border-indigo-500/40" : "bg-white/[0.02] border-white/10 hover:border-white/20"
-                                    )}
-                                >
-                                    <span className={cn("text-xs font-bold uppercase tracking-widest", customFields[field.label] === 'true' ? "text-indigo-400" : "text-white/40 group-hover/chk:text-white")}>{field.label}</span>
-                                    <div className={cn(
-                                        "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
-                                        customFields[field.label] === 'true' ? "bg-indigo-500 border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.4)]" : "border-white/10 group-hover/chk:border-white/20"
-                                    )}>
-                                        {customFields[field.label] === 'true' && <CheckCircle2 className="w-4 h-4 text-white" />}
-                                    </div>
-                                </button>
-                            ) : (
-                              <input
-                                required={field.required}
-                                type={field.type === 'phone' ? 'tel' : field.type}
-                                value={customFields[field.label] || ''}
-                                onChange={(e) => setCustomFields(prev => ({ ...prev, [field.label]: e.target.value }))}
-                                className="w-full h-16 bg-white/[0.03] border border-white/10 rounded-2xl px-6 text-white text-sm focus:outline-none focus:border-indigo-500/50 transition-colors font-bold"
-                                placeholder={`Enter your ${field.label.toLowerCase()}`}
-                              />
-                            )}
-                          </div>
-                        ))}
+                        )}
                       </div>
-                    </div>
-                  )}
+                    ))}
+                  </div>
+                </div>
+              )}
 
-                  <Button 
-                    type="submit"
-                    disabled={isRSVPLoading}
-                    className="w-full h-20 rounded-[32px] bg-indigo-600 hover:bg-indigo-500 text-sm font-black italic uppercase tracking-[0.2em] shadow-2xl shadow-indigo-500/20"
-                  >
-                    {isRSVPLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : "COMPLETE RSVP"}
-                  </Button>
-                </form>
-              </Card>
-            </motion.div>
-          </div>
+              <Button 
+                type="submit"
+                disabled={isRSVPLoading}
+                variant="kontyra"
+                className="w-full h-12 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-blue-900/20 active:scale-[0.98] transition-all"
+              >
+                {isRSVPLoading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Processing registration...</span>
+                  </div>
+                ) : (
+                  "Confirm & Get Pass"
+                )}
+              </Button>
+            </form>
+          </ModalShell>
         )}
       </AnimatePresence>
 

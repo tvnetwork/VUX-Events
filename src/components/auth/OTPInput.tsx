@@ -9,19 +9,29 @@ interface OTPInputProps {
   isSuccess?: boolean;
 }
 
-export function OTPInput({ value, onChange, length = 6, disabled, isError, isSuccess }: OTPInputProps) {
+export function OTPInput({
+  value,
+  onChange,
+  length = 6,
+  disabled,
+  isError,
+  isSuccess,
+}: OTPInputProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
-    // Focus first input on mount
-    if (inputRefs.current[0]) {
-      inputRefs.current[0].focus();
-    }
+    // Focus first input on mount with slight delay for mobile keyboard stability
+    const timer = setTimeout(() => {
+      if (inputRefs.current[0]) {
+        inputRefs.current[0].focus();
+      }
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const val = e.target.value;
-    
+
     // Handle multi-character input (paste/autofill/browser suggestions)
     if (val.length > 1) {
       const combined = val.replace(/\D/g, '').slice(0, length);
@@ -57,7 +67,6 @@ export function OTPInput({ value, onChange, length = 6, disabled, isError, isSuc
     const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, length);
     if (pastedData) {
       onChange(pastedData);
-      // Only focus next input if we didn't fill the whole thing
       if (pastedData.length < length) {
         inputRefs.current[pastedData.length]?.focus();
       }
@@ -65,24 +74,26 @@ export function OTPInput({ value, onChange, length = 6, disabled, isError, isSuc
   };
 
   return (
-    <div className="flex gap-2 justify-center" onPaste={handlePaste}>
+    <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 max-w-full overflow-hidden" onPaste={handlePaste}>
       {Array.from({ length }).map((_, i) => (
         <input
           key={i}
           ref={(el) => { inputRefs.current[i] = el; }}
           type="text"
           inputMode="numeric"
+          pattern="[0-9]*"
           maxLength={1}
+          autoComplete={i === 0 ? "one-time-code" : "off"}
           value={value[i] || ''}
           onChange={(e) => handleChange(e, i)}
           onKeyDown={(e) => handleKeyDown(e, i)}
           disabled={disabled}
-          className={`w-12 h-15 text-center text-2xl font-black bg-white/[0.03] border-2 rounded-2xl text-white focus:outline-none transition-all disabled:opacity-50 ${
-            isSuccess 
-              ? 'border-green-500/50 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.15)]' 
-              : isError 
-                ? 'border-red-500/50 bg-red-500/10 focus:border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.15)]' 
-                : 'border-white/[0.05] focus:border-indigo-500/50 focus:bg-white/[0.06] focus:shadow-[0_0_20px_rgba(99,102,241,0.1)]'
+          className={`w-10 sm:w-12 h-12 sm:h-14 text-center text-lg sm:text-2xl font-bold rounded-xl outline-none transition-all duration-200 select-all disabled:opacity-50 ${
+            isSuccess
+              ? 'border border-emerald-500/60 bg-emerald-500/10 text-emerald-300 ring-2 ring-emerald-500/20'
+              : isError
+                ? 'border border-rose-500/60 bg-rose-500/10 text-rose-300 ring-2 ring-rose-500/20'
+                : 'border border-white/10 bg-white/[0.04] text-white hover:border-white/20 focus:border-blue-500/80 focus:bg-white/[0.08] focus:ring-2 focus:ring-blue-500/25'
           }`}
         />
       ))}

@@ -183,13 +183,33 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
   const totalSteps = steps.length;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto custom-scrollbar">
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md overflow-hidden">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="w-full max-w-4xl bg-[#0b0b0f] border border-white/10 rounded-[32px] overflow-hidden shadow-2xl my-auto"
+        initial={{ y: '100%', opacity: 0.5 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: '100%', opacity: 0 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+        className="relative w-full max-w-4xl max-h-[92dvh] sm:max-h-[88vh] bg-[#0c0e17]/95 border-t sm:border border-white/10 rounded-t-[28px] sm:rounded-2xl overflow-hidden shadow-2xl flex flex-col"
       >
+        {/* Mobile handle */}
+        <div className="sm:hidden pt-2.5 pb-1 flex justify-center shrink-0">
+          <div className="w-10 h-1 rounded-full bg-white/20" />
+        </div>
+
+        {/* Mobile progress & close header */}
+        <div className="md:hidden px-5 py-2.5 border-b border-white/[0.06] flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-blue-400">Step {step} of {totalSteps}:</span>
+            <span className="text-xs font-bold text-white truncate max-w-[180px]">{steps[step - 1]?.label}</span>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="p-1 rounded-lg text-zinc-400 hover:text-white"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
         {showSuccess && createdEventId ? (
           <div className="p-12 md:p-20 text-center space-y-12">
             <div className="space-y-6">
@@ -235,65 +255,56 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
             </div>
           </div>
         ) : (
-          <div className="flex flex-col md:flex-row min-h-[500px] max-h-[90vh] md:h-[700px]">
+          <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
           {/* Sidebar Info */}
-          <div className="hidden md:flex w-72 bg-white/5 border-r border-white/5 p-10 flex-col justify-between">
-            <div className="space-y-10">
-              <div className="space-y-4">
-                <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-                  <Plus className="w-7 h-7 text-indigo-500" />
+          <div className="hidden md:flex w-72 bg-white/[0.02] border-r border-white/[0.06] p-8 flex-col justify-between shrink-0 overflow-y-auto">
+            <div className="space-y-8">
+              <div className="space-y-3">
+                <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400">
+                  <Plus className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold tracking-tight">
+                  <h2 className="text-xl font-bold tracking-tight text-white">
                     {eventToEdit ? 'Update Event' : 'Create Event'}
                   </h2>
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500/60">Event Setup</p>
+                  <p className="text-xs text-zinc-400">Step {step} of {totalSteps}</p>
                 </div>
               </div>
 
-              <div className="p-6 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 space-y-3">
-                <div className="flex items-center gap-2 text-indigo-400">
-                    <Check className="w-4 h-4" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Host Like a Pro</span>
-                </div>
-                <p className="text-[10px] font-medium text-white/40 leading-relaxed italic">
-                  You're using the best platform for events. Manage guests, track check-ins, and build community with ease.
-                </p>
-              </div>
-
-              <div className="space-y-6">
+              <div className="space-y-3">
                 {steps.map((s) => (
-                  <div key={s.step} className="flex items-center gap-4">
+                  <div key={s.step} className="flex items-center gap-3">
                     <div className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black transition-all",
-                      step === s.step ? "bg-purple-500 text-white shadow-lg shadow-purple-500/40" : (step > s.step ? "bg-emerald-500 text-white" : "bg-white/10 text-white/40")
+                      "w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-all",
+                      step === s.step ? "bg-blue-600 text-white shadow-sm shadow-blue-500/30" : (step > s.step ? "bg-emerald-500 text-white" : "bg-white/5 text-zinc-400 border border-white/5")
                     )}>
-                      {step > s.step ? <Check className="w-4 h-4" /> : s.step}
+                      {step > s.step ? <Check className="w-3.5 h-3.5" /> : s.step}
                     </div>
                     <span className={cn(
-                      "text-xs font-bold uppercase tracking-widest transition-all",
-                      step === s.step ? "text-white translate-x-1" : "text-white/20"
+                      "text-xs font-medium transition-all",
+                      step === s.step ? "text-white font-semibold" : "text-zinc-500"
                     )}>{s.label}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 italic text-[10px] text-white/40 leading-relaxed">
-              &quot;Creating an event makes it visible to all users in the network.&quot;
+            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] text-xs text-zinc-400 leading-relaxed">
+              Published events generate tickets with encrypted QR verification.
             </div>
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1 flex flex-col h-full relative">
+          <div className="flex-1 flex flex-col h-full relative overflow-hidden">
             <button 
                 onClick={onClose}
-                className="absolute top-8 right-8 p-2 rounded-full hover:bg-white/10 transition-all z-10"
+                aria-label="Close"
+                className="hidden md:flex absolute top-6 right-6 w-8 h-8 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] items-center justify-center text-zinc-400 hover:text-white transition-all z-10"
             >
-                <X className="w-5 h-5 text-white/20" />
+                <X className="w-4 h-4" />
             </button>
 
-            <div className="flex-1 overflow-y-auto p-10 md:p-14 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-5 sm:p-8 md:p-10 custom-scrollbar">
               <AnimatePresence mode="wait">
                 {currentStepId === 'type' && (
                   <motion.div

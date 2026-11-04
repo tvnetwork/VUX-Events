@@ -58,12 +58,12 @@ function LoadingFallback() {
 // Wrapper for components rendered inside RootLayout's Outlet
 function DashboardWrapper() {
   const context = useOutletContext<any>();
-  return <Dashboard onViewEvent={context.setSelectedEvent} onManageAttendees={context.setManagingEvent} onEditEvent={context.setEditingEvent} onCreateClick={() => context.setIsCreateModalOpen(true)} />;
+  return <Dashboard onEventClick={context.setSelectedEvent} onEditEvent={context.setEditingEvent} onCreateClick={() => context.setIsCreateModalOpen(true)} />;
 }
 
 function DiscoverWrapperInsideRoot() {
   const context = useOutletContext<any>();
-  return <Discover onViewEvent={context.setSelectedEvent} />;
+  return <Discover onEventClick={context.setSelectedEvent} onCreateClick={() => context.setIsCreateModalOpen(true)} />;
 }
 
 function AppContent() {

@@ -13,22 +13,24 @@ interface PasskeyButtonProps {
 
 export function PasskeyButton({ onClick, loading }: PasskeyButtonProps) {
   return (
-    <Button 
-      variant="vux"
+    <Button
+      type="button"
+      variant="passkey"
       onClick={onClick}
       disabled={loading}
-      className="w-full h-16 justify-center gap-4 rounded-2xl group relative overflow-hidden shadow-xl shadow-amber-500/10"
+      className="w-full h-12 rounded-xl flex items-center justify-between px-4 text-sm font-medium border border-amber-500/20 bg-amber-500/[0.06] hover:bg-amber-500/[0.12] active:scale-[0.98] transition-all duration-200"
     >
-      <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-      {loading ? (
-        <Loader2 className="w-6 h-6 animate-spin" />
-      ) : (
-        <div className="relative shrink-0">
-          <Key className="w-6 h-6 text-amber-400 transition-transform group-hover:rotate-12 group-hover:scale-110" />
-          <div className="absolute inset-0 blur-[4px] bg-amber-400/40 group-hover:bg-amber-400/60" />
-        </div>
-      )}
-      <span className="font-black uppercase tracking-widest relative z-10 text-sm">SIGN IN WITH PASSKEY</span>
+      <div className="flex items-center gap-2.5">
+        {loading ? (
+          <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+        ) : (
+          <Key className="w-4 h-4 text-amber-400" />
+        )}
+        <span className="text-white text-xs sm:text-sm font-semibold">Sign in with Passkey</span>
+      </div>
+      <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+        Biometric
+      </span>
     </Button>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, ArrowLeft, Loader2, RefreshCcw, ClipboardCheck } from 'lucide-react';
+import { Mail, ArrowLeft, Loader2, RefreshCcw, ClipboardCheck, ShieldCheck } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { OTPInput } from './OTPInput';
 
@@ -38,7 +38,6 @@ export function OTPModal({ email, onBack, onVerify, onResend }: OTPModalProps) {
   const handleCodeChange = (newCode: string) => {
     setCode(newCode);
     if (newCode.length === 6) {
-      // Auto-submit and blur to close keyboard
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
       }
@@ -49,7 +48,7 @@ export function OTPModal({ email, onBack, onVerify, onResend }: OTPModalProps) {
   const handleResendClick = async () => {
     setResending(true);
     setError('');
-    setCode(''); // Clear input on resend
+    setCode('');
     setIsSuccess(false);
     try {
       await onResend();
@@ -69,90 +68,112 @@ export function OTPModal({ email, onBack, onVerify, onResend }: OTPModalProps) {
       }
     } catch (err) {
       console.error('Failed to read clipboard:', err);
-      setError('Could not access clipboard. Please paste manually.');
+      setError('Could not access clipboard. Please enter code manually.');
     }
   };
 
   return (
-    <div className="space-y-8 py-6">
-      <div className="text-center">
-        <div className="relative w-20 h-20 mx-auto mb-8">
-          <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full animate-pulse" />
-          <div className="relative w-full h-full bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-[2rem] flex items-center justify-center shadow-xl shadow-indigo-500/20">
-            <Mail className="w-10 h-10 text-white" />
-          </div>
+    <div className="space-y-5">
+      {/* Header Info */}
+      <div className="text-center space-y-2">
+        <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mx-auto text-blue-400">
+          <Mail className="w-6 h-6" />
         </div>
-        <h3 className="text-2xl font-black text-white italic tracking-tight uppercase mb-2">Check your inbox</h3>
-        <p className="text-white/40 text-sm font-medium leading-relaxed px-6">
-          Paste the 6-digit verification code we've sent to <span className="text-white font-black">{email}</span>
+        <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+          Check your email
+        </h3>
+        <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed px-2">
+          We sent a 6-digit confirmation code to{' '}
+          <span className="text-white font-medium">{email}</span>
         </p>
       </div>
 
-      <div className="space-y-8">
-        <div className="relative group">
-          <OTPInput 
-            value={code} 
-            onChange={handleCodeChange} 
+      {/* Code Input */}
+      <div className="space-y-4">
+        <div className="py-2">
+          <OTPInput
+            value={code}
+            onChange={handleCodeChange}
             disabled={loading}
             isError={!!error}
             isSuccess={isSuccess}
           />
+        </div>
+
+        {/* Quick Paste Button */}
+        <div className="flex justify-center">
           <button
             type="button"
             onClick={handlePasteCode}
-            className="absolute -right-14 top-1/2 -translate-y-1/2 p-2.5 text-white/20 hover:text-indigo-400 transition-all bg-white/[0.03] hover:bg-white/[0.08] rounded-xl opacity-0 group-hover:opacity-100 hidden md:flex border border-white/[0.03]"
-            title="Paste from clipboard"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 active:bg-blue-500/20 transition-all"
           >
-            <ClipboardCheck className="w-5 h-5" />
+            <ClipboardCheck className="w-3.5 h-3.5" />
+            <span>Paste code</span>
           </button>
         </div>
 
-        <button
-          type="button"
-          onClick={handlePasteCode}
-          className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition-colors text-xs font-black uppercase tracking-widest mx-auto md:hidden"
-        >
-          <ClipboardCheck className="w-4 h-4" />
-          Paste code from clipboard
-        </button>
-
+        {/* Error Feedback */}
         {error && (
-          <p className="text-red-400 text-[10px] text-center font-black uppercase tracking-[0.2em] bg-red-400/5 py-3 rounded-xl border border-red-400/10 animate-shake">
+          <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs text-center font-medium">
             {error}
-          </p>
+          </div>
         )}
 
-        <div className="space-y-6">
-          <Button
-            type="submit"
-            onClick={(e) => handleSubmit(e)}
-            variant="email"
-            disabled={code.length !== 6 || loading}
-            className="w-full h-15 text-lg font-black rounded-2xl shadow-2xl shadow-indigo-500/10"
-          >
-            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'CONTINUE'}
-          </Button>
-
-          <div className="flex items-center justify-between px-2">
-            <button
-              type="button"
-              onClick={onBack}
-              className="flex items-center gap-2 text-white/20 hover:text-white/40 transition-colors text-[10px] font-black uppercase tracking-widest"
-            >
-              <ArrowLeft className="w-3 h-3" />
-              Change email
-            </button>
-
-            <button
-              type="button"
-              onClick={handleResendClick}
-              disabled={resending}
-              className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition-colors text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
-            >
-              {resending ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCcw className="w-3 h-3" />}
-              Resend code
-            </button>
+        {/* Success Feedback */}
+        {isSuccess && (
+          <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs text-center font-medium flex items-center justify-center gap-1.5">
+            <ShieldCheck className="w-4 h-4" />
+            <span>Verified successfully! Entering...</span>
           </div>
+        )}
+
+        {/* Action Button */}
+        <Button
+          type="button"
+          onClick={(e) => handleSubmit(e)}
+          variant="kontyra"
+          disabled={code.length !== 6 || loading}
+          className="w-full h-12 rounded-xl text-sm font-semibold shadow-lg shadow-blue-900/20 active:scale-[0.98] transition-all"
+        >
+          {loading ? (
+            <div className="flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Verifying...</span>
+            </div>
+          ) : (
+            'Verify & Sign In'
+          )}
+        </Button>
+
+        {/* Footer controls: Back + Resend */}
+        <div className="flex items-center justify-between pt-1 text-xs text-zinc-400">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Change email</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleResendClick}
+            disabled={resending}
+            className="flex items-center gap-1 text-blue-400 hover:text-blue-300 disabled:opacity-50 transition-colors font-medium"
+          >
+            {resending ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Sending...</span>
+              </>
+            ) : (
+              <>
+                <RefreshCcw className="w-3.5 h-3.5" />
+                <span>Resend code</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

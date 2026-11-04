@@ -3,10 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import React from 'react';
 import { Mail, ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
-import { Logo } from '../Logo';
 
 interface EmailStepProps {
   email: string;
@@ -17,36 +16,41 @@ interface EmailStepProps {
 
 export function EmailStep({ email, setEmail, onSubmit, loading }: EmailStepProps) {
   return (
-    <div className="space-y-8 py-4">
-      <form onSubmit={onSubmit} className="space-y-4">
-        <div className="relative group">
-          <Input 
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="h-16 bg-white/[0.02] border-white/5 text-white placeholder:text-white/10 rounded-2xl px-14 focus:border-indigo-500/40 transition-all font-bold italic text-lg"
-          />
-          <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-white/10 group-focus-within:text-indigo-400 transition-colors" />
+    <form onSubmit={onSubmit} className="space-y-3.5">
+      <div className="relative group">
+        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500 group-focus-within:text-blue-400 transition-colors">
+          <Mail className="w-4 h-4" />
         </div>
-        
-        <Button 
-          type="submit" 
-          variant="vux"
-          disabled={loading || !email}
-          className="w-full h-16 text-sm font-black rounded-2xl group shadow-xl shadow-indigo-500/10"
-        >
-          {loading ? (
-            <Loader2 className="w-6 h-6 animate-spin mx-auto" />
-          ) : (
-            <div className="flex items-center justify-center gap-3">
-              <span>CONTINUE</span>
-              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-2" />
-            </div>
-          )}
-        </Button>
-      </form>
-    </div>
+        <input
+          type="email"
+          placeholder="name@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          autoFocus
+          autoComplete="email"
+          className="w-full h-12 pl-10 pr-4 bg-white/[0.03] border border-white/10 rounded-xl text-white placeholder:text-zinc-500 text-sm sm:text-base focus:outline-none focus:border-blue-500/70 focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+        />
+      </div>
+
+      <Button
+        type="submit"
+        variant="kontyra"
+        disabled={loading || !email.trim()}
+        className="w-full h-12 rounded-xl text-sm font-semibold gap-2 shadow-lg shadow-blue-900/20 active:scale-[0.98] transition-all"
+      >
+        {loading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Sending code...</span>
+          </>
+        ) : (
+          <>
+            <span>Continue with Email</span>
+            <ArrowRight className="w-4 h-4" />
+          </>
+        )}
+      </Button>
+    </form>
   );
 }

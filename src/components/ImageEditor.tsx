@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import Cropper, { Area, Point } from 'react-easy-crop';
-import { motion, AnimatePresence } from 'motion/react';
-import { Check, X, RotateCw, Contrast, Sun, Ghost, Wand2 } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Check, X, RotateCw, Wand2 } from 'lucide-react';
 import { Button } from './ui/Button';
 
 interface ImageEditorProps {
@@ -59,43 +59,45 @@ export function ImageEditor({ image, onConfirm, onCancel, aspect = 16 / 9 }: Ima
     ctx.translate(-image.width / 2, -image.height / 2);
     ctx.drawImage(image, 0, 0);
 
-    const data = ctx.getImageData(pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height);
+    const croppedCanvas = document.createElement('canvas');
+    const croppedCtx = croppedCanvas.getContext('2d');
 
-    canvas.width = pixelCrop.width;
-    canvas.height = pixelCrop.height;
-    ctx.putImageData(data, 0, 0);
+    if (!croppedCtx) throw new Error('No 2d context');
 
-    // Apply Filter at final canvas level
-    ctx.filter = filterToCanvasFilter(filterClass);
-    ctx.drawImage(canvas, 0, 0);
+    croppedCanvas.width = pixelCrop.width;
+    croppedCanvas.height = pixelCrop.height;
+
+    // Apply CSS-like filter effect to canvas
+    if (filterClass.includes('grayscale')) {
+      croppedCtx.filter = 'grayscale(100%) contrast(125%)';
+    } else if (filterClass.includes('sepia')) {
+      croppedCtx.filter = 'sepia(100%) contrast(110%) brightness(90%)';
+    } else if (filterClass.includes('hue-rotate-240')) {
+      croppedCtx.filter = 'hue-rotate(240deg) saturate(150%) contrast(125%)';
+    } else if (filterClass.includes('hue-rotate-15')) {
+      croppedCtx.filter = 'hue-rotate(15deg) saturate(50%) contrast(110%) brightness(110%)';
+    } else if (filterClass.includes('saturate-0')) {
+      croppedCtx.filter = 'contrast(150%) saturate(0%) brightness(75%)';
+    }
+
+    croppedCtx.drawImage(
+      canvas,
+      pixelCrop.x,
+      pixelCrop.y,
+      pixelCrop.width,
+      pixelCrop.height,
+      0,
+      0,
+      pixelCrop.width,
+      pixelCrop.height
+    );
 
     return new Promise((resolve, reject) => {
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          reject(new Error('Canvas is empty'));
-          return;
-        }
-        resolve(blob);
-      }, 'image/jpeg', 0.95);
+      croppedCanvas.toBlob((file) => {
+        if (file) resolve(file);
+        else reject(new Error('Canvas is empty'));
+      }, 'image/jpeg', 0.9);
     });
-  };
-
-  const filterToCanvasFilter = (filterClass: string) => {
-    let filter = '';
-    if (filterClass.includes('grayscale')) filter += 'grayscale(100%) ';
-    if (filterClass.includes('contrast-125')) filter += 'contrast(125%) ';
-    if (filterClass.includes('contrast-150')) filter += 'contrast(150%) ';
-    if (filterClass.includes('contrast-110')) filter += 'contrast(110%) ';
-    if (filterClass.includes('brightness-75')) filter += 'brightness(75%) ';
-    if (filterClass.includes('brightness-90')) filter += 'brightness(90%) ';
-    if (filterClass.includes('brightness-110')) filter += 'brightness(110%) ';
-    if (filterClass.includes('saturate-0')) filter += 'saturate(0%) ';
-    if (filterClass.includes('saturate-50')) filter += 'saturate(50%) ';
-    if (filterClass.includes('saturate-150')) filter += 'saturate(150%) ';
-    if (filterClass.includes('sepia')) filter += 'sepia(100%) ';
-    if (filterClass.includes('hue-rotate-15')) filter += 'hue-rotate(15deg) ';
-    if (filterClass.includes('hue-rotate-240')) filter += 'hue-rotate(240deg) ';
-    return filter || 'none';
   };
 
   const rotateSize = (width: number, height: number, rotation: number) => {
@@ -110,8 +112,8 @@ export function ImageEditor({ image, onConfirm, onCancel, aspect = 16 / 9 }: Ima
     if (!croppedAreaPixels) return;
     try {
       setProcessing(true);
-      const blob = await getCroppedImg(image, croppedAreaPixels, rotation, activeFilter.class);
-      onConfirm(blob);
+      const croppedBlob = await getCroppedImg(image, croppedAreaPixels, rotation, activeFilter.class);
+      onConfirm(croppedBlob);
     } catch (e) {
       console.error(e);
     } finally {
@@ -124,103 +126,95 @@ export function ImageEditor({ image, onConfirm, onCancel, aspect = 16 / 9 }: Ima
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/85 backdrop-blur-md overflow-hidden"
     >
-      <div className="w-full max-w-5xl h-[90vh] bg-[#0b0b0f] rounded-[40px] border border-white/10 overflow-hidden flex flex-col shadow-2xl">
+      <div className="w-full max-w-5xl h-[94dvh] sm:h-[88vh] bg-[#0c0e17]/95 rounded-t-[28px] sm:rounded-2xl border-t sm:border border-white/10 overflow-hidden flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="p-8 border-b border-white/5 flex items-center justify-between">
-           <div>
-              <h3 className="text-2xl font-black italic uppercase tracking-tighter">IMAGE EDITOR</h3>
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Crop and filter your photo</p>
-           </div>
-           <div className="flex gap-3">
-              <Button onClick={onCancel} variant="ghost" className="rounded-2xl border-white/5 h-12 px-6">
-                 <X className="w-4 h-4 mr-2" /> CANCEL
-              </Button>
-              <Button onClick={handleConfirm} disabled={processing} className="rounded-2xl bg-white text-black hover:bg-white/90 h-12 px-8 shadow-xl shadow-white/10">
-                 {processing ? 'SAVING...' : <><Check className="w-4 h-4 mr-2" /> SAVE PHOTO</>}
-              </Button>
-           </div>
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-white/[0.08] flex items-center justify-between shrink-0 bg-[#0c0e17]">
+          <div>
+            <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">Crop & Filter Image</h3>
+            <p className="text-xs text-zinc-400">Position and enhance your cover photo</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button onClick={onCancel} variant="ghost" size="sm" className="rounded-xl h-9 px-3 text-xs text-zinc-400 hover:text-white">
+              Cancel
+            </Button>
+            <Button onClick={handleConfirm} disabled={processing} variant="kontyra" size="sm" className="rounded-xl h-9 px-4 text-xs font-semibold gap-1.5 shadow-md shadow-blue-900/20">
+              {processing ? 'Processing...' : <><Check className="w-3.5 h-3.5" /> Save</>}
+            </Button>
+          </div>
         </div>
 
         {/* Workspace */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-           {/* Primary viewport */}
-           <div className="flex-1 relative bg-black/40">
-              <Cropper
-                image={image}
-                crop={crop}
-                zoom={zoom}
-                rotation={rotation}
-                aspect={aspect}
-                onCropChange={setCrop}
-                onCropComplete={onCropComplete}
-                onZoomChange={setZoom}
-                classes={{
-                  containerClassName: "bg-black/20",
-                  mediaClassName: activeFilter.class
-                }}
+          {/* Primary viewport */}
+          <div className="flex-1 relative bg-black/60 min-h-[220px]">
+            <Cropper
+              image={image}
+              crop={crop}
+              zoom={zoom}
+              rotation={rotation}
+              aspect={aspect}
+              onCropChange={setCrop}
+              onCropComplete={onCropComplete}
+              onZoomChange={setZoom}
+              classes={{
+                containerClassName: "bg-black/40",
+                mediaClassName: activeFilter.class
+              }}
+            />
+          </div>
+
+          {/* Controls Bar / Sidebar */}
+          <div className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l border-white/[0.08] p-4 sm:p-6 space-y-4 overflow-y-auto bg-white/[0.02] shrink-0">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs text-zinc-400 font-semibold">
+                <span>Zoom Level</span>
+                <span className="font-mono text-zinc-500">{zoom.toFixed(1)}x</span>
+              </div>
+              <input
+                type="range"
+                value={zoom}
+                min={1}
+                max={3}
+                step={0.1}
+                aria-labelledby="Zoom"
+                onChange={(e) => setZoom(Number(e.target.value))}
+                className="w-full accent-blue-500 cursor-pointer"
               />
-           </div>
-
-           {/* Sidebar Controls */}
-           <div className="w-full lg:w-80 border-l border-white/5 p-8 space-y-10 overflow-y-auto bg-white/[0.01]">
-              <div className="space-y-6">
-                 <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">CROP & SCALE</label>
-                    <span className="text-[10px] font-mono text-white/20">{zoom.toFixed(2)}X</span>
-                 </div>
-                 <input
-                   type="range"
-                   value={zoom}
-                   min={1}
-                   max={3}
-                   step={0.1}
-                   aria-labelledby="Zoom"
-                   onChange={(e) => setZoom(Number(e.target.value))}
-                   className="w-full accent-white"
-                 />
-                 
-                 <div className="flex gap-2">
-                    <Button 
-                      onClick={() => setRotation((r) => r + 90)}
-                      variant="ghost" 
-                      className="flex-1 rounded-2xl bg-white/5 hover:bg-white/10 h-12"
-                    >
-                       <RotateCw className="w-4 h-4 mr-2" /> ROTATE
-                    </Button>
-                 </div>
+              
+              <div className="pt-1">
+                <Button 
+                  onClick={() => setRotation((r) => r + 90)}
+                  variant="ghost" 
+                  size="sm"
+                  className="w-full rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] h-9 text-xs text-zinc-300 font-medium"
+                >
+                  <RotateCw className="w-3.5 h-3.5 mr-1.5" /> Rotate 90°
+                </Button>
               </div>
+            </div>
 
-              <div className="space-y-6">
-                 <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">FILTERS</label>
-                 <div className="grid grid-cols-2 gap-3">
-                    {FILTERS.map((f) => (
-                      <button
-                        key={f.name}
-                        onClick={() => setActiveFilter(f)}
-                        className={`p-3 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${
-                          activeFilter.name === f.name 
-                            ? "bg-white text-black border-white" 
-                            : "bg-white/5 border-white/5 text-white/40 hover:border-white/20"
-                        }`}
-                      >
-                         {f.name}
-                      </button>
-                    ))}
-                 </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-zinc-400 block">Color Preset</label>
+              <div className="flex lg:grid lg:grid-cols-2 gap-2 overflow-x-auto scrollbar-hide py-1">
+                {FILTERS.map((f) => (
+                  <button
+                    key={f.name}
+                    type="button"
+                    onClick={() => setActiveFilter(f)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                      activeFilter.name === f.name 
+                        ? "bg-blue-600 text-white shadow-sm shadow-blue-500/20" 
+                        : "bg-white/[0.03] border border-white/[0.06] text-zinc-400 hover:text-white hover:bg-white/[0.06]"
+                    }`}
+                  >
+                    {f.name}
+                  </button>
+                ))}
               </div>
-
-              <div className="p-6 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 space-y-4">
-                 <div className="flex items-center gap-3">
-                    <Wand2 className="w-4 h-4 text-indigo-400" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300">Optimization</span>
-                 </div>
-                 <p className="text-[9px] font-medium text-indigo-300/60 leading-relaxed italic">
-                   Images are automatically optimized for fast loading.
-                 </p>
-              </div>
-           </div>
+            </div>
+          </div>
         </div>
       </div>
     </motion.div>

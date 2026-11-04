@@ -4,7 +4,7 @@ import { Search, Bell, Plus, User, LogOut, Settings as SettingsIcon, Shield, Men
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from './ui/Button';
 import { Avatar } from './ui/Avatar';
-import { cn } from '../lib/utils';
+import { cn, getAvatarUrl } from '../lib/utils';
 import { Logo } from './Logo';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -104,7 +104,11 @@ export function Sidebar({ onSearchClick, onCreateClick, onLoginClick }: {
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
                   className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-white/[0.03] transition-colors text-left"
                 >
-                    <Avatar seed={profile.email || 'user'} size="sm" />
+                    <Avatar 
+                      src={profile.photoURL || getAvatarUrl(profile.email || 'user')} 
+                      fallback={getAvatarUrl(profile.email || 'user')} 
+                      size="sm" 
+                    />
                     <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-white truncate">{profile.displayName || 'User'}</div>
                         <div className="text-xs text-white/40 truncate">{profile.email}</div>

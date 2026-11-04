@@ -5,28 +5,25 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User, Sparkles, Bell, Shield, Check, ArrowRight, Camera, Mail } from 'lucide-react';
+import { Sparkles, Bell, Shield, Check, ArrowRight, Camera, Mail, User } from 'lucide-react';
 import { Button } from './ui/Button';
-import { Input } from './ui/Input';
-import { Card } from './ui/Card';
 import { Switch } from './ui/Switch';
 import { useAuth } from '../AuthContext';
-import { db } from '../lib/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
 import { cn, getAvatarUrl } from '../lib/utils';
 import { StorageService } from '../services/StorageService';
 
-export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
+export function OnboardingWizard({ onComplete, profile: initialProfile }: { onComplete: () => void; profile?: any }) {
   const { user, profile, updateProfileData } = useAuth();
+  const activeProfile = initialProfile || profile;
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
-    displayName: profile?.displayName || '',
+    displayName: activeProfile?.displayName || '',
     bio: '',
     phoneNumber: '',
     dob: '',
-    photoURL: profile?.photoURL || '',
+    photoURL: activeProfile?.photoURL || '',
     preferences: {
       emailNotifications: true,
       pushNotifications: true,
@@ -68,242 +65,269 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-lg overflow-y-auto custom-scrollbar">
-      {/* Immersive Background Effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-[50rem] h-[50rem] bg-indigo-600/10 blur-[150px] rounded-full animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-[40rem] h-[40rem] bg-purple-600/5 blur-[120px] rounded-full animate-pulse delay-1000" />
-      </div>
-
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#07080f]/85 backdrop-blur-md overflow-hidden">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 30 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="w-full max-w-2xl overflow-hidden my-auto relative z-10"
+        initial={{ y: '100%', opacity: 0.5 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: '100%', opacity: 0 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+        className="relative w-full sm:max-w-xl max-h-[92dvh] sm:max-h-[88vh] flex flex-col bg-[#0c0e17]/95 border-t sm:border border-white/[0.08] rounded-t-[28px] sm:rounded-2xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] backdrop-blur-2xl overflow-hidden"
       >
-        <Card className="p-0 border-white/[0.03] bg-black/40 backdrop-blur-xl shadow-2xl relative overflow-y-auto max-h-[92vh] rounded-[3rem] custom-scrollbar">
-          {/* Top Decorative bar */}
-          <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
-          
-          <div className="p-10 md:p-16 space-y-12">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shadow-2xl shadow-indigo-500/10">
-                  <Sparkles className="w-7 h-7 text-indigo-400" />
-                </div>
-                 <div>
-                   <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">GETTING STARTED</h2>
-                   <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.4em]">Step {step} of {totalSteps}</p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                {[1, 2, 3].map((s) => (
-                  <div 
-                    key={s} 
-                    className={cn(
-                      "w-12 h-1 rounded-full transition-all duration-700",
-                      s === step ? "bg-indigo-500 w-20 shadow-lg shadow-indigo-500/40" : (s < step ? "bg-emerald-500/40" : "bg-white/[0.05]")
-                    )}
-                  />
-                ))}
-              </div>
+        {/* Subtle top edge highlight */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent pointer-events-none" />
+
+        {/* Mobile handle */}
+        <div className="sm:hidden pt-3 pb-1 flex justify-center">
+          <div className="w-10 h-1 rounded-full bg-white/20" />
+        </div>
+
+        {/* Header */}
+        <div className="px-6 pt-4 sm:pt-6 pb-3 flex items-center justify-between border-b border-white/[0.06] shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+              <Sparkles className="w-4 h-4" />
             </div>
-
-            <AnimatePresence mode="wait">
-              {step === 1 && (
-                <motion.div
-                  key="step1"
-                  initial={{ opacity: 0, x: 40 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -40 }}
-                  transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-                  className="space-y-10"
-                >
-                  <div className="space-y-4">
-                     <h3 className="text-5xl md:text-6xl font-black italic tracking-tighter uppercase leading-[0.8]">PROFILE<br/><span className="text-indigo-400">SETUP</span></h3>
-                     <p className="text-white/30 text-sm font-bold uppercase tracking-widest italic">Set up your public identity on VUX.</p>
-                  </div>
-                  
-                  <div className="space-y-8">
-                    <div className="flex flex-col md:flex-row items-center gap-10">
-                        <div className="relative group">
-                            <div className="w-32 h-32 rounded-[2.5rem] bg-indigo-500/5 border border-indigo-500/20 overflow-hidden ring-4 ring-indigo-500/5 shadow-2xl shadow-indigo-500/10 transition-transform duration-700 group-hover:scale-105">
-                                <img src={formData.photoURL || getAvatarUrl(user?.uid)} className="w-full h-full object-cover" />
-                            </div>
-                            <label className="absolute -bottom-3 -right-3 w-10 min-w-[40px] h-10 p-0 bg-white text-black rounded-xl shadow-2xl cursor-pointer hover:scale-110 active:scale-95 transition-all flex items-center justify-center border-4 border-black">
-                                <Camera className="w-4 h-4" />
-                                <input 
-                                  type="file" 
-                                  className="hidden" 
-                                  accept="image/*"
-                                  onChange={async (e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file && user) {
-                                      try {
-                                        setLoading(true);
-                                        const url = await StorageService.uploadProfileImage(file, user.uid);
-                                        setFormData(prev => ({ ...prev, photoURL: url }));
-                                      } catch (err) {
-                                        console.error('Upload failed:', err);
-                                      } finally {
-                                        setLoading(false);
-                                      }
-                                    }
-                                  }}
-                                />
-                            </label>
-                        </div>
-                        <div className="flex-1 w-full space-y-4">
-                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/60 px-1">Display Name</label>
-                                <Input 
-                                   value={formData.displayName}
-                                   onChange={(e) => setFormData({...formData, displayName: e.target.value})}
-                                   placeholder="Your Name"
-                                   className="bg-white/[0.02] border-white/5 focus:border-indigo-500/40 h-16 rounded-2xl italic font-bold text-lg px-6"
-                                />
-                             </div>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/60 px-1">Phone Number</label>
-                            <Input 
-                                value={formData.phoneNumber}
-                                onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
-                                placeholder="+1 (000) 000-0000"
-                                className="bg-white/[0.02] border-white/5 h-16 rounded-2xl px-6 italic font-bold"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/60 px-1">Date of Birth</label>
-                            <Input 
-                                type="date"
-                                value={formData.dob}
-                                onChange={(e) => setFormData({...formData, dob: e.target.value})}
-                                className="bg-white/[0.02] border-white/5 h-16 rounded-2xl px-6 italic font-bold appearance-none"
-                            />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/60 px-1">Bio</label>
-                        <textarea 
-                            value={formData.bio}
-                            onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                            placeholder="Tell us about yourself..."
-                            className="w-full h-32 rounded-[2rem] border border-white/5 bg-white/[0.02] p-6 text-lg font-bold italic resize-none focus:outline-none focus:border-indigo-500/40 transition-all"
-                        />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {step === 2 && (
-                <motion.div
-                  key="step2"
-                  initial={{ opacity: 0, x: 40 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -40 }}
-                  transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-                  className="space-y-10"
-                >
-                  <div className="space-y-4">
-                     <h3 className="text-5xl md:text-6xl font-black italic tracking-tighter uppercase leading-[0.8]">NOTIFY<br/><span className="text-indigo-400">SETTINGS</span></h3>
-                     <p className="text-white/30 text-sm font-bold uppercase tracking-widest italic">Choose how you want to stay updated.</p>
-                  </div>
-
-                  <div className="space-y-6">
-                     {[
-                       { icon: <Bell className="w-6 h-6 text-indigo-400" />, title: 'Push Alerts', desc: 'Real-time phone notifications.', key: 'pushNotifications' },
-                       { icon: <Mail className="w-6 h-6 text-indigo-400" />, title: 'Email Sync', desc: 'Updates directly to your inbox.', key: 'emailNotifications' },
-                     ].map((pref) => (
-                        <div key={pref.key} className="flex items-center justify-between p-8 rounded-[2.5rem] bg-white/[0.01] border border-white/5 group hover:bg-white/[0.03] transition-all">
-                            <div className="flex gap-6">
-                                <div className="w-14 h-14 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:border-indigo-500/40 transition-all duration-500">
-                                    {pref.icon}
-                                </div>
-                                <div className="space-y-1">
-                                    <h4 className="text-xl font-black italic uppercase tracking-tighter">{pref.title}</h4>
-                                    <p className="text-[10px] text-white/20 font-black uppercase tracking-widest italic">{pref.desc}</p>
-                                </div>
-                            </div>
-                            <Switch 
-                                checked={(formData.preferences as any)[pref.key]}
-                                onCheckedChange={(val) => setFormData({
-                                    ...formData, 
-                                    preferences: { ...formData.preferences, [pref.key]: val }
-                                })}
-                                className="data-[state=checked]:bg-indigo-600 scale-125"
-                            />
-                        </div>
-                     ))}
-                  </div>
-                </motion.div>
-              )}
-
-              {step === 3 && (
-                <motion.div
-                  key="step3"
-                  initial={{ opacity: 0, x: 40 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -40 }}
-                  transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-                  className="space-y-10"
-                >
-                  <div className="space-y-4">
-                     <h3 className="text-5xl md:text-6xl font-black italic tracking-tighter uppercase leading-[0.8]">PRIVACY<br/><span className="text-indigo-400">CONTROL</span></h3>
-                     <p className="text-white/30 text-sm font-bold uppercase tracking-widest italic">Choose who can see your profile.</p>
-                  </div>
-
-                  <div className="p-12 md:p-16 rounded-[4rem] bg-white/[0.01] border border-white/5 space-y-10 text-center relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-indigo-600/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <Shield className="w-24 h-24 text-indigo-500/20 mx-auto mb-4 animate-pulse relative z-10" />
-                    <div className="space-y-4 relative z-10">
-                        <h4 className="text-3xl font-black italic uppercase tracking-tighter">Public Profile</h4>
-                        <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.3em] leading-relaxed max-w-sm mx-auto">
-                            When enabled, other members can see your profile and events you are attending.
-                        </p>
-                    </div>
-                    <div className="flex items-center justify-center gap-8 pt-4 relative z-10">
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/10">PRIVATE</span>
-                        <Switch 
-                            checked={formData.preferences.publicProfile}
-                            onCheckedChange={(val) => setFormData({
-                                ...formData, 
-                                preferences: { ...formData.preferences, publicProfile: val }
-                            })}
-                            className="data-[state=checked]:bg-indigo-600 scale-150 shadow-2xl shadow-indigo-500/20"
-                        />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">PUBLIC</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div className="flex items-center justify-between pt-8 border-t border-white/[0.03]">
-                <Button 
-                    variant="ghost" 
-                    onClick={() => step > 1 && setStep(step - 1)}
-                    disabled={step === 1 || loading}
-                    className="text-[10px] uppercase tracking-[0.4em] font-black text-white/20 hover:text-white"
-                >
-                    BACK
-                </Button>
-                <Button 
-                    variant="vux"
-                    onClick={handleNext}
-                    disabled={loading || (step === 1 && !formData.displayName)}
-                    className="h-20 px-14 rounded-3xl gap-4 shadow-2xl shadow-indigo-500/30 text-lg"
-                >
-                    <span className="font-black uppercase tracking-widest">
-                        {step === totalSteps ? 'COMPLETE SETUP' : 'CONTINUE'}
-                    </span>
-                    {step === totalSteps ? <Check className="w-6 h-6" /> : <ArrowRight className="w-6 h-6" />}
-                </Button>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">Getting Started</h2>
+              <p className="text-xs text-zinc-400">Step {step} of {totalSteps}</p>
             </div>
           </div>
-        </Card>
+
+          {/* Step indicators */}
+          <div className="flex gap-1.5">
+            {[1, 2, 3].map((s) => (
+              <div
+                key={s}
+                className={cn(
+                  'h-1.5 rounded-full transition-all duration-300',
+                  s === step ? 'w-6 bg-blue-500' : s < step ? 'w-2 bg-emerald-400' : 'w-2 bg-white/10'
+                )}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Body content */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-5 space-y-6">
+          <AnimatePresence mode="wait">
+            {step === 1 && (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-5"
+              >
+                <div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Set up your profile</h3>
+                  <p className="text-xs sm:text-sm text-zinc-400 mt-0.5">Tell the community who you are</p>
+                </div>
+
+                {/* Avatar and name */}
+                <div className="flex items-center gap-4">
+                  <div className="relative group shrink-0">
+                    <div className="w-20 h-20 rounded-2xl bg-white/[0.04] border border-white/10 overflow-hidden">
+                      <img
+                        src={formData.photoURL || getAvatarUrl(user?.uid)}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <label className="absolute -bottom-2 -right-2 w-8 h-8 rounded-lg bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center cursor-pointer shadow-lg active:scale-95 transition-all">
+                      <Camera className="w-4 h-4" />
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file && user) {
+                            try {
+                              setLoading(true);
+                              const url = await StorageService.uploadProfileImage(file, user.uid);
+                              setFormData(prev => ({ ...prev, photoURL: url }));
+                            } catch (err) {
+                              console.error('Upload failed:', err);
+                            } finally {
+                              setLoading(false);
+                            }
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  <div className="flex-1 space-y-1">
+                    <label className="text-xs font-semibold text-zinc-300">Display Name</label>
+                    <input
+                      type="text"
+                      value={formData.displayName}
+                      onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+                      placeholder="Your full name or handle"
+                      className="w-full h-11 px-3.5 bg-white/[0.03] border border-white/10 rounded-xl text-white placeholder:text-zinc-500 text-sm focus:outline-none focus:border-blue-500/70 focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Phone & Date of Birth */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-zinc-300">Phone Number</label>
+                    <input
+                      type="tel"
+                      value={formData.phoneNumber}
+                      onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                      placeholder="+234 800 000 0000"
+                      className="w-full h-11 px-3.5 bg-white/[0.03] border border-white/10 rounded-xl text-white placeholder:text-zinc-500 text-sm focus:outline-none focus:border-blue-500/70 focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-zinc-300">Date of Birth</label>
+                    <input
+                      type="date"
+                      value={formData.dob}
+                      onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                      className="w-full h-11 px-3.5 bg-white/[0.03] border border-white/10 rounded-xl text-white placeholder:text-zinc-500 text-sm focus:outline-none focus:border-blue-500/70 focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Bio */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-zinc-300">Short Bio</label>
+                  <textarea
+                    value={formData.bio}
+                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    placeholder="Tell us what you build, design, or organize..."
+                    rows={3}
+                    className="w-full p-3 bg-white/[0.03] border border-white/10 rounded-xl text-white placeholder:text-zinc-500 text-sm focus:outline-none focus:border-blue-500/70 focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-500/20 transition-all resize-none"
+                  />
+                </div>
+              </motion.div>
+            )}
+
+            {step === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-4"
+              >
+                <div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Notification Settings</h3>
+                  <p className="text-xs sm:text-sm text-zinc-400 mt-0.5">Stay informed about event passes, reminders, and updates</p>
+                </div>
+
+                <div className="space-y-3">
+                  {[
+                    {
+                      icon: <Bell className="w-5 h-5 text-blue-400" />,
+                      title: 'Push Notifications',
+                      desc: 'Real-time alerts for ticket approval & door scan.',
+                      key: 'pushNotifications',
+                    },
+                    {
+                      icon: <Mail className="w-5 h-5 text-indigo-400" />,
+                      title: 'Email Notifications',
+                      desc: 'Receive digital passes and calendar invitations in your inbox.',
+                      key: 'emailNotifications',
+                    },
+                  ].map((pref) => (
+                    <div
+                      key={pref.key}
+                      className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/10 hover:border-white/15 transition-all"
+                    >
+                      <div className="flex items-center gap-3 pr-3">
+                        <div className="w-10 h-10 rounded-lg bg-white/[0.04] border border-white/5 flex items-center justify-center shrink-0">
+                          {pref.icon}
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold text-white">{pref.title}</h4>
+                          <p className="text-xs text-zinc-400 mt-0.5">{pref.desc}</p>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={(formData.preferences as any)[pref.key]}
+                        onCheckedChange={(val) =>
+                          setFormData({
+                            ...formData,
+                            preferences: { ...formData.preferences, [pref.key]: val },
+                          })
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {step === 3 && (
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-5"
+              >
+                <div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Privacy & Visibility</h3>
+                  <p className="text-xs sm:text-sm text-zinc-400 mt-0.5">Control how other attendees discover your profile</p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mx-auto text-blue-400">
+                    <Shield className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-white">Public Profile Visibility</h4>
+                    <p className="text-xs text-zinc-400 max-w-sm mx-auto mt-1 leading-relaxed">
+                      When enabled, your profile and verified attendance badges will be visible to fellow event attendees and organizers.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-4 pt-2">
+                    <span className="text-xs font-semibold text-zinc-400">Private</span>
+                    <Switch
+                      checked={formData.preferences.publicProfile}
+                      onCheckedChange={(val) =>
+                        setFormData({
+                          ...formData,
+                          preferences: { ...formData.preferences, publicProfile: val },
+                        })
+                      }
+                    />
+                    <span className="text-xs font-semibold text-blue-400">Public</span>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Footer actions */}
+        <div className="px-6 py-4 border-t border-white/[0.06] flex items-center justify-between shrink-0">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => step > 1 && setStep(step - 1)}
+            disabled={step === 1 || loading}
+            className="text-xs font-semibold text-zinc-400 hover:text-white"
+          >
+            Back
+          </Button>
+
+          <Button
+            type="button"
+            variant="kontyra"
+            onClick={handleNext}
+            disabled={loading || (step === 1 && !formData.displayName.trim())}
+            className="h-11 px-5 rounded-xl text-xs font-semibold gap-1.5 shadow-lg shadow-blue-900/20"
+          >
+            <span>{step === totalSteps ? 'Complete Setup' : 'Continue'}</span>
+            {step === totalSteps ? <Check className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+          </Button>
+        </div>
       </motion.div>
     </div>
   );
