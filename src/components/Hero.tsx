@@ -20,9 +20,9 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
     <section className="relative min-h-[90vh] flex items-center pt-24 pb-32 overflow-hidden">
       {/* Background glassmorphic aurora glow */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] bg-blue-600/20 blur-[120px] rounded-full mix-blend-screen animate-pulse" />
-        <div className="absolute top-[20%] -right-[10%] w-[60%] h-[60%] bg-indigo-600/20 blur-[120px] rounded-full mix-blend-screen" style={{ animationDelay: '2s' }} />
-        <div className="absolute -bottom-[20%] left-[20%] w-[50%] h-[50%] bg-purple-600/20 blur-[120px] rounded-full mix-blend-screen" style={{ animationDelay: '4s' }} />
+        <div className="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] bg-purple-600/20 blur-[140px] rounded-full mix-blend-screen animate-pulse" />
+        <div className="absolute top-[20%] -right-[10%] w-[60%] h-[60%] bg-indigo-600/15 blur-[140px] rounded-full mix-blend-screen" style={{ animationDelay: '2s' }} />
+        <div className="absolute -bottom-[20%] left-[20%] w-[50%] h-[50%] bg-rose-600/15 blur-[140px] rounded-full mix-blend-screen" style={{ animationDelay: '4s' }} />
       </div>
 
       <div className="max-w-[1200px] mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
@@ -32,9 +32,9 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/10 text-xs font-medium text-indigo-300 backdrop-blur-md"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/25 text-xs font-semibold text-purple-300 backdrop-blur-md shadow-sm shadow-purple-500/10"
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
             <span>Modern event planning made simple</span>
           </motion.div>
 
@@ -44,11 +44,11 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
             transition={{ duration: 0.8, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
             className="space-y-6"
           >
-            <h1 className="text-5xl md:text-7xl font-semibold leading-[1.1] tracking-tight text-white">
+            <h1 className="text-5xl md:text-7xl font-bold leading-[1.08] tracking-tight text-white">
               Create events <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">people will love.</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-300 to-indigo-300">people will love.</span>
             </h1>
-            <p className="text-lg text-white/60 leading-relaxed max-w-lg font-light">
+            <p className="text-lg text-white/70 leading-relaxed max-w-lg font-normal">
               Simple event pages, fast RSVPs, and smooth check-ins for communities and organizers.
             </p>
           </motion.div>
@@ -60,15 +60,16 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
             className="flex flex-col sm:flex-row items-center gap-4 pt-4"
           >
             <Button
+              variant="vux"
               onClick={onStartClick}
-              className="w-full sm:w-auto h-12 px-8 text-sm font-medium rounded-full bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto h-12 px-8 text-sm font-semibold rounded-full shadow-lg shadow-purple-600/30 transition-all flex items-center justify-center gap-2"
             >
               Create an Event <ArrowRight className="w-4 h-4" />
             </Button>
             <Button 
               variant="ghost" 
               onClick={() => navigate('/discover')}
-              className="w-full sm:w-auto h-12 px-8 text-sm font-medium text-white/70 hover:text-white rounded-full hover:bg-white/[0.05] transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto h-12 px-8 text-sm font-medium text-white/80 hover:text-white rounded-full hover:bg-white/[0.06] border border-white/10 transition-all flex items-center justify-center gap-2"
             >
               Find Events <ChevronRight className="w-4 h-4" />
             </Button>
@@ -84,18 +85,18 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
         >
           <div className="relative z-10 w-full max-w-[440px] mx-auto">
             {/* Main Frosted Glass Card */}
-            <div className="relative bg-[#0d0e17]/80 backdrop-blur-2xl rounded-[2.5rem] border border-white/[0.08] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.8)] overflow-hidden group hover:border-white/20 transition-all duration-500">
+            <div className="relative bg-[#09090b]/85 backdrop-blur-2xl rounded-[2.5rem] border border-white/[0.08] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.8)] overflow-hidden group hover:border-purple-500/30 transition-all duration-500">
                {/* Ambient inner glow */}
-               <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+               <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500/15 rounded-full blur-3xl pointer-events-none" />
 
                {/* Banner Image Preview */}
-               <div className="h-44 w-full bg-gradient-to-br from-indigo-900/40 via-purple-900/30 to-blue-900/40 rounded-3xl mb-6 relative overflow-hidden flex flex-col justify-between p-4 border border-white/10 group-hover:scale-[1.01] transition-transform duration-500">
+               <div className="h-44 w-full bg-gradient-to-br from-purple-900/50 via-indigo-950/40 to-black rounded-3xl mb-6 relative overflow-hidden flex flex-col justify-between p-4 border border-white/10 group-hover:scale-[1.01] transition-transform duration-500">
                   <div className="flex items-center justify-between z-10">
-                     <span className="px-3 py-1 rounded-full bg-black/60 border border-white/10 text-[9px] font-black uppercase tracking-widest text-indigo-300 backdrop-blur-md flex items-center gap-1.5">
-                       <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                     <span className="px-3 py-1 rounded-full bg-black/70 border border-purple-500/30 text-[9px] font-black uppercase tracking-widest text-purple-300 backdrop-blur-md flex items-center gap-1.5 shadow-sm shadow-purple-500/20">
+                       <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
                        Featured Summit
                      </span>
-                     <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-[9px] font-black uppercase tracking-wider text-emerald-300">
+                     <span className="px-2.5 py-1 rounded-full bg-rose-500/20 border border-rose-500/30 text-[9px] font-black uppercase tracking-wider text-rose-300">
                        Free Pass
                      </span>
                   </div>
@@ -105,25 +106,25 @@ export function Hero({ onStartClick }: { onStartClick: () => void }) {
                      <h3 className="text-xl font-black text-white italic tracking-tight uppercase leading-snug">VUX Decentralized 2026</h3>
                   </div>
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0d0e17] via-transparent to-transparent opacity-80" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-transparent opacity-80" />
                </div>
                
                <div className="space-y-5 px-1">
                   <div className="grid grid-cols-2 gap-3 text-left">
-                    <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
-                      <div className="flex items-center gap-1.5 text-white/40 text-[9px] font-black uppercase tracking-widest mb-1">
-                        <Calendar className="w-3 h-3 text-indigo-400" />
+                    <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
+                      <div className="flex items-center gap-1.5 text-white/50 text-[9px] font-black uppercase tracking-widest mb-1">
+                        <Calendar className="w-3 h-3 text-purple-400" />
                         <span>Date & Time</span>
                       </div>
-                      <p className="text-xs font-bold text-white">Tomorrow, 7:00 PM</p>
+                      <p className="text-xs font-semibold text-white">Tomorrow, 7:00 PM</p>
                     </div>
 
-                    <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
-                      <div className="flex items-center gap-1.5 text-white/40 text-[9px] font-black uppercase tracking-widest mb-1">
-                        <Globe className="w-3 h-3 text-blue-400" />
+                    <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
+                      <div className="flex items-center gap-1.5 text-white/50 text-[9px] font-black uppercase tracking-widest mb-1">
+                        <Globe className="w-3 h-3 text-purple-400" />
                         <span>Access</span>
                       </div>
-                      <p className="text-xs font-bold text-white">Hybrid • Global Stream</p>
+                      <p className="text-xs font-semibold text-white">Hybrid • Global Stream</p>
                     </div>
                   </div>
 

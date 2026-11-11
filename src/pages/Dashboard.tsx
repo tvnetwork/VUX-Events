@@ -113,8 +113,8 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8">
         <div className="relative">
-            <div className="w-16 h-16 border-2 border-white/5 border-t-indigo-500 rounded-full animate-spin" />
-            <div className="absolute inset-0 blur-xl bg-indigo-500/20 rounded-full animate-pulse" />
+            <div className="w-16 h-16 border-2 border-white/10 border-t-purple-500 rounded-full animate-spin" />
+            <div className="absolute inset-0 blur-xl bg-purple-500/25 rounded-full animate-pulse" />
         </div>
       </div>
     );
@@ -138,11 +138,11 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
           <div className="absolute inset-x-0 bottom-0 p-6 md:p-16 flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-10">
             <div className="space-y-4 md:space-y-6 max-w-2xl">
               <div className="flex items-center gap-3">
-                <div className="bg-indigo-600 text-white text-[8px] md:text-[10px] font-black tracking-widest px-2 md:px-3 py-1 md:py-1.5 rounded-full shadow-lg shadow-indigo-500/40 uppercase">
+                <div className="bg-purple-600 text-white text-[8px] md:text-[10px] font-black tracking-widest px-2.5 md:px-3 py-1 md:py-1.5 rounded-full shadow-lg shadow-purple-500/40 uppercase">
                   Featured Event
                 </div>
                 <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-white/95 tracking-wider uppercase">
-                  <Star className="w-3 h-3 text-indigo-400 fill-indigo-400" />
+                  <Star className="w-3 h-3 text-purple-400 fill-purple-400" />
                   <span className="hidden sm:inline italic">Trending Now</span>
                 </div>
               </div>
@@ -189,8 +189,8 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
       <section className="px-4 max-w-[1400px] mx-auto space-y-12">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
           <div className="space-y-4">
-            <div className="flex items-center gap-3 text-indigo-500">
-               <div className="w-10 h-px bg-indigo-500" />
+            <div className="flex items-center gap-3 text-purple-400">
+               <div className="w-10 h-px bg-purple-500/40" />
                <span className="text-[10px] font-black uppercase tracking-[0.4em]">
                  Personal Dashboard
                </span>
@@ -201,13 +201,13 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
           </div>
 
           <div className="flex flex-col gap-6">
-            <div className="inline-flex items-center p-1.5 rounded-2xl bg-[#0e0f17]/90 border border-white/10 backdrop-blur-xl self-start lg:self-end shadow-xl">
+            <div className="inline-flex items-center p-1.5 rounded-2xl bg-[#09090b]/90 border border-white/10 backdrop-blur-xl self-start lg:self-end shadow-xl">
               <button
                 onClick={() => setViewMode('attending')}
                 className={cn(
-                  "px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 gap-2 flex items-center",
+                  "px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 gap-2 flex items-center cursor-pointer",
                   viewMode === 'attending' 
-                    ? "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-[0_0_20px_rgba(99,102,241,0.35)]" 
+                    ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.35)]" 
                     : "text-white/60 hover:text-white hover:bg-white/5"
                 )}
               >
@@ -215,7 +215,7 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
                 {attendingEventsCount > 0 && (
                   <span className={cn(
                     "px-2 py-0.5 rounded-full text-[8px] font-black",
-                    viewMode === 'attending' ? "bg-white/20 text-white" : "bg-indigo-500/20 text-indigo-300"
+                    viewMode === 'attending' ? "bg-white/20 text-white" : "bg-purple-500/20 text-purple-300"
                   )}>
                     {attendingEventsCount}
                   </span>
@@ -224,9 +224,9 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
               <button
                 onClick={() => setViewMode('hosting')}
                 className={cn(
-                  "px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 gap-2 flex items-center",
+                  "px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 gap-2 flex items-center cursor-pointer",
                   viewMode === 'hosting' 
-                    ? "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-[0_0_20px_rgba(99,102,241,0.35)]" 
+                    ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.35)]" 
                     : "text-white/60 hover:text-white hover:bg-white/5"
                 )}
               >
@@ -234,7 +234,7 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
                 {hostedEventsCount > 0 && (
                   <span className={cn(
                     "px-2 py-0.5 rounded-full text-[8px] font-black",
-                    viewMode === 'hosting' ? "bg-white/20 text-white" : "bg-indigo-500/20 text-indigo-300"
+                    viewMode === 'hosting' ? "bg-white/20 text-white" : "bg-purple-500/20 text-purple-300"
                   )}>
                     {hostedEventsCount}
                   </span>
@@ -244,14 +244,14 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
 
             <div className="flex flex-wrap items-center justify-start lg:justify-end gap-3">
               {viewMode === 'attending' ? (
-                 <div className="flex items-center gap-6 px-6 py-3.5 bg-[#0e0f17]/70 border border-white/10 backdrop-blur-xl rounded-2xl shadow-lg">
+                 <div className="flex items-center gap-6 px-6 py-3.5 bg-[#09090b]/80 border border-white/[0.08] backdrop-blur-xl rounded-2xl shadow-lg">
                   <StatItem label="CONFIRMED" value={attendingEventsCount} icon={<CheckCircle2 className="w-4 h-4 text-emerald-400" />} />
                   <div className="w-px h-8 bg-white/10" />
-                  <StatItem label="UPCOMING" value={attendingEvents.filter(e => new Date(e.date) > new Date()).length} icon={<Calendar className="w-4 h-4 text-indigo-400" />} />
+                  <StatItem label="UPCOMING" value={attendingEvents.filter(e => new Date(e.date) > new Date()).length} icon={<Calendar className="w-4 h-4 text-purple-400" />} />
                 </div>
               ) : (
-                <div className="flex items-center gap-6 px-6 py-3.5 bg-[#0e0f17]/70 border border-white/10 backdrop-blur-xl rounded-2xl shadow-lg">
-                  <StatItem label="TOTAL RSVPS" value={hostedEvents.length} icon={<Users className="w-4 h-4 text-indigo-400" />} />
+                <div className="flex items-center gap-6 px-6 py-3.5 bg-[#09090b]/80 border border-white/[0.08] backdrop-blur-xl rounded-2xl shadow-lg">
+                  <StatItem label="TOTAL RSVPS" value={hostedEvents.length} icon={<Users className="w-4 h-4 text-purple-400" />} />
                   <div className="w-px h-8 bg-white/10" />
                   <StatItem label="LISTINGS" value={hostedEventsCount} icon={<BarChart3 className="w-4 h-4 text-purple-400" />} />
                 </div>
@@ -259,7 +259,7 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
               <div className="w-px h-10 bg-white/5 mx-2 hidden lg:block" />
               <Button 
                   onClick={onCreateClick}
-                  className="rounded-2xl h-12 px-6 shadow-xl shadow-indigo-500/15 gap-2 border border-indigo-500/30 bg-indigo-600 hover:bg-indigo-500 text-white font-black"
+                  className="rounded-2xl h-12 px-6 shadow-xl shadow-purple-600/20 gap-2 border border-purple-400/30 bg-purple-600 hover:bg-purple-500 text-white font-black"
               >
                   <Plus className="w-4 h-4" />
                   <span className="font-black uppercase tracking-widest text-[10px]">Create Event</span>
@@ -270,7 +270,7 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
 
         <div className="relative pl-0 md:pl-24">
             {/* Visual Timeline Path */}
-            <div className="absolute left-[39px] top-4 bottom-4 w-px bg-gradient-to-b from-indigo-500 via-white/5 to-transparent hidden md:block" />
+            <div className="absolute left-[39px] top-4 bottom-4 w-px bg-gradient-to-b from-purple-500 via-white/5 to-transparent hidden md:block" />
             
             <div className="space-y-20 md:space-y-40">
                 {Object.entries(groupedEvents).map(([date, dateEvents], sectionIdx) => (
@@ -328,11 +328,11 @@ const TimelineSection = memo(({ date, events, onEventClick, onEditEvent, index, 
     <div className="relative space-y-12 md:space-y-16">
       {/* Enhanced Date Marker */}
       <div className="absolute -left-2 md:-left-[103px] -top-8 flex md:flex-col items-center gap-4 md:gap-0 z-10">
-        <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-[#0e0f17] border border-indigo-500/30 flex items-center justify-center text-sm md:text-xl font-black italic tracking-tighter shadow-xl shadow-indigo-500/10 relative">
-            <span className="text-indigo-400">0{index + 1}</span>
+        <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-[#09090b] border border-purple-500/30 flex items-center justify-center text-sm md:text-xl font-black italic tracking-tighter shadow-xl shadow-purple-500/15 relative">
+            <span className="text-purple-400">0{index + 1}</span>
         </div>
         <div className="md:mt-4 text-left md:text-center">
-            <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-indigo-400 block leading-none mb-1">{date.split(' ')[0]}</span>
+            <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-purple-400 block leading-none mb-1">{date.split(' ')[0]}</span>
             <span className="text-lg md:text-2xl font-black tracking-tighter leading-none text-white italic">{date.split(' ')[1]}</span>
         </div>
       </div>
@@ -422,17 +422,17 @@ const TimelineItem = memo(({ event, onClick, onEdit, isManageMode }: { event: Ev
   return (
     <div className={cn("relative group pl-0 md:pl-10", isManageMode && "md:pl-0")}>
       {/* Pulse point on timeline */}
-      <div className="absolute left-[29px] top-[50px] -translate-x-1/2 w-5 h-5 rounded-full bg-[#0b0b0f] border-2 border-white/10 group-hover:border-indigo-500 group-hover:scale-125 transition-all z-20 hidden md:flex items-center justify-center shadow-2xl">
-          <div className="w-2 h-2 rounded-full bg-white/10 group-hover:bg-indigo-500 transition-colors" />
+      <div className="absolute left-[29px] top-[50px] -translate-x-1/2 w-5 h-5 rounded-full bg-[#09090b] border-2 border-white/10 group-hover:border-purple-500 group-hover:scale-125 transition-all z-20 hidden md:flex items-center justify-center shadow-2xl">
+          <div className="w-2 h-2 rounded-full bg-white/10 group-hover:bg-purple-500 transition-colors" />
       </div>
 
       <Card 
           onClick={onClick}
           hover={true}
-          className="group relative cursor-pointer p-0 overflow-hidden flex flex-col xl:flex-row items-stretch border-white/10 bg-[#0e0f17]/80 hover:bg-[#12131f]/95 backdrop-blur-xl transition-all duration-500 rounded-[32px] md:rounded-[40px] shadow-2xl hover:shadow-[0_20px_50px_rgba(99,102,241,0.12)] hover:border-indigo-500/40"
+          className="group relative cursor-pointer p-0 overflow-hidden flex flex-col xl:flex-row items-stretch border-white/[0.08] bg-[#09090b]/85 hover:bg-[#101015]/95 backdrop-blur-xl transition-all duration-500 rounded-[32px] md:rounded-[40px] shadow-2xl hover:shadow-[0_20px_50px_rgba(168,85,247,0.15)] hover:border-purple-500/40"
       >
           {/* Subtle Ambient Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.03] via-transparent to-purple-500/[0.03] group-hover:from-indigo-500/[0.08] group-hover:to-purple-500/[0.08] transition-all duration-700 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/[0.04] via-transparent to-pink-500/[0.04] group-hover:from-purple-500/[0.08] group-hover:to-pink-500/[0.08] transition-all duration-700 pointer-events-none" />
             
             <div className="flex-1 p-6 md:p-14 space-y-6 md:space-y-10">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">

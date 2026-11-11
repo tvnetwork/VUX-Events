@@ -23,9 +23,9 @@ export function AnnouncementBanner() {
 
   const content = (
     <div className="flex items-center gap-3">
-      <Megaphone className="w-4 h-4 text-indigo-400 group-hover:rotate-12 transition-transform" />
-      <span className="text-[10px] font-black uppercase tracking-[0.2em]">{config.announcement.text}</span>
-      {config.announcement.link && <ArrowRight className="w-3 h-3 text-white/40 group-hover:translate-x-1 transition-transform" />}
+      <Megaphone className="w-4 h-4 text-purple-400 group-hover:rotate-12 transition-transform" />
+      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-200">{config.announcement.text}</span>
+      {config.announcement.link && <ArrowRight className="w-3 h-3 text-purple-300/60 group-hover:translate-x-1 transition-transform" />}
     </div>
   );
 
@@ -33,17 +33,17 @@ export function AnnouncementBanner() {
     <motion.div 
       initial={{ height: 0, opacity: 0 }}
       animate={{ height: 'auto', opacity: 1 }}
-      className="bg-indigo-600/20 border-b border-indigo-500/20 relative group z-[70]"
+      className="bg-gradient-to-r from-purple-950/40 via-purple-900/30 to-purple-950/40 border-b border-purple-500/20 relative group z-[70]"
     >
-      <div className="max-w-[1400px] mx-auto px-6 h-12 flex items-center justify-between">
+      <div className="max-w-[1400px] mx-auto px-6 h-11 flex items-center justify-between">
         <div className="flex-1 flex justify-center">
           {config.announcement.link ? (
             isExternal ? (
-              <a href={config.announcement.link} target="_blank" rel="noopener noreferrer" className="hover:text-indigo-400 transition-colors">
+              <a href={config.announcement.link} target="_blank" rel="noopener noreferrer" className="hover:text-purple-300 transition-colors">
                 {content}
               </a>
             ) : (
-              <Link to={config.announcement.link} className="hover:text-indigo-400 transition-colors">
+              <Link to={config.announcement.link} className="hover:text-purple-300 transition-colors">
                 {content}
               </Link>
             )
@@ -56,7 +56,7 @@ export function AnnouncementBanner() {
           onClick={() => setVisible(false)}
           className="p-1 hover:bg-white/10 rounded-full transition-colors"
         >
-          <X className="w-4 h-4 text-white/20" />
+          <X className="w-4 h-4 text-white/40 hover:text-white" />
         </button>
       </div>
     </motion.div>

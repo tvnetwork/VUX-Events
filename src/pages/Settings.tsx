@@ -73,9 +73,9 @@ export function Settings() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as SettingsTab)}
                 className={cn(
-                  "flex items-center gap-2 px-5 py-2 rounded-full text-xs font-medium transition-all whitespace-nowrap",
+                  "flex items-center gap-2 px-5 py-2 rounded-full text-xs font-semibold transition-all whitespace-nowrap cursor-pointer",
                   activeTab === tab.id 
-                    ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/20" 
+                    ? "bg-purple-600 text-white shadow-md shadow-purple-600/25 border border-purple-400/30" 
                     : "text-white/60 hover:text-white hover:bg-white/[0.05]"
                 )}
               >
@@ -94,8 +94,8 @@ export function Settings() {
                className="space-y-6"
             >
               {/* Identity Protection */}
-              <div className="p-8 border border-white/10 bg-white/[0.02] backdrop-blur-xl rounded-3xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
+              <div className="p-8 border border-white/10 bg-[#09090b]/80 backdrop-blur-xl rounded-3xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/15 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
                 
                 <div className="space-y-8 relative z-10">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
@@ -116,8 +116,8 @@ export function Settings() {
                   <div className="space-y-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between p-5 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-colors gap-6">
                       <div className="flex gap-4 items-center">
-                        <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shrink-0">
-                          <Smartphone className="w-5 h-5 text-indigo-400" />
+                        <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20 shrink-0">
+                          <Smartphone className="w-5 h-5 text-purple-400" />
                         </div>
                         <div className="space-y-1">
                           <h3 className="text-sm font-medium text-white">Authenticator App (2FA)</h3>
@@ -218,7 +218,7 @@ export function Settings() {
                     exit={{ opacity: 0, height: 0 }}
                     className="overflow-hidden"
                   >
-                    <div className="p-6 border border-indigo-500/20 bg-indigo-500/[0.02] rounded-3xl">
+                    <div className="p-6 border border-purple-500/20 bg-purple-500/[0.03] rounded-3xl">
                       <TwoFactorSetup 
                         onComplete={() => setShow2FASetup(false)} 
                         onCancel={() => setShow2FASetup(false)} 
@@ -231,7 +231,7 @@ export function Settings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <section className="space-y-3 p-6 bg-white/[0.02] rounded-3xl border border-white/5">
                     <div className="flex items-center gap-2">
-                        <ShieldCheck className="w-5 h-5 text-indigo-400" />
+                        <ShieldCheck className="w-5 h-5 text-purple-400" />
                         <h2 className="text-sm font-medium text-white">Enterprise Infrastructure</h2>
                     </div>
                     <p className="text-xs text-white/50 leading-relaxed">
@@ -240,7 +240,7 @@ export function Settings() {
                  </section>
                  <section className="space-y-3 p-6 bg-white/[0.02] rounded-3xl border border-white/5">
                     <div className="flex items-center gap-2">
-                        <Lock className="w-5 h-5 text-indigo-400" />
+                        <Lock className="w-5 h-5 text-purple-400" />
                         <h2 className="text-sm font-medium text-white">Privacy First</h2>
                     </div>
                     <p className="text-xs text-white/50 leading-relaxed">

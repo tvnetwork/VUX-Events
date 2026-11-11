@@ -93,7 +93,7 @@ export function RootLayout() {
   }, [userProfile]);
 
   return (
-    <div className="min-h-screen bg-[#07070a] text-white selection:bg-indigo-500/30 overflow-x-hidden font-sans flex">
+    <div className="min-h-screen bg-[#050508] text-white selection:bg-purple-500/30 overflow-x-hidden font-sans flex">
       {/* Dynamic ambient background is handled by individual pages, but Watermark remains for texture */}
       <WatermarkBackground />
 
@@ -106,7 +106,7 @@ export function RootLayout() {
       <div className="flex-1 flex flex-col min-h-screen md:ml-64 relative z-10 transition-all duration-300">
         <AnnouncementBanner />
         
-        <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 md:p-8 pt-20 md:pt-8">
+        <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 md:p-8 pt-16 md:pt-8">
           <AnimatePresence mode="wait">
              <RouteTransition locationKey={location.pathname}>
                {/* Context provider logic for Modals is now handled in App or passed down if necessary */}

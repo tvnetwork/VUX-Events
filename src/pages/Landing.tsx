@@ -58,16 +58,16 @@ export function Landing() {
           <section className="py-32 px-6 relative z-20">
             <div className="max-w-[1200px] mx-auto space-y-20">
               <div className="space-y-4 max-w-2xl text-center mx-auto">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-widest">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/25 text-purple-300 text-[10px] font-black uppercase tracking-widest shadow-sm shadow-purple-500/10">
                   Key Features
                 </div>
                 <h2 className="text-4xl md:text-6xl font-black italic tracking-tight text-white uppercase leading-none">
                   Everything you need. <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-300">
                     Nothing you don&apos;t.
                   </span>
                 </h2>
-                <p className="text-white/50 text-base font-light leading-relaxed">
+                <p className="text-white/60 text-base font-light leading-relaxed">
                   Easily create events, manage guest lists, scan tickets at the door, and share live updates.
                 </p>
               </div>
@@ -75,15 +75,15 @@ export function Landing() {
               {/* Bento Grid Layout */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Bento Card 1 - Large 2-column feature */}
-                <div className="md:col-span-2 relative bg-[#0d0e17]/80 backdrop-blur-2xl border border-white/[0.08] rounded-[2.5rem] p-8 md:p-10 overflow-hidden group hover:border-white/20 transition-all duration-500 flex flex-col justify-between">
-                  <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
+                <div className="md:col-span-2 relative bg-[#09090b]/85 backdrop-blur-2xl border border-white/[0.08] rounded-[2.5rem] p-8 md:p-10 overflow-hidden group hover:border-purple-500/30 transition-all duration-500 flex flex-col justify-between">
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/15 rounded-full blur-[100px] pointer-events-none" />
                   
                   <div className="space-y-4 max-w-md relative z-10">
-                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                    <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/25 flex items-center justify-center text-purple-400 shadow-sm shadow-purple-500/15">
                       <QrCode className="w-6 h-6" />
                     </div>
                     <h3 className="text-2xl font-black text-white italic tracking-tight uppercase">Fast QR Code Check-ins</h3>
-                    <p className="text-white/50 text-sm leading-relaxed font-light">
+                    <p className="text-white/60 text-sm leading-relaxed font-light">
                       Check guests in quickly at the door using any phone camera. Fast, smooth, and works reliably without confusing equipment.
                     </p>
                   </div>
@@ -93,42 +93,42 @@ export function Landing() {
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                       <span className="text-xs font-semibold text-white/70">Works on phones, tablets, and computers</span>
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-purple-300 bg-purple-500/15 px-3 py-1 rounded-full border border-purple-500/25">
                       Instant Scan
                     </span>
                   </div>
                 </div>
 
                 {/* Bento Card 2 - Kontyra & Biometrics */}
-                <div className="relative bg-[#0d0e17]/80 backdrop-blur-2xl border border-white/[0.08] rounded-[2.5rem] p-8 md:p-10 overflow-hidden group hover:border-white/20 transition-all duration-500 flex flex-col justify-between">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[90px] pointer-events-none" />
+                <div className="relative bg-[#09090b]/85 backdrop-blur-2xl border border-white/[0.08] rounded-[2.5rem] p-8 md:p-10 overflow-hidden group hover:border-purple-500/30 transition-all duration-500 flex flex-col justify-between">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[90px] pointer-events-none" />
                   
                   <div className="space-y-4 relative z-10">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
                       <ShieldCheck className="w-6 h-6" />
                     </div>
                     <h3 className="text-2xl font-black text-white italic tracking-tight uppercase">Easy & Secure Sign-in</h3>
-                    <p className="text-white/50 text-sm leading-relaxed font-light">
+                    <p className="text-white/60 text-sm leading-relaxed font-light">
                       Sign in with one click using Kontyra, Google, or your fingerprint and face recognition. No passwords to remember.
                     </p>
                   </div>
 
                   <div className="mt-8 pt-6 border-t border-white/[0.06] flex items-center justify-between relative z-10">
                     <span className="text-xs font-semibold text-white/70">One-Click Access</span>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/20">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20">
                       Password-Free
                     </span>
                   </div>
                 </div>
 
                 {/* Bento Card 3 - Real-time RSVP & Analytics */}
-                <div className="relative bg-[#0d0e17]/80 backdrop-blur-2xl border border-white/[0.08] rounded-[2.5rem] p-8 md:p-10 overflow-hidden group hover:border-white/20 transition-all duration-500 flex flex-col justify-between">
+                <div className="relative bg-[#09090b]/85 backdrop-blur-2xl border border-white/[0.08] rounded-[2.5rem] p-8 md:p-10 overflow-hidden group hover:border-purple-500/30 transition-all duration-500 flex flex-col justify-between">
                   <div className="space-y-4 relative z-10">
                     <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
                       <Users className="w-6 h-6" />
                     </div>
                     <h3 className="text-2xl font-black text-white italic tracking-tight uppercase">Waitlists & Guest Limits</h3>
-                    <p className="text-white/50 text-sm leading-relaxed font-light">
+                    <p className="text-white/60 text-sm leading-relaxed font-light">
                       When an event fills up, guests can join a waitlist. If someone cancels their RSVP, the next person gets their spot automatically.
                     </p>
                   </div>
@@ -142,25 +142,25 @@ export function Landing() {
                 </div>
 
                 {/* Bento Card 4 - Developer Webhooks & API (2 columns) */}
-                <div className="md:col-span-2 relative bg-[#0d0e17]/80 backdrop-blur-2xl border border-white/[0.08] rounded-[2.5rem] p-8 md:p-10 overflow-hidden group hover:border-white/20 transition-all duration-500 flex flex-col justify-between">
-                  <div className="absolute -bottom-10 -right-10 w-80 h-80 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
+                <div className="md:col-span-2 relative bg-[#09090b]/85 backdrop-blur-2xl border border-white/[0.08] rounded-[2.5rem] p-8 md:p-10 overflow-hidden group hover:border-purple-500/30 transition-all duration-500 flex flex-col justify-between">
+                  <div className="absolute -bottom-10 -right-10 w-80 h-80 bg-purple-500/15 rounded-full blur-[100px] pointer-events-none" />
 
                   <div className="space-y-4 max-w-lg relative z-10">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                    <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/25 flex items-center justify-center text-purple-400 shadow-sm shadow-purple-500/15">
                       <Globe className="w-6 h-6" />
                     </div>
                     <h3 className="text-2xl font-black text-white italic tracking-tight uppercase">Connect to Discord, Slack & Apps</h3>
-                    <p className="text-white/50 text-sm leading-relaxed font-light">
+                    <p className="text-white/60 text-sm leading-relaxed font-light">
                       Send new sign-ups, ticket updates, and guest arrivals straight into your Discord, Slack, email list, or website in real time.
                     </p>
                   </div>
 
                   <div className="mt-8 pt-6 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-4 relative z-10">
-                    <div className="flex items-center gap-3 font-mono text-xs text-white/50 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5">
-                      <span className="text-purple-400">POST</span>
+                    <div className="flex items-center gap-3 font-mono text-xs text-white/60 bg-black/60 px-3.5 py-1.5 rounded-xl border border-white/[0.08]">
+                      <span className="text-purple-400 font-bold">POST</span>
                       <span>/api/external/events/:id/rsvps</span>
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-purple-300 bg-purple-500/15 px-3 py-1 rounded-full border border-purple-500/25">
                       Instant Webhooks
                     </span>
                   </div>
@@ -168,18 +168,18 @@ export function Landing() {
               </div>
 
               {/* Call-to-action Card */}
-              <div className="relative rounded-[3rem] overflow-hidden p-10 md:p-16 border border-white/10 bg-gradient-to-r from-indigo-950/60 via-purple-950/40 to-[#0d0e17]/80 backdrop-blur-2xl text-center space-y-6">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-500/15 via-transparent to-transparent pointer-events-none" />
+              <div className="relative rounded-[3rem] overflow-hidden p-10 md:p-16 border border-white/10 bg-gradient-to-r from-purple-950/40 via-indigo-950/30 to-[#09090b]/90 backdrop-blur-2xl text-center space-y-6">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-500/20 via-transparent to-transparent pointer-events-none" />
                 <h3 className="text-3xl md:text-5xl font-black text-white italic tracking-tight uppercase max-w-xl mx-auto leading-tight relative z-10">
                   Ready to host an unforgettable experience?
                 </h3>
-                <p className="text-white/60 text-base max-w-lg mx-auto font-light relative z-10">
+                <p className="text-white/70 text-base max-w-lg mx-auto font-light relative z-10">
                   Launch your event page in under 2 minutes. Free for community organizers.
                 </p>
                 <div className="pt-4 relative z-10 flex flex-wrap justify-center gap-4">
                   <button
                     onClick={() => setIsAuthOpen(true)}
-                    className="h-14 px-8 rounded-full bg-white text-zinc-950 hover:bg-zinc-100 font-black text-xs uppercase tracking-wider shadow-2xl shadow-white/10 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                    className="h-14 px-8 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-black text-xs uppercase tracking-wider shadow-2xl shadow-purple-600/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 border border-purple-400/30 cursor-pointer"
                   >
                     <span>Get Started Free</span>
                     <ArrowRight className="w-4 h-4" />

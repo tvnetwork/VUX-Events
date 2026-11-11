@@ -9,23 +9,25 @@ import { cn } from '../../lib/utils';
 import { ReactNode } from 'react';
 
 export interface ButtonProps extends HTMLMotionProps<"button"> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'glass' | 'outline' | 'google' | 'passkey' | 'email' | 'vux' | 'kontyra';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'glass' | 'outline' | 'google' | 'passkey' | 'email' | 'vux' | 'kontyra' | 'purple' | 'coral';
   size?: 'sm' | 'md' | 'lg' | 'icon' | 'xs';
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', children, ...props }, ref) => {
     const variants = {
-      primary: 'bg-white text-black hover:bg-white/90',
-      secondary: 'bg-white/10 text-white hover:bg-white/20 hover:shadow-lg hover:shadow-white/5',
-      ghost: 'bg-transparent text-white hover:bg-white/5',
-      glass: 'glass hover:bg-white/10 text-white hover:shadow-xl hover:shadow-black/20',
-      google: 'bg-white text-gray-800 hover:bg-gray-50 border border-whiteShadow shadow-lg shadow-black/5 hover:shadow-xl',
-      passkey: 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 text-white hover:bg-amber-500/20 shadow-lg shadow-amber-900/5 hover:shadow-amber-500/10',
-      kontyra: 'bg-gradient-to-r from-blue-600/20 to-indigo-600/20 border border-blue-500/30 text-white hover:bg-blue-600/30 shadow-lg shadow-blue-900/10 hover:shadow-blue-500/20',
-      email: 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-xl shadow-indigo-500/10 hover:shadow-indigo-500/20',
-      vux: 'bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white hover:shadow-[0_20px_50px_-10px_rgba(168,85,247,0.4)]',
-      outline: 'border border-white/10 bg-transparent text-white hover:bg-white/5 hover:shadow-lg hover:shadow-white/5',
+      primary: 'bg-white text-black hover:bg-white/90 shadow-md active:scale-[0.98]',
+      purple: 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-600/25 hover:shadow-purple-500/40 border border-purple-400/30 active:scale-[0.98]',
+      coral: 'bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/25 hover:shadow-rose-500/40 border border-rose-400/30 active:scale-[0.98]',
+      secondary: 'bg-white/10 text-white hover:bg-white/15 hover:shadow-lg hover:shadow-white/5 border border-white/10 active:scale-[0.98]',
+      ghost: 'bg-transparent text-white/80 hover:text-white hover:bg-white/5 active:scale-[0.98]',
+      glass: 'glass hover:bg-white/10 text-white hover:shadow-xl hover:shadow-black/20 active:scale-[0.98]',
+      google: 'bg-white text-gray-800 hover:bg-gray-50 border border-whiteShadow shadow-lg shadow-black/5 hover:shadow-xl active:scale-[0.98]',
+      passkey: 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 text-white hover:bg-amber-500/20 shadow-lg shadow-amber-900/10 active:scale-[0.98]',
+      kontyra: 'bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 border border-purple-500/30 text-white hover:bg-purple-600/30 shadow-lg shadow-purple-900/10 active:scale-[0.98]',
+      email: 'bg-purple-600 text-white hover:bg-purple-500 shadow-xl shadow-purple-500/20 hover:shadow-purple-500/30 active:scale-[0.98]',
+      vux: 'bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 text-white shadow-lg shadow-purple-600/30 hover:shadow-[0_20px_50px_-10px_rgba(168,85,247,0.45)] border border-purple-400/30 active:scale-[0.98]',
+      outline: 'border border-white/10 bg-transparent text-white/90 hover:text-white hover:bg-white/5 hover:border-white/20 active:scale-[0.98]',
     };
 
     const sizes = {
@@ -36,7 +38,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       icon: 'p-2 rounded-xl',
     };
 
-    const isPremium = ['vux', 'email', 'passkey', 'google', 'kontyra'].includes(variant);
+    const isPremium = ['vux', 'email', 'passkey', 'google', 'kontyra', 'purple'].includes(variant);
 
     return (
       <motion.button

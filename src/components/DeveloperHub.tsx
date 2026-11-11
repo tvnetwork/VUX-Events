@@ -96,23 +96,23 @@ export function DeveloperHub() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent border border-indigo-500/20 rounded-3xl p-8 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-purple-500/15 via-indigo-500/10 to-transparent border border-purple-500/25 rounded-3xl p-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-8 opacity-20 mix-blend-screen pointer-events-none">
-          <Terminal className="w-32 h-32 text-indigo-400" />
+          <Terminal className="w-32 h-32 text-purple-400" />
         </div>
         
         <div className="max-w-2xl relative z-10 space-y-4">
-          <div className="flex items-center gap-3 text-indigo-400">
+          <div className="flex items-center gap-3 text-purple-400">
             <Zap className="w-5 h-5" />
             <span className="text-[10px] font-black uppercase tracking-[0.3em]">Developer Hub</span>
           </div>
           <h2 className="text-4xl font-black italic tracking-tighter uppercase text-white">VUX Events Engine</h2>
-          <p className="text-white/60 text-sm leading-relaxed">
+          <p className="text-white/70 text-sm leading-relaxed">
             Generate secure API keys to integrate the VUX ticket engine directly into your own platform. Webhooks will automatically dispatch ticket updates to your systems in real-time.
           </p>
           <div className="pt-4 flex gap-4">
             <a href="https://events.kontyra.name.ng/VUX_INTEGRATION.md" target="_blank" rel="noreferrer">
-              <Button variant="outline" className="gap-2 border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10">
+              <Button variant="outline" className="gap-2 border-purple-500/30 text-purple-300 hover:bg-purple-500/10">
                 <ExternalLink className="w-4 h-4" /> View Documentation
               </Button>
             </a>
@@ -151,8 +151,9 @@ export function DeveloperHub() {
               </div>
               <Button 
                 type="submit" 
+                variant="vux"
                 disabled={isGenerating || !newAppName || !newWebhookUrl}
-                className="w-full bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 py-6"
+                className="w-full py-6 font-semibold shadow-lg shadow-purple-600/25"
               >
                 {isGenerating ? 'Generating...' : 'Generate API Key'}
               </Button>

@@ -115,9 +115,9 @@ export function Profile() {
                 <motion.div
                   key="saving"
                   initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 5 }}
-                  className="flex items-center gap-2 text-xs font-medium text-indigo-400 bg-indigo-500/10 px-3 py-1.5 rounded-full border border-indigo-500/20"
+                  className="flex items-center gap-2 text-xs font-medium text-purple-300 bg-purple-500/15 px-3 py-1.5 rounded-full border border-purple-500/25"
                 >
-                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
                   Saving...
                 </motion.div>
               )}
@@ -146,12 +146,12 @@ export function Profile() {
               <h2 className="text-lg font-medium text-white">Personal Details</h2>
             </div>
             
-            <Card className="p-8 space-y-8 border-white/10 bg-white/[0.02] backdrop-blur-xl rounded-3xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[80px] -z-10 rounded-full" />
+            <Card className="p-8 space-y-8 border-white/10 bg-[#09090b]/80 backdrop-blur-xl rounded-3xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 blur-[80px] -z-10 rounded-full" />
               
               <div className="flex flex-col md:flex-row items-center gap-8">
                 <div className="relative group">
-                   <div className="w-32 h-32 rounded-full overflow-hidden border border-white/10 group-hover:border-indigo-500/40 transition-all duration-500 shadow-xl">
+                   <div className="w-32 h-32 rounded-full overflow-hidden border border-white/10 group-hover:border-purple-500/40 transition-all duration-500 shadow-xl">
                        <img 
                           src={formData.photoURL || getAvatarUrl(profile?.uid)} 
                           className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700"
@@ -193,7 +193,7 @@ export function Profile() {
                   <Input 
                       value={formData.displayName} 
                       onChange={e => setFormData({...formData, displayName: e.target.value})}
-                      className="bg-white/[0.03] border-white/10 h-12 rounded-xl text-sm px-4 focus:border-indigo-500/40"
+                      className="bg-white/[0.03] border-white/10 h-12 rounded-xl text-sm px-4 focus:border-purple-500/50"
                   />
                 </div>
                 <div className="space-y-2">
@@ -213,7 +213,7 @@ export function Profile() {
                       value={formData.phoneNumber} 
                       onChange={e => setFormData({...formData, phoneNumber: e.target.value})}
                       placeholder="+1 (555) 000-0000"
-                      className="bg-white/[0.03] border-white/10 h-12 rounded-xl text-sm px-4 focus:border-indigo-500/40"
+                      className="bg-white/[0.03] border-white/10 h-12 rounded-xl text-sm px-4 focus:border-purple-500/50"
                   />
                 </div>
                 <div className="space-y-2">
@@ -222,7 +222,7 @@ export function Profile() {
                       type="date"
                       value={formData.dob} 
                       onChange={e => setFormData({...formData, dob: e.target.value})}
-                      className="bg-white/[0.03] border-white/10 h-12 rounded-xl text-sm px-4 focus:border-indigo-500/40"
+                      className="bg-white/[0.03] border-white/10 h-12 rounded-xl text-sm px-4 focus:border-purple-500/50"
                   />
                 </div>
               </div>
@@ -230,7 +230,7 @@ export function Profile() {
               <div className="space-y-2">
                 <label className="text-xs font-medium text-white/70 px-1">Bio</label>
                 <textarea 
-                  className="w-full min-h-[120px] rounded-xl bg-white/[0.03] border border-white/10 p-4 text-sm focus:outline-none focus:border-indigo-500/40 transition-all resize-none placeholder:text-white/30 text-white"
+                  className="w-full min-h-[120px] rounded-xl bg-white/[0.03] border border-white/10 p-4 text-sm focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all resize-none placeholder:text-white/30 text-white"
                   value={formData.bio}
                   onChange={e => setFormData({...formData, bio: e.target.value})}
                   placeholder="Tell us about yourself..."
@@ -250,17 +250,17 @@ export function Profile() {
                   <h2 className="text-lg font-medium text-white">Profile QR</h2>
               </div>
               <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/25 to-pink-500/25 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <VUXQRCode 
                     value={`${window.location.origin}/discover?user=${profile?.uid}`}
-                    className="w-full relative bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-xl"
+                    className="w-full relative bg-[#09090b]/90 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-xl"
                 />
               </div>
            </section>
 
             {/* Verification Status */}
-            <Card className="p-6 border-white/10 bg-white/[0.02] backdrop-blur-xl rounded-3xl space-y-6 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl rounded-full" />
+            <Card className="p-6 border-white/10 bg-[#09090b]/80 backdrop-blur-xl rounded-3xl space-y-6 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 blur-3xl rounded-full" />
               <div className={cn(
                   "w-12 h-12 rounded-xl flex items-center justify-center shadow-lg",
                   profile?.isVerified ? "bg-emerald-500 text-white" : "bg-white text-black"

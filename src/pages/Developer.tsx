@@ -136,12 +136,12 @@ export function Developer() {
     <div className="max-w-[1100px] mx-auto py-8 animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-8">
         <div className="space-y-2">
-           <div className="flex items-center gap-3 text-indigo-400 mb-2">
+           <div className="flex items-center gap-3 text-purple-400 mb-2">
              <Code2 className="w-5 h-5" />
              <span className="text-xs font-semibold uppercase tracking-widest">Developer Hub</span>
            </div>
           <h1 className="text-3xl font-semibold tracking-tight text-white">API & Integrations</h1>
-          <p className="text-sm text-white/50 max-w-xl leading-relaxed">
+          <p className="text-sm text-white/60 max-w-xl leading-relaxed">
             Manage your API keys, configure webhooks, and monitor your integration usage. Build powerful experiences on top of the VUX Events platform.
           </p>
         </div>
@@ -195,8 +195,8 @@ export function Developer() {
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card className="p-6 bg-white/[0.02] border-white/5 backdrop-blur-xl rounded-3xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-[50px] rounded-full" />
-                    <Activity className="w-6 h-6 text-indigo-400 mb-4" />
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/15 blur-[50px] rounded-full" />
+                    <Activity className="w-6 h-6 text-purple-400 mb-4" />
                     <h3 className="text-3xl font-semibold text-white tracking-tight">24.5k</h3>
                     <p className="text-sm text-white/50 mt-1">API Requests (30d)</p>
                 </Card>
@@ -221,7 +221,7 @@ export function Developer() {
                      {Array.from({ length: 30 }).map((_, i) => (
                          <div key={i} className="w-full flex flex-col justify-end group">
                              <div 
-                               className="w-full bg-indigo-500/20 group-hover:bg-indigo-500/40 rounded-t-md transition-all duration-300 relative"
+                               className="w-full bg-purple-500/20 group-hover:bg-purple-500/50 rounded-t-md transition-all duration-300 relative"
                                style={{ height: `${Math.max(10, Math.random() * 100)}%` }}
                              >
                                  <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-md text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
@@ -251,15 +251,16 @@ export function Developer() {
               <div className="flex items-center justify-between">
                   <h3 className="text-lg font-medium text-white">Secret API Keys</h3>
                   <Button 
+                    variant="vux"
                     onClick={() => setIsCreatingKey(true)}
-                    className="bg-white text-black hover:bg-white/90 text-xs font-medium h-9"
+                    className="text-xs font-semibold h-9 shadow-md shadow-purple-600/20"
                   >
                      <Plus className="w-4 h-4 mr-2" /> Create new key
                   </Button>
               </div>
 
               {isCreatingKey && (
-                  <Card className="p-6 border-indigo-500/30 bg-indigo-500/5 backdrop-blur-xl rounded-2xl flex items-end gap-4 animate-in slide-in-from-top-4">
+                  <Card className="p-6 border-purple-500/30 bg-purple-500/5 backdrop-blur-xl rounded-2xl flex items-end gap-4 animate-in slide-in-from-top-4">
                       <div className="flex-1 space-y-2">
                           <label className="text-xs font-medium text-white/70">Key Name</label>
                           <Input 
@@ -270,7 +271,7 @@ export function Developer() {
                              autoFocus
                           />
                       </div>
-                      <Button onClick={generateApiKey} disabled={!newKeyName.trim()} className="bg-indigo-500 hover:bg-indigo-600 text-white h-10">
+                      <Button variant="purple" onClick={generateApiKey} disabled={!newKeyName.trim()} className="h-10">
                           Generate
                       </Button>
                       <Button variant="ghost" onClick={() => setIsCreatingKey(false)} className="h-10 text-white/50 hover:text-white">
@@ -343,7 +344,7 @@ export function Developer() {
               </div>
 
               {isCreatingWebhook && (
-                  <Card className="p-6 border-indigo-500/30 bg-indigo-500/5 backdrop-blur-xl rounded-2xl flex flex-col md:flex-row items-end gap-4 animate-in slide-in-from-top-4">
+                  <Card className="p-6 border-purple-500/30 bg-purple-500/5 backdrop-blur-xl rounded-2xl flex flex-col md:flex-row items-end gap-4 animate-in slide-in-from-top-4">
                       <div className="flex-1 w-full space-y-2">
                           <label className="text-xs font-medium text-white/70">Payload URL</label>
                           <Input 
@@ -354,7 +355,7 @@ export function Developer() {
                              autoFocus
                           />
                       </div>
-                      <Button onClick={addWebhook} disabled={!newWebhookUrl.trim() || !newWebhookUrl.startsWith('http')} className="bg-indigo-500 hover:bg-indigo-600 text-white h-10 w-full md:w-auto">
+                      <Button variant="purple" onClick={addWebhook} disabled={!newWebhookUrl.trim() || !newWebhookUrl.startsWith('http')} className="h-10 w-full md:w-auto">
                           Save
                       </Button>
                       <Button variant="ghost" onClick={() => setIsCreatingWebhook(false)} className="h-10 text-white/50 hover:text-white w-full md:w-auto">
