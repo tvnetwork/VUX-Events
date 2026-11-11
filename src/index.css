@@ -1,44 +1,134 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Outfit", serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  --font-display: "Outfit", -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+
+  /* Kontyra Technical Monochrome Foundations */
+  --color-kontyra-base: #000000;
+  --color-kontyra-surface: #09090b;
+  --color-kontyra-overlay: #18181b;
+
+  /* Official Kontyra Signature Gradient Loop Colors */
+  --color-kontyra-cyan: #13D9F2;
+  --color-kontyra-blue: #079BFF;
+  --color-kontyra-deep-blue: #0B45E8;
+  --color-kontyra-indigo: #1747F2;
+  --color-kontyra-purple: #4B00E8;
+  --color-kontyra-magenta: #B000D5;
+  --color-kontyra-pink: #E60082;
+
+  /* VUX Domain Accent */
+  --color-kontyra-coral: #F43F5E;
+
+  /* VUX Signature Purple Scale */
+  --color-vux-purple-glow: rgba(147, 51, 234, 0.35);
+  --color-vux-purple-subtle: rgba(168, 85, 247, 0.12);
+}
+
+:root {
+  /* Surfaces & Backgrounds */
+  --kontyra-bg-base: #000000;
+  --kontyra-bg-surface: #09090b;
+  --kontyra-bg-overlay: #18181b;
+  --kontyra-bg-glass: rgba(255, 255, 255, 0.03);
+
+  /* Typography */
+  --kontyra-text-primary: #ffffff;
+  --kontyra-text-secondary: rgba(255, 255, 255, 0.70);
+  --kontyra-text-muted: rgba(255, 255, 255, 0.45);
+  --kontyra-text-inverse: #000000;
+
+  /* Borders & Dividers */
+  --kontyra-border-subtle: rgba(255, 255, 255, 0.08);
+  --kontyra-border-medium: rgba(255, 255, 255, 0.14);
+  --kontyra-border-hover: rgba(255, 255, 255, 0.25);
+  --kontyra-border-purple: rgba(168, 85, 247, 0.30);
+
+  /* Brand Signature Colors */
+  --vux-purple: #8B5CF6;
+  --vux-purple-dark: #6D28D9;
+  --vux-purple-deep: #4B00E8;
+  --vux-coral: #F43F5E;
+  --vux-indigo: #1747F2;
+  --vux-cyan: #13D9F2;
+
+  /* System Semantics */
+  --kontyra-status-success: #10B981;
+  --kontyra-status-warning: #F59E0B;
+  --kontyra-status-error: #EF4444;
+  --kontyra-status-info: #3B82F6;
+
+  /* Standard 56px Navigation */
+  --kontyra-navbar-height: 56px;
 }
 
 @layer base {
   body {
-    @apply bg-[#0b0b0f] text-white selection:bg-purple-500/30 font-sans antialiased;
+    @apply bg-[#050508] text-white selection:bg-purple-500/30 font-sans antialiased;
     background-image: 
       url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"),
-      radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.08) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.05) 0px, transparent 50%),
-      linear-gradient(to bottom right, #0b0b0f, #1a1023, #0b0b0f);
+      radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.14) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(244, 63, 94, 0.07) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(75, 0, 232, 0.10) 0px, transparent 60%),
+      linear-gradient(to bottom, #000000, #09090f 45%, #000000 100%);
     background-attachment: fixed;
-    background-blend-mode: overlay, normal, normal, normal;
+    background-blend-mode: overlay, normal, normal, normal, normal;
+    letter-spacing: -0.011em;
+  }
+
+  h1, h2, h3 {
+    letter-spacing: -0.025em;
   }
 }
 
 @utility glass {
-  background-color: rgba(11, 11, 15, 0.8);
-  backdrop-filter: blur(40px) saturate(180%);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(9, 9, 11, 0.78);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 @utility glass-card {
   @apply glass;
-  border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-2xl);
+  border-radius: var(--radius-2xl, 1rem);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
   transition-property: all;
   transition-duration: 200ms;
 }
 
+@utility glass-purple {
+  background-color: rgba(17, 12, 34, 0.72);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(168, 85, 247, 0.22);
+}
+
 @utility text-muted {
-  @apply text-white/85;
+  @apply text-white/50;
 }
 
 @utility text-body {
-  @apply text-white;
+  @apply text-white/80;
+}
+
+@utility font-mono-tech {
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+@utility text-gradient-purple {
+  background: linear-gradient(135deg, #FFFFFF 0%, #E9D5FF 40%, #A855F7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@utility text-gradient-kontyra {
+  background: linear-gradient(135deg, #13D9F2 0%, #079BFF 30%, #7C3AED 70%, #F43F5E 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 @utility scrollbar-hide {
@@ -52,6 +142,7 @@
 @utility custom-scrollbar {
   &::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
   }
   &::-webkit-scrollbar-track {
     background: transparent;
@@ -68,3 +159,4 @@
 @utility mesh-purple { background: radial-gradient(circle at 50% 50%, rgba(147, 51, 234, 0.3) 0%, transparent 100%); }
 @utility mesh-blue { background: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.2) 0%, transparent 100%); }
 @utility mesh-pink { background: radial-gradient(circle at 50% 50%, rgba(219, 39, 119, 0.2) 0%, transparent 100%); }
+@utility mesh-coral { background: radial-gradient(circle at 50% 50%, rgba(244, 63, 94, 0.25) 0%, transparent 100%); }
