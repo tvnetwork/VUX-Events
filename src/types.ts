@@ -207,3 +207,51 @@ export interface FirestoreErrorInfo {
     providerInfo: { providerId: string; displayName: string; email: string; }[];
   }
 }
+
+export type WaitlistType = 'event' | 'feature';
+
+export interface WaitlistQuestion {
+  id: string;
+  label: string;
+  type: 'text' | 'checkbox' | 'select';
+  options?: string[];
+  required: boolean;
+}
+
+export interface Waitlist {
+  id: string;
+  slug: string;
+  title: string;
+  type: WaitlistType;
+  description: string;
+  creatorId: string;
+  creatorName?: string;
+  creatorEmail?: string;
+  coverImageUrl?: string;
+  targetDate?: string;
+  associatedEventId?: string;
+  featureCategory?: string;
+  maxCapacity?: number;
+  status: 'active' | 'closed' | 'launched';
+  accentColor?: string;
+  customQuestions?: WaitlistQuestion[];
+  perks?: string[];
+  totalSubscribers: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface WaitlistEntry {
+  id: string;
+  waitlistId: string;
+  email: string;
+  name?: string;
+  userId?: string;
+  position: number;
+  referralCode: string;
+  referredBy?: string;
+  referralCount: number;
+  answers?: Record<string, any>;
+  status: 'pending' | 'invited' | 'approved' | 'rejected';
+  createdAt: string;
+}

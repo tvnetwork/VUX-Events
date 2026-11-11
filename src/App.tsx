@@ -24,6 +24,8 @@ const Profile = lazy(() => import('./pages/Profile').then(m => ({ default: m.Pro
 const Settings = lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 const Developer = lazy(() => import('./pages/Developer').then(m => ({ default: m.Developer })));
+const Waitlists = lazy(() => import('./pages/Waitlists').then(m => ({ default: m.Waitlists })));
+const PublicWaitlist = lazy(() => import('./pages/PublicWaitlist').then(m => ({ default: m.PublicWaitlist })));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const ComingSoon = lazy(() => import('./pages/ComingSoon'));
 const EventDetails = lazy(() => import('./components/EventDetails').then(m => ({ default: m.EventDetails })));
@@ -98,6 +100,7 @@ function AppContent() {
             <Route index element={<DashboardWrapper />} />
             <Route path="discover" element={<DiscoverWrapperInsideRoot />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="waitlists" element={<Waitlists />} />
             <Route path="settings" element={<Settings />} />
             <Route path="developer" element={<Developer />} />
             {profile?.email?.toLowerCase() === 'oladoyeheritage445@gmail.com'.toLowerCase() && (
@@ -112,6 +115,8 @@ function AppContent() {
       )}
 
       <Route path="/sso-callback" element={<Suspense fallback={<LoadingFallback />}><SSOCallback /></Suspense>} />
+      <Route path="/w/:slug" element={<Suspense fallback={<LoadingFallback />}><PublicWaitlist /></Suspense>} />
+      <Route path="/waitlist/:slug" element={<Suspense fallback={<LoadingFallback />}><PublicWaitlist /></Suspense>} />
       <Route path="/embed" element={<Suspense fallback={<LoadingFallback />}><Embed /></Suspense>} />
       <Route path="/help" element={<RouteTransition><PageShell><Help /></PageShell></RouteTransition>} />
       <Route path="/terms" element={<RouteTransition><PageShell><Terms /></PageShell></RouteTransition>} />

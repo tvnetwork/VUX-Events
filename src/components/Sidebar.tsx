@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../AuthContext';
-import { Search, Bell, Plus, User, LogOut, Settings as SettingsIcon, Shield, Menu, X, LayoutDashboard, Compass, Settings2, ShieldCheck, UserCircle, LucideIcon, Code2 } from 'lucide-react';
+import { Search, Bell, Plus, User, LogOut, Settings as SettingsIcon, Shield, Menu, X, LayoutDashboard, Compass, Settings2, ShieldCheck, UserCircle, LucideIcon, Code2, ListOrdered } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from './ui/Button';
 import { Avatar } from './ui/Avatar';
@@ -24,6 +24,7 @@ export function Sidebar({ onSearchClick, onCreateClick, onLoginClick }: {
   const navItems: { path: string; label: string; icon: LucideIcon }[] = [
     { path: '/', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/discover', label: 'Explore', icon: Compass },
+    { path: '/waitlists', label: 'Waitlists', icon: ListOrdered },
     { path: '/profile', label: 'Profile', icon: UserCircle },
     { path: '/settings', label: 'Settings', icon: Settings2 },
     { path: '/developer', label: 'Developer', icon: Code2 },
