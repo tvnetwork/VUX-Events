@@ -72,15 +72,13 @@ export function CreateWaitlistModal({ onClose, onCreated }: CreateWaitlistModalP
         title: title.trim(),
         type,
         description: description.trim(),
-        creatorId: user.uid,
-        creatorName: profile?.displayName || user.displayName || 'Organizer',
-        creatorEmail: user.email || profile?.email || '',
+        organizationId: profile?.organizationId || user.uid,
         targetDate: targetDate || undefined,
         featureCategory: type === 'feature' ? (featureCategory.trim() || 'General Feature') : undefined,
         maxCapacity: maxCapacity ? parseInt(maxCapacity, 10) : undefined,
         status: 'active',
         perks: perks.length > 0 ? perks : undefined
-      });
+      }, await user.getIdToken());
 
       setCreatedWaitlist(waitlist);
       onCreated(waitlist);

@@ -26,6 +26,7 @@ export interface SocialLinks {
 export interface UserProfile {
   uid: string;
   email: string;
+  organizationId?: string;
   displayName: string;
   photoURL?: string;
   bio?: string;
@@ -225,6 +226,7 @@ export interface Waitlist {
   type: WaitlistType;
   description: string;
   creatorId: string;
+  organizationId: string;
   creatorName?: string;
   creatorEmail?: string;
   coverImageUrl?: string;
