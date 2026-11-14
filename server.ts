@@ -1,4 +1,5 @@
 import express from 'express';
+import { createServer as createHttpServer } from 'node:http';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import path from 'path';
@@ -66,6 +67,9 @@ const db = databaseId ? getFirestore(databaseId) : getFirestore();
 export async function createServer() {
   const app = express();
   const PORT = 3000;
+  const devHttpServer = !process.env.VERCEL && process.env.NODE_ENV !== 'production'
+    ? createHttpServer(app)
+    : undefined;
 
   // Trust proxy for correct hostname and protocol detection behind Nginx
   app.set('trust proxy', true);
@@ -1159,7 +1163,10 @@ export async function createServer() {
     if (process.env.NODE_ENV !== 'production') {
       const { createServer: createViteServer } = await import('vite');
       const vite = await createViteServer({
-        server: { middlewareMode: true },
+        server: {
+          middlewareMode: true,
+          hmr: devHttpServer ? { server: devHttpServer } : undefined,
+        },
         appType: 'spa',
       });
       app.use(vite.middlewares);
@@ -1175,6 +1182,7 @@ export async function createServer() {
     }
   }
 
+  if (devHttpServer) Object.assign(app, { devHttpServer });
   console.log('Express server created and routes initialized.');
   return app;
 }
@@ -1183,7 +1191,8 @@ export async function createServer() {
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   createServer().then(app => {
     const PORT = 3000;
-    app.listen(PORT, '0.0.0.0', () => {
+    const server = (app as any).devHttpServer || app;
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running at http://localhost:${PORT}`);
     });
   });
