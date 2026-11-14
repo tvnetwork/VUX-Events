@@ -39,6 +39,56 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const MFA_SESSION_KEY = 'vux_mfa_verified';
+const MFA_REMEMBER_DAYS = 30;
+
+function isMfaVerifiedStored(userIdOrEmail?: string | null): boolean {
+  if (!userIdOrEmail) return false;
+  try {
+    const raw = localStorage.getItem(`vux_mfa_${userIdOrEmail}`) || sessionStorage.getItem(`vux_mfa_${userIdOrEmail}`);
+    if (!raw) return false;
+    if (raw === 'true') return true;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.verified) {
+      const expiryMs = (parsed.days || MFA_REMEMBER_DAYS) * 24 * 60 * 60 * 1000;
+      if (Date.now() - parsed.timestamp < expiryMs) {
+        return true;
+      }
+    }
+  } catch {
+    return false;
+  }
+  return false;
+}
+
+export function persistMfaVerified(userIdOrEmail: string) {
+  if (!userIdOrEmail) return;
+  const payload = JSON.stringify({
+    verified: true,
+    timestamp: Date.now(),
+    days: MFA_REMEMBER_DAYS,
+  });
+  try {
+    localStorage.setItem(`vux_mfa_${userIdOrEmail}`, payload);
+    sessionStorage.setItem(`vux_mfa_${userIdOrEmail}`, payload);
+    localStorage.setItem(MFA_SESSION_KEY, 'true');
+    sessionStorage.setItem(MFA_SESSION_KEY, 'true');
+  } catch (e) {
+    console.warn('Failed to persist MFA state to storage:', e);
+  }
+}
+
+export function clearMfaVerified(userIdOrEmail?: string | null) {
+  try {
+    if (userIdOrEmail) {
+      localStorage.removeItem(`vux_mfa_${userIdOrEmail}`);
+      sessionStorage.removeItem(`vux_mfa_${userIdOrEmail}`);
+    }
+    localStorage.removeItem(MFA_SESSION_KEY);
+    sessionStorage.removeItem(MFA_SESSION_KEY);
+  } catch (e) {
+    console.warn('Failed to clear MFA state:', e);
+  }
+}
 
 const totp = new TOTP({
   crypto: new NobleCryptoPlugin(),
@@ -50,7 +100,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [mfaVerified, setMfaVerified] = useState(() => {
-    return sessionStorage.getItem(MFA_SESSION_KEY) === 'true';
+    return (
+      sessionStorage.getItem(MFA_SESSION_KEY) === 'true' ||
+      localStorage.getItem(MFA_SESSION_KEY) === 'true'
+    );
   });
 
   const verifyMFACodeAsync = async (code: string) => {
@@ -63,7 +116,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (result.valid) {
         setMfaVerified(true);
-        sessionStorage.setItem(MFA_SESSION_KEY, 'true');
+        if (user?.uid) persistMfaVerified(user.uid);
+        if (user?.email) persistMfaVerified(user.email);
+        if (profile?.email) persistMfaVerified(profile.email);
         return true;
       }
     } catch (e) {
@@ -156,6 +211,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     if (data.token) {
       await signInWithCustomToken(auth, data.token);
+      setMfaVerified(true);
+      persistMfaVerified(email);
     }
   };
 
@@ -164,6 +221,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         setUser(user);
         if (user) {
+          // Restore MFA verification state for authenticated user session
+          if (
+            isMfaVerifiedStored(user.uid) ||
+            (user.email && isMfaVerifiedStored(user.email)) ||
+            sessionStorage.getItem(MFA_SESSION_KEY) === 'true' ||
+            localStorage.getItem(MFA_SESSION_KEY) === 'true'
+          ) {
+            setMfaVerified(true);
+          }
+
           // 1. Resolve canonical email across Firebase user, token claims, and session storage
           let resolvedEmail = user.email || null;
           if (!resolvedEmail) {
@@ -452,9 +519,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    await signOut(auth);
-    setMfaVerified(false);
-    sessionStorage.removeItem(MFA_SESSION_KEY);
+    try {
+      clearMfaVerified(user?.uid);
+      if (user?.email) clearMfaVerified(user.email);
+      setMfaVerified(false);
+      await signOut(auth);
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
   };
 
   return (

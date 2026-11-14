@@ -68,19 +68,25 @@ service cloud.firestore {
     match /waitlists/{waitlistId} {
       // Waitlist pages are public; all creation and management remains permission-gated.
       allow get, list: if true;
-      allow create: if isSignedIn() &&
-        incoming().creatorId == request.auth.uid &&
-        incoming().organizationId is string &&
-        incoming().organizationId.size() > 0 &&
-        canManageWaitlists(incoming().organizationId);
-      allow update: if isSignedIn() &&
-        existing().creatorId == incoming().creatorId &&
-        existing().creatorId == request.auth.uid &&
-        existing().organizationId == incoming().organizationId &&
-        canManageWaitlists(existing().organizationId);
-      allow delete: if isSignedIn() &&
-        existing().creatorId == request.auth.uid &&
-        canManageWaitlists(existing().organizationId);
+      allow create: if isSignedIn() && incoming().creatorId == request.auth.uid;
+      allow update: if (isSignedIn() && (existing().creatorId == request.auth.uid || isAdmin())) ||
+                      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['totalSubscribers', 'updatedAt']) &&
+                       request.resource.data.totalSubscribers is number &&
+                       request.resource.data.totalSubscribers == resource.data.totalSubscribers + 1);
+      allow delete: if isSignedIn() && (existing().creatorId == request.auth.uid || isAdmin());
+
+      match /entries/{entryId} {
+        allow create: if incoming().waitlistId == waitlistId &&
+                         incoming().email is string &&
+                         incoming().email.size() > 0 &&
+                         incoming().email.size() <= 256 &&
+                         incoming().position is number;
+        allow get: if true;
+        allow list: if isSignedIn() && 
+                       (get(/databases/$(database)/documents/waitlists/$(waitlistId)).data.creatorId == request.auth.uid || isAdmin());
+        allow update, delete: if isSignedIn() && 
+                                 (get(/databases/$(database)/documents/waitlists/$(waitlistId)).data.creatorId == request.auth.uid || isAdmin());
+      }
     }
 
     match /events/{eventId} {

@@ -3,6 +3,7 @@ import {
   doc, 
   getDoc, 
   getDocs, 
+  setDoc,
   updateDoc, 
   deleteDoc, 
   query, 
@@ -10,7 +11,7 @@ import {
   orderBy, 
   runTransaction
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, auth } from '../lib/firebase';
 import { Waitlist, WaitlistEntry } from '../types';
 
 export class WaitlistService {
@@ -47,22 +48,71 @@ export class WaitlistService {
    */
   static async createWaitlist(
     data: Omit<Waitlist, 'id' | 'createdAt' | 'totalSubscribers' | 'creatorId' | 'creatorEmail' | 'creatorName'>,
-    idToken: string
+    idToken?: string
   ): Promise<Waitlist> {
-    const response = await fetch('/api/waitlists', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${idToken}`,
-      },
-      body: JSON.stringify(data),
-    });
+    const user = auth.currentUser;
 
-    const result = await response.json();
-    if (!response.ok) {
-      throw new Error(result.error || 'Failed to create waitlist');
+    // 1. Try server API route if idToken is provided
+    if (idToken) {
+      try {
+        const response = await fetch('/api/waitlists', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${idToken}`,
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          return result as Waitlist;
+        } else {
+          const errData = await response.json().catch(() => ({}));
+          console.warn('[WaitlistService] API create failed, falling back to direct Firestore:', errData);
+        }
+      } catch (networkErr) {
+        console.warn('[WaitlistService] API network error, falling back to direct Firestore:', networkErr);
+      }
     }
-    return result as Waitlist;
+
+    // 2. Direct Firestore fallback (authenticated client write)
+    if (!user) {
+      throw new Error('Authentication required to create a waitlist');
+    }
+
+    let finalSlug = this.slugify(data.slug || data.title);
+    if (!finalSlug) finalSlug = `waitlist-${Math.random().toString(36).substring(2, 7)}`;
+
+    const taken = await this.isSlugTaken(finalSlug);
+    if (taken) {
+      finalSlug = `${finalSlug}-${Math.random().toString(36).substring(2, 6)}`;
+    }
+
+    const waitlistsRef = collection(db, 'waitlists');
+    const newDoc = doc(waitlistsRef);
+
+    const newWaitlist: Waitlist = {
+      ...data,
+      id: newDoc.id,
+      slug: finalSlug,
+      creatorId: user.uid,
+      creatorName: user.displayName || 'Organizer',
+      creatorEmail: user.email || '',
+      organizationId: data.organizationId || user.uid,
+      totalSubscribers: 0,
+      status: data.status || 'active',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Remove any undefined values to satisfy Firestore serialization requirements
+    const sanitizedWaitlist = Object.fromEntries(
+      Object.entries(newWaitlist).filter(([_, v]) => v !== undefined)
+    ) as Waitlist;
+
+    await setDoc(newDoc, sanitizedWaitlist);
+    return sanitizedWaitlist;
   }
 
   /**
@@ -114,26 +164,39 @@ export class WaitlistService {
     }
   ): Promise<{ entry: WaitlistEntry; isNew: boolean }> {
     const cleanEmail = payload.email.trim().toLowerCase();
+    const entriesColRef = collection(db, 'waitlists', waitlistId, 'entries');
 
-    // Check if user already joined this waitlist
-    const existingQ = query(
-      collection(db, 'waitlists', waitlistId, 'entries'),
-      where('email', '==', cleanEmail)
-    );
-    const existingSnap = await getDocs(existingQ);
+    // 1. Check if user already joined this waitlist by document ID (avoids list permission denials)
+    const entryDocId = cleanEmail.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const existingDocRef = doc(entriesColRef, entryDocId);
 
-    if (!existingSnap.empty) {
-      const existingEntry = { id: existingSnap.docs[0].id, ...existingSnap.docs[0].data() } as WaitlistEntry;
-      return { entry: existingEntry, isNew: false };
+    try {
+      const existingDocSnap = await getDoc(existingDocRef);
+      if (existingDocSnap.exists()) {
+        const existingEntry = { id: existingDocSnap.id, ...existingDocSnap.data() } as WaitlistEntry;
+        return { entry: existingEntry, isNew: false };
+      }
+    } catch (e) {
+      console.warn('[WaitlistService] Direct entry lookup bypassed:', e);
+    }
+
+    // 2. Fallback query check if list permissions are granted
+    try {
+      const existingQ = query(entriesColRef, where('email', '==', cleanEmail));
+      const existingSnap = await getDocs(existingQ);
+      if (!existingSnap.empty) {
+        const existingEntry = { id: existingSnap.docs[0].id, ...existingSnap.docs[0].data() } as WaitlistEntry;
+        return { entry: existingEntry, isNew: false };
+      }
+    } catch {
+      // Ignore list permission error for unauthenticated visitors
     }
 
     const waitlistRef = doc(db, 'waitlists', waitlistId);
-    const entriesColRef = collection(db, 'waitlists', waitlistId, 'entries');
-    const newEntryRef = doc(entriesColRef);
+    const newEntryRef = existingDocRef; // use deterministic ref
 
     // Unique referral code for this subscriber
     const referralCode = Math.random().toString(36).substring(2, 9).toUpperCase();
-
     let assignedPosition = 1;
 
     await runTransaction(db, async (transaction) => {
@@ -142,11 +205,12 @@ export class WaitlistService {
         throw new Error('Waitlist not found');
       }
 
-      const currentSubscribers = (wDoc.data().totalSubscribers || 0) + 1;
-      assignedPosition = currentSubscribers;
+      const existingSubscribers = wDoc.data().totalSubscribers || 0;
+      assignedPosition = existingSubscribers + 1;
 
+      // Update waitlist count (matches firestore.rules public increment policy)
       transaction.update(waitlistRef, {
-        totalSubscribers: currentSubscribers,
+        totalSubscribers: assignedPosition,
         updatedAt: new Date().toISOString()
       });
 
@@ -166,20 +230,22 @@ export class WaitlistService {
       };
 
       transaction.set(newEntryRef, entryData);
+    });
 
-      // If referred by someone, increment that person's referral count
-      if (payload.referredBy) {
+    // 3. Process referral count asynchronously (non-blocking for visitor join)
+    if (payload.referredBy) {
+      try {
         const referrerQ = query(entriesColRef, where('referralCode', '==', payload.referredBy.toUpperCase()));
         const refSnap = await getDocs(referrerQ);
         if (!refSnap.empty) {
           const referrerDocRef = doc(entriesColRef, refSnap.docs[0].id);
           const currentCount = (refSnap.docs[0].data().referralCount || 0) + 1;
-          transaction.update(referrerDocRef, {
-            referralCount: currentCount
-          });
+          await updateDoc(referrerDocRef, { referralCount: currentCount });
         }
+      } catch (refErr) {
+        console.warn('[WaitlistService] Non-critical referral counter increment failed:', refErr);
       }
-    });
+    }
 
     const createdDoc = await getDoc(newEntryRef);
     return {

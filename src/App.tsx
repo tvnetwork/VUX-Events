@@ -75,8 +75,8 @@ function AppContent() {
     return <LoadingFallback />;
   }
 
-  // MFA Gateway
-  if (user && profile?.security?.twoFactorEnabled && !mfaVerified) {
+  // MFA Gateway: Only prompt if 2FA is active, a secret is configured, and this session is unverified
+  if (user && profile?.security?.twoFactorEnabled && profile?.security?.twoFactorSecret && !mfaVerified) {
     return (
       <Suspense fallback={<LoadingFallback />}>
         <MFAModal />

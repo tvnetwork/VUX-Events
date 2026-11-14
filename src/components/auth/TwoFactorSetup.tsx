@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Smartphone, Key, Check, ArrowRight, Loader2, Copy, AlertCircle, QrCode } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { OTPInput } from './OTPInput';
-import { useAuth } from '../../AuthContext';
+import { useAuth, persistMfaVerified } from '../../AuthContext';
 import { cn } from '../../lib/utils';
 import { QRCodeSVG } from 'qrcode.react';
 import { TOTP, NobleCryptoPlugin, ScureBase32Plugin, generateSecret, generateURI } from 'otplib';
@@ -50,6 +50,8 @@ export function TwoFactorSetup({ onComplete, onCancel }: { onComplete: () => voi
         secret: secret
       });
       if (result.valid) {
+        if (user?.uid) persistMfaVerified(user.uid);
+        if (user?.email) persistMfaVerified(user.email);
         await updateProfileData({
           security: {
             ...profile?.security,
