@@ -248,11 +248,15 @@ export async function createServer() {
         creatorId: uid,
         creatorName: typeof decodedToken.name === 'string' ? decodedToken.name : 'Organizer',
         organizationId: resolvedOrganizationId,
-        targetDate: typeof targetDate === 'string' && targetDate ? targetDate : undefined,
-        featureCategory: type === 'feature' && typeof featureCategory === 'string' ? featureCategory.trim().slice(0, 120) : undefined,
-        maxCapacity: Number.isSafeInteger(maxCapacity) && maxCapacity > 0 ? maxCapacity : undefined,
+        ...(typeof targetDate === 'string' && targetDate ? { targetDate } : {}),
+        ...(type === 'feature' && typeof featureCategory === 'string' && featureCategory.trim()
+          ? { featureCategory: featureCategory.trim().slice(0, 120) }
+          : {}),
+        ...(Number.isSafeInteger(maxCapacity) && maxCapacity > 0 ? { maxCapacity } : {}),
         status: 'active',
-        perks: Array.isArray(perks) ? perks.filter((perk: unknown) => typeof perk === 'string').slice(0, 20).map((perk: string) => perk.slice(0, 240)) : undefined,
+        ...(Array.isArray(perks)
+          ? { perks: perks.filter((perk: unknown) => typeof perk === 'string').slice(0, 20).map((perk: string) => perk.slice(0, 240)) }
+          : {}),
         totalSubscribers: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
