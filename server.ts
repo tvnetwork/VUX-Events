@@ -1,4 +1,5 @@
 import express from 'express';
+import { createServer as createHttpServer } from 'node:http';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import path from 'path';
@@ -66,6 +67,9 @@ const db = databaseId ? getFirestore(databaseId) : getFirestore();
 export async function createServer() {
   const app = express();
   const PORT = 3000;
+  const devHttpServer = !process.env.VERCEL && process.env.NODE_ENV !== 'production'
+    ? createHttpServer(app)
+    : undefined;
 
   // Trust proxy for correct hostname and protocol detection behind Nginx
   app.set('trust proxy', true);
@@ -190,6 +194,81 @@ export async function createServer() {
     }
   });
   
+  apiRouter.post('/waitlists', async (req, res) => {
+    const requestId = req.headers['x-vercel-id'] || Math.random().toString(36).slice(2, 10);
+    try {
+      const authorization = req.headers.authorization || '';
+      const token = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
+      if (!token) return res.status(401).json({ error: 'Authentication required' });
+
+      let decodedToken;
+      try {
+        decodedToken = await admin.auth().verifyIdToken(token);
+      } catch {
+        return res.status(401).json({ error: 'Invalid or expired authentication token' });
+      }
+
+      const uid = decodedToken.uid;
+      const { title, type, description, slug, organizationId, featureCategory, targetDate, maxCapacity, perks } = req.body || {};
+      if (typeof title !== 'string' || !title.trim() || title.trim().length > 200) {
+        return res.status(400).json({ error: 'A title of 1–200 characters is required' });
+      }
+      if (type !== 'event' && type !== 'feature') {
+        return res.status(400).json({ error: 'Waitlist type must be event or feature' });
+      }
+
+      const resolvedOrganizationId = typeof organizationId === 'string' && organizationId.trim()
+        ? organizationId.trim()
+        : uid;
+      let authorized = resolvedOrganizationId === uid;
+      if (!authorized) {
+        const memberRef = db.collection('organizations').doc(resolvedOrganizationId).collection('members').doc(uid);
+        const memberSnap = await memberRef.get();
+        const member = memberSnap.exists ? memberSnap.data() : undefined;
+        const role = typeof member?.role === 'string' ? member.role.toLowerCase() : '';
+        authorized = role === 'owner' || role === 'admin' || member?.permissions?.manageWaitlists === true;
+      }
+      if (!authorized) {
+        console.warn(`[Waitlist][${requestId}] Permission denied uid=${uid} organizationId=${resolvedOrganizationId}`);
+        return res.status(403).json({ error: 'You do not have permission to manage waitlists in this organization' });
+      }
+
+      const normalizedSlug = String(slug || title)
+        .toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '').replace(/--+/g, '-')
+        .replace(/^-+|-+$/g, '').slice(0, 80) || `waitlist-${Math.random().toString(36).slice(2, 7)}`;
+      const existing = await db.collection('waitlists').where('slug', '==', normalizedSlug).limit(1).get();
+      const finalSlug = existing.empty ? normalizedSlug : `${normalizedSlug}-${Math.random().toString(36).slice(2, 6)}`;
+      const waitlistRef = db.collection('waitlists').doc();
+      const waitlist = {
+        id: waitlistRef.id,
+        slug: finalSlug,
+        title: title.trim(),
+        type,
+        description: typeof description === 'string' ? description.trim().slice(0, 5000) : '',
+        creatorId: uid,
+        creatorName: typeof decodedToken.name === 'string' ? decodedToken.name : 'Organizer',
+        organizationId: resolvedOrganizationId,
+        ...(typeof targetDate === 'string' && targetDate ? { targetDate } : {}),
+        ...(type === 'feature' && typeof featureCategory === 'string' && featureCategory.trim()
+          ? { featureCategory: featureCategory.trim().slice(0, 120) }
+          : {}),
+        ...(Number.isSafeInteger(maxCapacity) && maxCapacity > 0 ? { maxCapacity } : {}),
+        status: 'active',
+        ...(Array.isArray(perks)
+          ? { perks: perks.filter((perk: unknown) => typeof perk === 'string').slice(0, 20).map((perk: string) => perk.slice(0, 240)) }
+          : {}),
+        totalSubscribers: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      await waitlistRef.set(waitlist);
+      return res.status(201).json(waitlist);
+    } catch (error: any) {
+      console.error(`[Waitlist][${requestId}] Create failed:`, error.message);
+      return res.status(500).json({ error: 'Failed to create waitlist' });
+    }
+  });
+
   apiRouter.get('/ping', (req, res) => {
     res.send('pong');
   });
@@ -1088,7 +1167,10 @@ export async function createServer() {
     if (process.env.NODE_ENV !== 'production') {
       const { createServer: createViteServer } = await import('vite');
       const vite = await createViteServer({
-        server: { middlewareMode: true },
+        server: {
+          middlewareMode: true,
+          hmr: devHttpServer ? { server: devHttpServer } : undefined,
+        },
         appType: 'spa',
       });
       app.use(vite.middlewares);
@@ -1104,6 +1186,7 @@ export async function createServer() {
     }
   }
 
+  if (devHttpServer) Object.assign(app, { devHttpServer });
   console.log('Express server created and routes initialized.');
   return app;
 }
@@ -1112,7 +1195,8 @@ export async function createServer() {
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   createServer().then(app => {
     const PORT = 3000;
-    app.listen(PORT, '0.0.0.0', () => {
+    const server = (app as any).devHttpServer || app;
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running at http://localhost:${PORT}`);
     });
   });

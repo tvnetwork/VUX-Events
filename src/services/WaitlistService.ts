@@ -3,14 +3,12 @@ import {
   doc, 
   getDoc, 
   getDocs, 
-  setDoc, 
   updateDoc, 
   deleteDoc, 
   query, 
   where, 
   orderBy, 
-  runTransaction,
-  serverTimestamp
+  runTransaction
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Waitlist, WaitlistEntry } from '../types';
@@ -48,32 +46,23 @@ export class WaitlistService {
    * Create a new waitlist
    */
   static async createWaitlist(
-    data: Omit<Waitlist, 'id' | 'createdAt' | 'totalSubscribers'>
+    data: Omit<Waitlist, 'id' | 'createdAt' | 'totalSubscribers' | 'creatorId' | 'creatorEmail' | 'creatorName'>,
+    idToken: string
   ): Promise<Waitlist> {
-    const waitlistsRef = collection(db, 'waitlists');
-    const newDoc = doc(waitlistsRef);
+    const response = await fetch('/api/waitlists', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify(data),
+    });
 
-    let finalSlug = this.slugify(data.slug || data.title);
-    if (!finalSlug) finalSlug = `waitlist-${Math.random().toString(36).substring(2, 7)}`;
-
-    // If slug is taken, append random hash
-    const taken = await this.isSlugTaken(finalSlug);
-    if (taken) {
-      finalSlug = `${finalSlug}-${Math.random().toString(36).substring(2, 6)}`;
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to create waitlist');
     }
-
-    const newWaitlist: Waitlist = {
-      ...data,
-      id: newDoc.id,
-      slug: finalSlug,
-      totalSubscribers: 0,
-      status: data.status || 'active',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    await setDoc(newDoc, newWaitlist);
-    return newWaitlist;
+    return result as Waitlist;
   }
 
   /**

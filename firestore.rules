@@ -17,6 +17,19 @@ service cloud.firestore {
     function isValidId(id) { return id is string && id.size() <= 128; }
     function incoming() { return request.resource.data; }
     function existing() { return resource.data; }
+    function canManageWaitlists(organizationId) {
+      let memberPath = /databases/$(database)/documents/organizations/$(organizationId)/members/$(request.auth.uid);
+      return isSignedIn() && (
+        organizationId == request.auth.uid ||
+        (exists(memberPath) && (
+          get(memberPath).data.role == 'owner' ||
+          get(memberPath).data.role == 'admin' ||
+          ('permissions' in get(memberPath).data &&
+           'manageWaitlists' in get(memberPath).data.permissions &&
+           get(memberPath).data.permissions.manageWaitlists == true)
+        ))
+      );
+    }
 
     // global settings
     match /settings/{settingId} {
@@ -50,6 +63,24 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.auth.uid == userId;
       allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       allow delete: if isAdmin();
+    }
+
+    match /waitlists/{waitlistId} {
+      // Waitlist pages are public; all creation and management remains permission-gated.
+      allow get, list: if true;
+      allow create: if isSignedIn() &&
+        incoming().creatorId == request.auth.uid &&
+        incoming().organizationId is string &&
+        incoming().organizationId.size() > 0 &&
+        canManageWaitlists(incoming().organizationId);
+      allow update: if isSignedIn() &&
+        existing().creatorId == incoming().creatorId &&
+        existing().creatorId == request.auth.uid &&
+        existing().organizationId == incoming().organizationId &&
+        canManageWaitlists(existing().organizationId);
+      allow delete: if isSignedIn() &&
+        existing().creatorId == request.auth.uid &&
+        canManageWaitlists(existing().organizationId);
     }
 
     match /events/{eventId} {
