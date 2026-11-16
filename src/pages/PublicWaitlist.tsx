@@ -14,7 +14,11 @@ import {
   Lock, 
   Flame, 
   CheckCircle2, 
-  ExternalLink 
+  ExternalLink,
+  MapPin,
+  Ticket,
+  Layers,
+  Laptop
 } from 'lucide-react';
 import { Waitlist, WaitlistEntry } from '../types';
 import { WaitlistService } from '../services/WaitlistService';
@@ -43,6 +47,8 @@ export function PublicWaitlist() {
   // Form states
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [selectedTier, setSelectedTier] = useState('');
+  const [intendedRole, setIntendedRole] = useState('Developer / Creator');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -74,6 +80,9 @@ export function PublicWaitlist() {
           setError('Waitlist not found or link has expired.');
         } else {
           setWaitlist(w);
+          if (w.ticketTiers && w.ticketTiers.length > 0) {
+            setSelectedTier(w.ticketTiers[0]);
+          }
         }
       } catch (err: any) {
         console.error('Error fetching waitlist:', err);
@@ -102,7 +111,11 @@ export function PublicWaitlist() {
         email: email.trim(),
         name: name.trim() || undefined,
         userId: user?.uid,
-        referredBy: refCode
+        referredBy: refCode,
+        answers: {
+          ...(selectedTier ? { selectedTier } : {}),
+          ...(intendedRole ? { intendedRole } : {})
+        }
       });
 
       setJoinedEntry(entry);
@@ -228,17 +241,33 @@ export function PublicWaitlist() {
             >
               {/* Badge & Type */}
               <div className="text-center space-y-4">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/25 text-purple-300 text-xs font-semibold backdrop-blur-md shadow-sm shadow-purple-500/10">
-                  {isFeature ? (
-                    <>
-                      <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                      <span>{waitlist.featureCategory || 'Feature Early Access'}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Calendar className="w-3.5 h-3.5 text-rose-400" />
-                      <span>{waitlist.targetDate ? `Event Target: ${waitlist.targetDate}` : 'Event Waitlist'}</span>
-                    </>
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/25 text-purple-300 text-xs font-semibold backdrop-blur-md">
+                    {isFeature ? (
+                      <>
+                        <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                        <span>{waitlist.featureCategory || 'Feature Early Access'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Calendar className="w-3.5 h-3.5 text-rose-400" />
+                        <span>{waitlist.targetDate ? `Event Target: ${waitlist.targetDate}` : 'Event Waitlist'}</span>
+                      </>
+                    )}
+                  </span>
+
+                  {isFeature && waitlist.platformTarget && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs font-semibold">
+                      <Laptop className="w-3.5 h-3.5 text-blue-400" />
+                      <span>{waitlist.platformTarget}</span>
+                    </span>
+                  )}
+
+                  {!isFeature && waitlist.location && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-semibold">
+                      <MapPin className="w-3.5 h-3.5 text-rose-400" />
+                      <span>{waitlist.location}</span>
+                    </span>
                   )}
                 </div>
 
@@ -307,13 +336,66 @@ export function PublicWaitlist() {
                     />
                   </div>
 
+                  {/* Event-specific: Ticket Tier Selection */}
+                  {!isFeature && waitlist.ticketTiers && waitlist.ticketTiers.length > 0 && (
+                    <div className="space-y-2 text-left">
+                      <label className="text-xs font-semibold text-white/70 flex items-center gap-1.5">
+                        <Ticket className="w-3.5 h-3.5 text-purple-400" />
+                        <span>Preferred Ticket Tier</span>
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {waitlist.ticketTiers.map((tier) => (
+                          <button
+                            key={tier}
+                            type="button"
+                            onClick={() => setSelectedTier(tier)}
+                            className={cn(
+                              "px-3 py-1.5 rounded-xl border text-xs font-medium transition-all cursor-pointer",
+                              selectedTier === tier
+                                ? "bg-purple-500/20 border-purple-500/40 text-purple-300 shadow-md shadow-purple-500/15"
+                                : "bg-white/[0.03] border-white/10 text-white/60 hover:text-white"
+                            )}
+                          >
+                            {tier}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Feature-specific: Role Selection */}
+                  {isFeature && (
+                    <div className="space-y-1.5 text-left">
+                      <label className="text-xs font-semibold text-white/70 flex items-center gap-1.5">
+                        <Layers className="w-3.5 h-3.5 text-purple-400" />
+                        <span>Your Primary Role</span>
+                      </label>
+                      <select
+                        value={intendedRole}
+                        onChange={(e) => setIntendedRole(e.target.value)}
+                        className="w-full h-11 px-3.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                      >
+                        <option value="Developer / Engineer" className="bg-[#0b0b0f] text-white">Developer / Software Engineer</option>
+                        <option value="Designer / Creative" className="bg-[#0b0b0f] text-white">Designer / Creative Technologist</option>
+                        <option value="Event Organizer" className="bg-[#0b0b0f] text-white">Event Organizer / Community Lead</option>
+                        <option value="Founder / Operator" className="bg-[#0b0b0f] text-white">Founder / Executive</option>
+                        <option value="Student / Builder" className="bg-[#0b0b0f] text-white">Student / Early Career Builder</option>
+                        <option value="Tech Enthusiast" className="bg-[#0b0b0f] text-white">Tech Enthusiast / Early Tester</option>
+                      </select>
+                    </div>
+                  )}
+
                   <Button
                     type="submit"
                     variant="vux"
                     disabled={submitting || !email.trim()}
                     className="w-full h-12 text-sm font-semibold shadow-xl shadow-purple-600/30 cursor-pointer"
                   >
-                    {submitting ? "Securing your spot..." : "Join the Waitlist"}
+                    {submitting 
+                      ? "Securing your spot..." 
+                      : isFeature 
+                        ? "Request Early Beta Access" 
+                        : "Get Priority Ticket Access"}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </form>
@@ -358,7 +440,9 @@ export function PublicWaitlist() {
                   You&apos;re On The List!
                 </h2>
                 <p className="text-white/60 text-base max-w-md mx-auto">
-                  We&apos;ve reserved your priority spot for <span className="text-white font-semibold">{waitlist.title}</span>.
+                  {isFeature
+                    ? `We've reserved your beta queue spot for ${waitlist.title}. We'll notify you via ${joinedEntry?.email || 'email'} as soon as invites roll out!`
+                    : `We've reserved your priority access spot for ${waitlist.title}. You'll be alerted with early ticket drops before general public access opens!`}
                 </p>
               </div>
 

@@ -231,6 +231,9 @@ export interface Waitlist {
   creatorEmail?: string;
   coverImageUrl?: string;
   targetDate?: string;
+  location?: string;
+  ticketTiers?: string[];
+  platformTarget?: string;
   associatedEventId?: string;
   featureCategory?: string;
   maxCapacity?: number;
@@ -253,6 +256,8 @@ export interface WaitlistEntry {
   referralCode: string;
   referredBy?: string;
   referralCount: number;
+  selectedTier?: string;
+  intendedRole?: string;
   answers?: Record<string, any>;
   status: 'pending' | 'invited' | 'approved' | 'rejected';
   createdAt: string;

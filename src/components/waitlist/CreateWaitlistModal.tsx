@@ -5,7 +5,7 @@ import { Input } from '../ui/Input';
 import { Waitlist, WaitlistType } from '../../types';
 import { WaitlistService } from '../../services/WaitlistService';
 import { useAuth } from '../../AuthContext';
-import { Sparkles, Calendar, Plus, X, Globe, Check, Link2, ArrowRight, ShieldCheck, Layers } from 'lucide-react';
+import { Sparkles, Calendar, Plus, X, Globe, Check, Link2, ArrowRight, ShieldCheck, Layers, MapPin, Ticket, Monitor, Smartphone, Terminal } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 interface CreateWaitlistModalProps {
@@ -22,17 +22,45 @@ export function CreateWaitlistModal({ onClose, onCreated }: CreateWaitlistModalP
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
-  const [featureCategory, setFeatureCategory] = useState('');
+  
+  // Event-specific fields
   const [targetDate, setTargetDate] = useState('');
+  const [location, setLocation] = useState('');
+  const [ticketTiers, setTicketTiers] = useState<string[]>(['General Admission', 'VIP Pass']);
+  const [newTier, setNewTier] = useState('');
+
+  // Feature-specific fields
+  const [platformTarget, setPlatformTarget] = useState('Web & Mobile');
+  const [featureCategory, setFeatureCategory] = useState('');
+
+  // Shared fields
   const [maxCapacity, setMaxCapacity] = useState<string>('');
   const [newPerk, setNewPerk] = useState('');
   const [perks, setPerks] = useState<string[]>([
-    'Priority notification on launch',
+    'Early ticket drop notification (24h before public)',
     'Exclusive early adopter badge'
   ]);
 
   const [createdWaitlist, setCreatedWaitlist] = useState<Waitlist | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Switch type and set sensible default perks & examples
+  const handleTypeChange = (newType: WaitlistType) => {
+    setType(newType);
+    if (newType === 'event') {
+      setPerks([
+        'Early ticket drop notification (24h before public)',
+        'Guaranteed seat tier reservation',
+        'VIP entrance queue access'
+      ]);
+    } else {
+      setPerks([
+        'Private Alpha / Beta testing invite',
+        'Lifetime early adopter profile badge',
+        'Direct feedback channel with founding engineers'
+      ]);
+    }
+  };
 
   // Auto-slugify as title changes if slug was not manually touched
   const handleTitleChange = (val: string) => {
@@ -40,6 +68,18 @@ export function CreateWaitlistModal({ onClose, onCreated }: CreateWaitlistModalP
     if (!slug || slug === WaitlistService.slugify(title)) {
       setSlug(WaitlistService.slugify(val));
     }
+  };
+
+  const handleAddTier = () => {
+    if (!newTier.trim()) return;
+    if (!ticketTiers.includes(newTier.trim())) {
+      setTicketTiers([...ticketTiers, newTier.trim()]);
+    }
+    setNewTier('');
+  };
+
+  const handleRemoveTier = (idx: number) => {
+    setTicketTiers(ticketTiers.filter((_, i) => i !== idx));
   };
 
   const handleAddPerk = () => {
@@ -74,6 +114,9 @@ export function CreateWaitlistModal({ onClose, onCreated }: CreateWaitlistModalP
         description: description.trim(),
         organizationId: profile?.organizationId || user.uid,
         targetDate: targetDate || undefined,
+        location: type === 'event' ? (location.trim() || undefined) : undefined,
+        ticketTiers: type === 'event' && ticketTiers.length > 0 ? ticketTiers : undefined,
+        platformTarget: type === 'feature' ? (platformTarget.trim() || undefined) : undefined,
         featureCategory: type === 'feature' ? (featureCategory.trim() || 'General Feature') : undefined,
         maxCapacity: maxCapacity ? parseInt(maxCapacity, 10) : undefined,
         status: 'active',
@@ -185,7 +228,7 @@ export function CreateWaitlistModal({ onClose, onCreated }: CreateWaitlistModalP
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => setType('event')}
+                onClick={() => handleTypeChange('event')}
                 className={cn(
                   "p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col gap-2 relative overflow-hidden",
                   type === 'event'
@@ -201,13 +244,13 @@ export function CreateWaitlistModal({ onClose, onCreated }: CreateWaitlistModalP
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-white">Event Waitlist</h4>
-                  <p className="text-[11px] text-white/50 leading-relaxed mt-0.5">Early tickets, sold-out drops, or invite-only gatherings.</p>
+                  <p className="text-[11px] text-white/50 leading-relaxed mt-0.5">Venue conferences, meetups, early tickets, and pass drops.</p>
                 </div>
               </button>
 
               <button
                 type="button"
-                onClick={() => setType('feature')}
+                onClick={() => handleTypeChange('feature')}
                 className={cn(
                   "p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col gap-2 relative overflow-hidden",
                   type === 'feature'
@@ -223,7 +266,7 @@ export function CreateWaitlistModal({ onClose, onCreated }: CreateWaitlistModalP
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-white">App / Feature Waitlist</h4>
-                  <p className="text-[11px] text-white/50 leading-relaxed mt-0.5">Beta releases, new tools, or upcoming platform features.</p>
+                  <p className="text-[11px] text-white/50 leading-relaxed mt-0.5">Private Betas, software releases, and platform tools.</p>
                 </div>
               </button>
             </div>
@@ -233,12 +276,12 @@ export function CreateWaitlistModal({ onClose, onCreated }: CreateWaitlistModalP
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-white/70">
-                {type === 'event' ? 'Event Name / Subject' : 'Feature / Product Name'} <span className="text-purple-400">*</span>
+                {type === 'event' ? 'Event Name / Title' : 'App or Feature Name'} <span className="text-purple-400">*</span>
               </label>
               <Input
                 value={title}
                 onChange={(e) => handleTitleChange(e.target.value)}
-                placeholder={type === 'event' ? "e.g. VUX Design Summit 2026" : "e.g. AI Co-Host & Live Audio Rooms"}
+                placeholder={type === 'event' ? "e.g. VUX Web3 & AI Summit 2026" : "e.g. AI Co-Host & Realtime Audio Rooms"}
                 required
               />
             </div>
@@ -259,49 +302,156 @@ export function CreateWaitlistModal({ onClose, onCreated }: CreateWaitlistModalP
 
           {/* Description */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-white/70">Pitch / Description</label>
+            <label className="text-xs font-semibold text-white/70">
+              {type === 'event' ? 'Event Overview & Highlights' : 'Feature Pitch & What We Are Building'}
+            </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Tell visitors what they're signing up for, why they should get on the list early, and what to expect."
+              placeholder={
+                type === 'event'
+                  ? "Describe the conference, keynote speakers, networking sessions, and why attendees should get tickets early."
+                  : "Describe what the new feature does, who it is for, and what beta testers will get early access to."
+              }
               rows={3}
               className="w-full rounded-xl bg-white/[0.03] border border-white/10 p-3.5 text-sm text-white placeholder:text-white/35 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all resize-none"
             />
           </div>
 
           {/* Type-Specific Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {type === 'feature' ? (
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-white/70">Feature Category</label>
-                <Input
-                  value={featureCategory}
-                  onChange={(e) => setFeatureCategory(e.target.value)}
-                  placeholder="e.g. Mobile App, AI Tools, Developer API"
-                />
+          {type === 'event' ? (
+            <div className="space-y-4 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
+              <div className="flex items-center gap-2 text-xs font-bold text-purple-300 uppercase tracking-wider">
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Event Configuration</span>
               </div>
-            ) : (
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-white/70">Target Event Date (Optional)</label>
-                <Input
-                  type="date"
-                  value={targetDate}
-                  onChange={(e) => setTargetDate(e.target.value)}
-                />
-              </div>
-            )}
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-white/70">Target Capacity / Limit (Optional)</label>
-              <Input
-                type="number"
-                min="1"
-                value={maxCapacity}
-                onChange={(e) => setMaxCapacity(e.target.value)}
-                placeholder="e.g. 500 spots"
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-white/70">Event Target Date (Optional)</label>
+                  <Input
+                    type="date"
+                    value={targetDate}
+                    onChange={(e) => setTargetDate(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-white/70">Venue / Location</label>
+                  <div className="relative">
+                    <MapPin className="w-4 h-4 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Input
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="e.g. Landmark Centre, Lagos or Virtual Discord"
+                      className="pl-9"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Planned Ticket Tiers */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/70">Ticket Tiers Planned for Waitlist</label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Ticket className="w-4 h-4 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Input
+                      value={newTier}
+                      onChange={(e) => setNewTier(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddTier(); }}}
+                      placeholder="Add tier: e.g. Early Bird, VIP Backstage, Student Pass..."
+                      className="pl-9 text-xs"
+                    />
+                  </div>
+                  <Button type="button" variant="secondary" onClick={handleAddTier} className="shrink-0 text-xs">
+                    <Plus className="w-4 h-4 mr-1" /> Add Tier
+                  </Button>
+                </div>
+
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {ticketTiers.map((tier, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-medium"
+                    >
+                      <Ticket className="w-3 h-3 text-purple-400" />
+                      <span>{tier}</span>
+                      <button type="button" onClick={() => handleRemoveTier(idx)} className="text-white/40 hover:text-white">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-white/70">Venue Seat Capacity Limit (Optional)</label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={maxCapacity}
+                  onChange={(e) => setMaxCapacity(e.target.value)}
+                  placeholder="e.g. 500 tickets"
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-4 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
+              <div className="flex items-center gap-2 text-xs font-bold text-purple-300 uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>App & Feature Configuration</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-white/70">Target Platform</label>
+                  <select
+                    value={platformTarget}
+                    onChange={(e) => setPlatformTarget(e.target.value)}
+                    className="w-full h-10 px-3 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white focus:outline-none focus:border-purple-500/50"
+                  >
+                    <option value="Web & Mobile" className="bg-[#0b0b0f] text-white">Web & Mobile App</option>
+                    <option value="iOS Only" className="bg-[#0b0b0f] text-white">iOS App (TestFlight)</option>
+                    <option value="Android Only" className="bg-[#0b0b0f] text-white">Android (Google Play Beta)</option>
+                    <option value="Developer API & SDK" className="bg-[#0b0b0f] text-white">Developer API / SDK</option>
+                    <option value="Desktop App" className="bg-[#0b0b0f] text-white">Desktop (macOS / Windows / Linux)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-white/70">Feature Category</label>
+                  <Input
+                    value={featureCategory}
+                    onChange={(e) => setFeatureCategory(e.target.value)}
+                    placeholder="e.g. AI Co-Host, QR Scanner, Crypto Wallet"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-white/70">Target Release Date (Optional)</label>
+                  <Input
+                    type="date"
+                    value={targetDate}
+                    onChange={(e) => setTargetDate(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-white/70">Beta Tester Limit (Optional)</label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={maxCapacity}
+                    onChange={(e) => setMaxCapacity(e.target.value)}
+                    placeholder="e.g. 100 beta testers"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Early Access Perks */}
           <div className="space-y-2">

@@ -116,21 +116,73 @@ export class WaitlistService {
   }
 
   /**
-   * Fetch waitlist by slug or document ID
+   * Fetch waitlist by slug or document ID (with case normalization and server fallback)
    */
   static async getWaitlistBySlugOrId(identifier: string): Promise<Waitlist | null> {
-    // First try by ID
-    const directDoc = await getDoc(doc(db, 'waitlists', identifier));
-    if (directDoc.exists()) {
-      return { id: directDoc.id, ...directDoc.data() } as Waitlist;
+    if (!identifier) return null;
+    const cleanId = decodeURIComponent(identifier).trim();
+    const cleanLower = cleanId.toLowerCase();
+    const cleanSlug = this.slugify(cleanId);
+
+    // 1. Try direct document ID
+    try {
+      const directDoc = await getDoc(doc(db, 'waitlists', cleanId));
+      if (directDoc.exists()) {
+        return { id: directDoc.id, ...directDoc.data() } as Waitlist;
+      }
+    } catch (e) {
+      console.warn('[WaitlistService] Direct ID lookup error:', e);
     }
 
-    // Try query by slug
-    const q = query(collection(db, 'waitlists'), where('slug', '==', identifier));
-    const snap = await getDocs(q);
-    if (!snap.empty) {
-      const d = snap.docs[0];
-      return { id: d.id, ...d.data() } as Waitlist;
+    // 2. Try query by exact slug
+    try {
+      const q = query(collection(db, 'waitlists'), where('slug', '==', cleanId));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        const d = snap.docs[0];
+        return { id: d.id, ...d.data() } as Waitlist;
+      }
+    } catch (e) {
+      console.warn('[WaitlistService] Exact slug query error:', e);
+    }
+
+    // 3. Try query by lowercased slug
+    if (cleanLower !== cleanId) {
+      try {
+        const qLower = query(collection(db, 'waitlists'), where('slug', '==', cleanLower));
+        const snapLower = await getDocs(qLower);
+        if (!snapLower.empty) {
+          const d = snapLower.docs[0];
+          return { id: d.id, ...d.data() } as Waitlist;
+        }
+      } catch (e) {
+        console.warn('[WaitlistService] Lowercase slug query error:', e);
+      }
+    }
+
+    // 4. Try query by slugified format
+    if (cleanSlug && cleanSlug !== cleanId && cleanSlug !== cleanLower) {
+      try {
+        const qSlug = query(collection(db, 'waitlists'), where('slug', '==', cleanSlug));
+        const snapSlug = await getDocs(qSlug);
+        if (!snapSlug.empty) {
+          const d = snapSlug.docs[0];
+          return { id: d.id, ...d.data() } as Waitlist;
+        }
+      } catch (e) {
+        console.warn('[WaitlistService] Slugified query error:', e);
+      }
+    }
+
+    // 5. Fallback via server API
+    try {
+      const resp = await fetch(`/api/waitlists/${encodeURIComponent(cleanId)}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data && data.id) return data as Waitlist;
+      }
+    } catch {
+      // ignore server fallback failure
     }
 
     return null;
