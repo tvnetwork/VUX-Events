@@ -5,6 +5,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function getSafeAvatarUrl(url?: string | null, seed?: string): string {
+  if (!url || typeof url !== 'string' || !url.trim()) {
+    return getAvatarUrl(seed);
+  }
+  const trimmed = url.trim();
+  // Catch dead/unresolvable legacy supabase projects or empty data URIs
+  if (trimmed.includes('supabase.co') || trimmed === 'null' || trimmed === 'undefined') {
+    return getAvatarUrl(seed);
+  }
+  return trimmed;
+}
+
 export function getAvatarUrl(seed: string | undefined, version: number = 7) {
   const collections = [
     'fun-emoji',

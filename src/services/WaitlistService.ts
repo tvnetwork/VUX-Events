@@ -52,7 +52,47 @@ export class WaitlistService {
   ): Promise<Waitlist> {
     const user = auth.currentUser;
 
-    // 1. Try server API route if idToken is provided
+    // 1. Direct Firestore write (authenticated client write using deployed rules)
+    if (user) {
+      try {
+        let finalSlug = this.slugify(data.slug || data.title);
+        if (!finalSlug) finalSlug = `waitlist-${Math.random().toString(36).substring(2, 7)}`;
+
+        const taken = await this.isSlugTaken(finalSlug);
+        if (taken) {
+          finalSlug = `${finalSlug}-${Math.random().toString(36).substring(2, 6)}`;
+        }
+
+        const waitlistsRef = collection(db, 'waitlists');
+        const newDoc = doc(waitlistsRef);
+
+        const newWaitlist: Waitlist = {
+          ...data,
+          id: newDoc.id,
+          slug: finalSlug,
+          creatorId: user.uid,
+          creatorName: user.displayName || 'Organizer',
+          creatorEmail: user.email || '',
+          organizationId: data.organizationId || user.uid,
+          totalSubscribers: 0,
+          status: data.status || 'active',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        // Remove any undefined values to satisfy Firestore serialization requirements
+        const sanitizedWaitlist = Object.fromEntries(
+          Object.entries(newWaitlist).filter(([_, v]) => v !== undefined)
+        ) as Waitlist;
+
+        await setDoc(newDoc, sanitizedWaitlist);
+        return sanitizedWaitlist;
+      } catch (directErr) {
+        console.warn('[WaitlistService] Direct Firestore create encountered an issue, trying server API fallback:', directErr);
+      }
+    }
+
+    // 2. Server API fallback if direct Firestore write failed or idToken is present
     if (idToken) {
       try {
         const response = await fetch('/api/waitlists', {
@@ -69,50 +109,18 @@ export class WaitlistService {
           return result as Waitlist;
         } else {
           const errData = await response.json().catch(() => ({}));
-          console.warn('[WaitlistService] API create failed, falling back to direct Firestore:', errData);
+          console.warn('[WaitlistService] API fallback failed:', errData);
         }
       } catch (networkErr) {
-        console.warn('[WaitlistService] API network error, falling back to direct Firestore:', networkErr);
+        console.warn('[WaitlistService] API network error:', networkErr);
       }
     }
 
-    // 2. Direct Firestore fallback (authenticated client write)
     if (!user) {
       throw new Error('Authentication required to create a waitlist');
     }
 
-    let finalSlug = this.slugify(data.slug || data.title);
-    if (!finalSlug) finalSlug = `waitlist-${Math.random().toString(36).substring(2, 7)}`;
-
-    const taken = await this.isSlugTaken(finalSlug);
-    if (taken) {
-      finalSlug = `${finalSlug}-${Math.random().toString(36).substring(2, 6)}`;
-    }
-
-    const waitlistsRef = collection(db, 'waitlists');
-    const newDoc = doc(waitlistsRef);
-
-    const newWaitlist: Waitlist = {
-      ...data,
-      id: newDoc.id,
-      slug: finalSlug,
-      creatorId: user.uid,
-      creatorName: user.displayName || 'Organizer',
-      creatorEmail: user.email || '',
-      organizationId: data.organizationId || user.uid,
-      totalSubscribers: 0,
-      status: data.status || 'active',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    // Remove any undefined values to satisfy Firestore serialization requirements
-    const sanitizedWaitlist = Object.fromEntries(
-      Object.entries(newWaitlist).filter(([_, v]) => v !== undefined)
-    ) as Waitlist;
-
-    await setDoc(newDoc, sanitizedWaitlist);
-    return sanitizedWaitlist;
+    throw new Error('Failed to create waitlist. Please check your network connection.');
   }
 
   /**

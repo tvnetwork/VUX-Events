@@ -283,7 +283,20 @@ export async function createServer() {
       }
 
       const uid = decodedToken.uid;
-      const { title, type, description, slug, organizationId, featureCategory, targetDate, maxCapacity, perks } = req.body || {};
+      const { 
+        title, 
+        type, 
+        description, 
+        slug, 
+        organizationId, 
+        featureCategory, 
+        targetDate, 
+        maxCapacity, 
+        perks,
+        location,
+        ticketTiers,
+        platformTarget
+      } = req.body || {};
       if (typeof title !== 'string' || !title.trim() || title.trim().length > 200) {
         return res.status(400).json({ error: 'A title of 1–200 characters is required' });
       }
@@ -327,6 +340,9 @@ export async function createServer() {
         creatorName: typeof decodedToken.name === 'string' ? decodedToken.name : 'Organizer',
         organizationId: resolvedOrganizationId,
         ...(typeof targetDate === 'string' && targetDate ? { targetDate } : {}),
+        ...(type === 'event' && typeof location === 'string' && location.trim() ? { location: location.trim().slice(0, 200) } : {}),
+        ...(type === 'event' && Array.isArray(ticketTiers) ? { ticketTiers: ticketTiers.filter(t => typeof t === 'string').map(t => t.slice(0, 60)) } : {}),
+        ...(type === 'feature' && typeof platformTarget === 'string' && platformTarget.trim() ? { platformTarget: platformTarget.trim().slice(0, 60) } : {}),
         ...(type === 'feature' && typeof featureCategory === 'string' && featureCategory.trim()
           ? { featureCategory: featureCategory.trim().slice(0, 120) }
           : {}),
@@ -792,31 +808,15 @@ export async function createServer() {
             <p style="font-size: 11px; color: rgba(255,255,255,0.3);">If this wasn't you, please secure your account immediately.</p>
           </div>
         `
+      }).catch(err => {
+        console.warn('[Email] Login notification non-critical dispatch failure:', err?.message || err);
       });
 
-      console.log('[Email] Login notification sent successfully');
-      res.json({ success: true });
+      console.log('[Email] Login notification handled');
+      return res.json({ success: true });
     } catch (error: any) {
-      console.error('[Email] Login Email Error:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-            <p>Hi ${displayName || 'User'},</p>
-            <p>A new login was detected for your VUX Events account.</p>
-            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin: 20px 0;">
-              <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.5);">TIME: ${timestamp}</p>
-              <p style="margin: 5px 0 0; font-size: 12px; color: rgba(255,255,255,0.5);">LOCATION: Detected via Web Access</p>
-            </div>
-            <p style="font-size: 11px; color: rgba(255,255,255,0.3);">If this wasn't you, please secure your account immediately.</p>
-          </div>
-        `
-      });
-
-      console.log('[SMTP] Login notification sent successfully');
-      res.json({ success: true });
-    } catch (error: any) {
-      console.error('[SMTP] Login Email Error:', error);
-      res.status(500).json({ error: error.message });
+      console.warn('[Email] Login Email handled gracefully:', error?.message);
+      return res.json({ success: true, warning: 'Notification delivery skipped' });
     }
   });
 
