@@ -11,26 +11,27 @@ import { cn } from '../../lib/utils';
 interface CreateWaitlistModalProps {
   onClose: () => void;
   onCreated: (waitlist: Waitlist) => void;
+  initialWaitlist?: Waitlist;
 }
 
-export function CreateWaitlistModal({ onClose, onCreated }: CreateWaitlistModalProps) {
+export function CreateWaitlistModal({ onClose, onCreated, initialWaitlist }: CreateWaitlistModalProps) {
   const { user, profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [title, setTitle] = useState('');
-  const [slug, setSlug] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState(initialWaitlist?.title || '');
+  const [slug, setSlug] = useState(initialWaitlist?.slug || '');
+  const [description, setDescription] = useState(initialWaitlist?.description || '');
   
   // Feature-specific fields
-  const [platformTarget, setPlatformTarget] = useState('Web & Mobile');
-  const [featureCategory, setFeatureCategory] = useState('Developer Tools');
-  const [targetRelease, setTargetRelease] = useState('');
+  const [platformTarget, setPlatformTarget] = useState(initialWaitlist?.platformTarget || 'Web & Mobile');
+  const [featureCategory, setFeatureCategory] = useState(initialWaitlist?.featureCategory || 'Developer Tools');
+  const [targetRelease, setTargetRelease] = useState(initialWaitlist?.targetDate || '');
 
   // Capacity & Perks
-  const [maxCapacity, setMaxCapacity] = useState<string>('');
+  const [maxCapacity, setMaxCapacity] = useState<string>(initialWaitlist?.maxCapacity?.toString() || '');
   const [newPerk, setNewPerk] = useState('');
-  const [perks, setPerks] = useState<string[]>([
+  const [perks, setPerks] = useState<string[]>(initialWaitlist?.perks || [
     'Private Alpha / Beta testing invite',
     'Lifetime early adopter profile badge',
     'Direct feedback channel with founding engineers'
@@ -42,7 +43,7 @@ export function CreateWaitlistModal({ onClose, onCreated }: CreateWaitlistModalP
   // Auto-slugify as title changes if slug was not manually touched
   const handleTitleChange = (val: string) => {
     setTitle(val);
-    if (!slug || slug === WaitlistService.slugify(title)) {
+    if (!initialWaitlist && (!slug || slug === WaitlistService.slugify(title))) {
       setSlug(WaitlistService.slugify(val));
     }
   };
@@ -64,7 +65,7 @@ export function CreateWaitlistModal({ onClose, onCreated }: CreateWaitlistModalP
       return;
     }
     if (!user) {
-      setError('You must be signed in to create a waitlist.');
+      setError('You must be signed in to save changes.');
       return;
     }
 
@@ -72,7 +73,7 @@ export function CreateWaitlistModal({ onClose, onCreated }: CreateWaitlistModalP
     setError(null);
 
     try {
-      const waitlist = await WaitlistService.createWaitlist({
+      const waitlistData = {
         slug: slug.trim() || WaitlistService.slugify(title),
         title: title.trim(),
         type: 'feature',
@@ -82,15 +83,26 @@ export function CreateWaitlistModal({ onClose, onCreated }: CreateWaitlistModalP
         platformTarget: platformTarget.trim() || 'Web & Mobile',
         featureCategory: featureCategory.trim() || 'General Feature',
         maxCapacity: maxCapacity ? parseInt(maxCapacity, 10) : undefined,
-        status: 'active',
+        status: initialWaitlist?.status || 'active',
         perks: perks.length > 0 ? perks : undefined
-      }, await user.getIdToken());
+      };
 
-      setCreatedWaitlist(waitlist);
-      onCreated(waitlist);
+      if (initialWaitlist) {
+        await WaitlistService.updateWaitlist(initialWaitlist.id, waitlistData);
+        onCreated({ ...initialWaitlist, ...waitlistData });
+        onClose();
+      } else {
+        const waitlist = await WaitlistService.createWaitlist({
+          ...waitlistData,
+          status: 'active'
+        }, await user.getIdToken());
+
+        setCreatedWaitlist(waitlist);
+        onCreated(waitlist);
+      }
     } catch (err: any) {
-      console.error('Failed to create waitlist:', err);
-      setError(err.message || 'Failed to create waitlist. Please try again.');
+      console.error('Failed to save waitlist:', err);
+      setError(err.message || 'Failed to save waitlist. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -111,11 +123,13 @@ export function CreateWaitlistModal({ onClose, onCreated }: CreateWaitlistModalP
     <ModalShell
       isOpen={true}
       onClose={onClose}
-      title={createdWaitlist ? "Waitlist Created!" : "Create Feature Waitlist"}
+      title={createdWaitlist ? "Waitlist Created!" : initialWaitlist ? "Edit Feature Waitlist" : "Create Feature Waitlist"}
       subtitle={
         createdWaitlist 
           ? "Your waitlist is live and ready to collect beta testers." 
-          : "Gather early beta testers, manage early access queues, and build anticipation for upcoming software features."
+          : initialWaitlist
+            ? "Update your feature waitlist details."
+            : "Gather early beta testers, manage early access queues, and build anticipation for upcoming software features."
       }
       maxWidth="lg"
     >
@@ -380,7 +394,7 @@ export function CreateWaitlistModal({ onClose, onCreated }: CreateWaitlistModalP
               disabled={loading}
               className="shadow-lg shadow-purple-600/30 px-6 font-semibold"
             >
-              {loading ? "Creating Waitlist..." : "Create Feature Waitlist"}
+              {loading ? "Saving..." : initialWaitlist ? "Update Feature Waitlist" : "Create Feature Waitlist"}
             </Button>
           </div>
         </form>

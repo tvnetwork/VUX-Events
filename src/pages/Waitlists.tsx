@@ -37,6 +37,7 @@ export function Waitlists() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingWaitlist, setEditingWaitlist] = useState<Waitlist | null>(null);
   const [activeWaitlist, setActiveWaitlist] = useState<Waitlist | null>(null);
   const [entries, setEntries] = useState<WaitlistEntry[]>([]);
   const [loadingEntries, setLoadingEntries] = useState(false);
@@ -330,7 +331,18 @@ export function Waitlists() {
 
                 {/* Card Actions */}
                 <div className="space-y-3 pt-4 border-t border-white/[0.06]">
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        setEditingWaitlist(w);
+                        setIsCreateOpen(true);
+                      }}
+                      className="text-xs font-semibold h-9"
+                    >
+                      Edit
+                    </Button>
                     <Button
                       size="sm"
                       variant="secondary"
@@ -354,7 +366,7 @@ export function Waitlists() {
                         variant="outline"
                         className="w-full text-xs font-semibold h-9 border-white/10 hover:border-purple-500/30"
                       >
-                        <ExternalLink className="w-3.5 h-3.5 mr-1" /> Public Page
+                        <ExternalLink className="w-3.5 h-3.5 mr-1" /> Link
                       </Button>
                     </a>
                   </div>
@@ -387,9 +399,18 @@ export function Waitlists() {
       {/* Creation Modal */}
       {isCreateOpen && (
         <CreateWaitlistModal
-          onClose={() => setIsCreateOpen(false)}
-          onCreated={(newWaitlist) => {
-            setWaitlists([newWaitlist, ...waitlists]);
+          initialWaitlist={editingWaitlist || undefined}
+          onClose={() => {
+            setIsCreateOpen(false);
+            setEditingWaitlist(null);
+          }}
+          onCreated={(waitlist) => {
+            if (editingWaitlist) {
+              setWaitlists(waitlists.map(w => w.id === waitlist.id ? waitlist : w));
+              setEditingWaitlist(null);
+            } else {
+              setWaitlists([waitlist, ...waitlists]);
+            }
           }}
         />
       )}
