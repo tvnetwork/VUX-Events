@@ -28,11 +28,16 @@ import {
   Copy,
   BarChart2,
   Check,
+  Megaphone,
+  AlertTriangle,
+  Radio,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { collection, query, onSnapshot, doc, updateDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
 import { RSVP, Event } from '../types';
 import { cn, getAvatarUrl } from '../lib/utils';
+import { useAuth } from '../AuthContext';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
 import { Avatar } from './ui/Avatar';
@@ -42,6 +47,7 @@ import { Html5QrcodeScanner } from 'html5-qrcode';
 import toast from 'react-hot-toast';
 
 export function ManageAttendees({ event, onClose }: { event: Event; onClose: () => void }) {
+  const { user, profile } = useAuth();
   const [rsvps, setRsvps] = useState<RSVP[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -51,8 +57,192 @@ export function ManageAttendees({ event, onClose }: { event: Event; onClose: () 
   const [pollOptions, setPollOptions] = useState(['', '']);
   const [scannerInput, setScannerInput] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
+  const [announcementTitle, setAnnouncementTitle] = useState('');
+  const [announcementMessage, setAnnouncementMessage] = useState('');
+  const [sendingAnnouncement, setSendingAnnouncement] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancellationReason, setCancellationReason] = useState('');
+  const [cancellingEvent, setCancellingEvent] = useState(false);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
 
-  const shareUrl = `${window.location.origin}/discover?event=${event.id}`;
+  const shareUrl = `${window.location.origin}/events/${event.id}`;
+
+  const handleScannerCheckIn = async (code: string) => {
+    if (!code.trim()) return;
+    const cleanCode = code.trim();
+
+    try {
+      const resp = await fetch('/api/tickets/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: event.id,
+          ticketCode: cleanCode,
+          qrPayload: cleanCode,
+          checkedByUid: user?.uid || 'staff',
+          checkedByName: profile?.displayName || user?.email || 'Staff Validator',
+        }),
+      });
+
+      const data = await resp.json();
+
+      if (resp.status === 409) {
+        toast.error(`DUPLICATE ENTRY: ${data.attendee?.displayName || 'Attendee'} was ALREADY checked in at ${new Date(data.checkedInAt).toLocaleTimeString()} by ${data.checkedInByName}!`, {
+          duration: 6000,
+          icon: '⚠️',
+        });
+        setScannerInput('');
+        return;
+      }
+
+      if (resp.status === 403) {
+        toast.error(`BLOCKED: This ticket was REVOKED. Reason: ${data.reason}`, {
+          duration: 6000,
+          icon: '🛑',
+        });
+        setScannerInput('');
+        return;
+      }
+
+      if (!resp.ok) {
+        // Fallback to local match
+        const localRsvp = rsvps.find(
+          (r) =>
+            r.ticketCode === cleanCode ||
+            r.id === cleanCode ||
+            r.userEmail?.toLowerCase() === cleanCode.toLowerCase()
+        );
+        if (localRsvp) {
+          if (localRsvp.checkedIn) {
+            toast.error(`${localRsvp.userDisplayName} is already checked in`);
+          } else {
+            await toggleCheckIn(localRsvp.id, false);
+            toast.success(`Checked in ${localRsvp.userDisplayName}!`);
+          }
+        } else {
+          toast.error(data.error || 'Ticket not found or invalid');
+        }
+        setScannerInput('');
+        return;
+      }
+
+      toast.success(`VERIFIED: Checked in ${data.attendee.displayName} (${data.attendee.ticketCode})!`, {
+        duration: 4000,
+        icon: '✅',
+      });
+      setScannerInput('');
+    } catch (err) {
+      console.error('Check-in validation error:', err);
+      toast.error('Validation request failed');
+    }
+  };
+
+  const handleRevokeTicket = async (rsvp: RSVP) => {
+    const reason = window.prompt(`Enter reason for revoking ticket for ${rsvp.userDisplayName}:`, 'Revoked by organizer');
+    if (reason === null) return;
+
+    setRevokingId(rsvp.id);
+    try {
+      const resp = await fetch('/api/tickets/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: event.id,
+          rsvpId: rsvp.id,
+          revokedByUid: user?.uid || 'host',
+          reason,
+        }),
+      });
+
+      if (!resp.ok) {
+        await updateDoc(doc(db, 'events', event.id, 'rsvps', rsvp.id), {
+          status: 'revoked',
+          checkedIn: false,
+          revocationReason: reason,
+          updatedAt: serverTimestamp(),
+        });
+      }
+      toast.success(`Ticket for ${rsvp.userDisplayName} revoked`);
+    } catch (e) {
+      console.error('Revocation failed:', e);
+      toast.error('Failed to revoke ticket');
+    } finally {
+      setRevokingId(null);
+    }
+  };
+
+  const handleBroadcastAnnouncement = async () => {
+    if (!announcementTitle.trim() || !announcementMessage.trim()) {
+      toast.error('Title and message are required');
+      return;
+    }
+
+    setSendingAnnouncement(true);
+    try {
+      const resp = await fetch('/api/email/event-update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: event.id,
+          updateTitle: announcementTitle.trim(),
+          updateMessage: announcementMessage.trim(),
+          hostUid: user?.uid,
+        }),
+      });
+
+      const data = await resp.json();
+      if (resp.ok) {
+        toast.success(`Announcement broadcasted to ${data.count || 0} attendees!`);
+        setShowAnnouncementModal(false);
+        setAnnouncementTitle('');
+        setAnnouncementMessage('');
+      } else {
+        toast.error(data.error || 'Failed to dispatch broadcast');
+      }
+    } catch (err) {
+      console.error('Broadcast failed:', err);
+      toast.error('Failed to send announcement');
+    } finally {
+      setSendingAnnouncement(false);
+    }
+  };
+
+  const handleCancelEvent = async () => {
+    if (!window.confirm('Are you certain you want to cancel this event? This will notify all registered attendees.')) {
+      return;
+    }
+
+    setCancellingEvent(true);
+    try {
+      // 1. Mark event as cancelled
+      await updateDoc(doc(db, 'events', event.id), {
+        status: 'cancelled',
+        cancellationReason: cancellationReason.trim() || 'Cancelled by organizer',
+        cancelledAt: serverTimestamp(),
+      });
+
+      // 2. Dispatch cancellation broadcast
+      await fetch('/api/email/event-cancellation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: event.id,
+          cancellationReason: cancellationReason.trim() || 'Cancelled by organizer',
+          hostUid: user?.uid,
+        }),
+      });
+
+      toast.success('Event cancelled and cancellation notices dispatched');
+      setShowCancelModal(false);
+      onClose();
+    } catch (err) {
+      console.error('Cancellation failed:', err);
+      toast.error('Failed to cancel event');
+    } finally {
+      setCancellingEvent(false);
+    }
+  };
 
   const createPoll = async () => {
     if (!pollQuestion.trim() || pollOptions.some((o) => !o.trim())) return;
@@ -103,34 +293,6 @@ export function ManageAttendees({ event, onClose }: { event: Event; onClose: () 
     }
   };
 
-  const handleScannerCheckIn = async (code: string) => {
-    if (!code.trim()) return;
-    const rsvp = rsvps.find(
-      (r) =>
-        r.id === code.trim() ||
-        r.userEmail?.toLowerCase() === code.trim().toLowerCase() ||
-        r.userId === code.trim()
-    );
-
-    if (!rsvp) {
-      toast.error('Ticket not found');
-      return;
-    }
-
-    if (rsvp.checkedIn) {
-      toast.error(`${rsvp.userDisplayName} is already checked in`);
-      return;
-    }
-
-    await toggleCheckIn(rsvp.id, false);
-    setScannerInput('');
-
-    toast.success(`Checked in ${rsvp.userDisplayName}!`, {
-      duration: 3000,
-      icon: '✅',
-    });
-  };
-
   useEffect(() => {
     const q = query(collection(db, 'events', event.id, 'rsvps'));
     const unsubscribe = onSnapshot(
@@ -156,19 +318,8 @@ export function ManageAttendees({ event, onClose }: { event: Event; onClose: () 
         scanner.render(
           (text) => {
             const urlParams = new URLSearchParams(text.split('?')[1] || '');
-            const uid = urlParams.get('user') || text;
-
-            const rsvp = rsvps.find((r) => r.userId === uid || r.id === uid);
-            if (rsvp) {
-              if (!rsvp.checkedIn) {
-                toggleCheckIn(rsvp.id, false);
-                toast.success(`Checked in ${rsvp.userDisplayName}!`);
-              } else {
-                toast.error(`${rsvp.userDisplayName} is already checked in.`);
-              }
-            } else {
-              toast.error('Invalid Ticket / User not found.');
-            }
+            const code = urlParams.get('checkin') || urlParams.get('user') || text;
+            handleScannerCheckIn(code);
           },
           () => {}
         );
@@ -254,25 +405,28 @@ export function ManageAttendees({ event, onClose }: { event: Event; onClose: () 
   };
 
   const exportManifest = () => {
-    const headers = ['Name', 'Email', 'RSVP Date', 'Status', 'Checked In'];
+    const headers = ['Name', 'Email', 'Ticket Code', 'RSVP Date', 'Status', 'Checked In', 'Checked In At', 'Checked In By'];
     const rows = rsvps.map((r) => [
-      r.userDisplayName,
-      r.userEmail,
-      new Date(r.createdAt).toLocaleDateString(),
+      `"${(r.userDisplayName || '').replace(/"/g, '""')}"`,
+      `"${(r.userEmail || '').replace(/"/g, '""')}"`,
+      `"${r.ticketCode || `VUX-TKT-${r.id.substring(0, 8).toUpperCase()}`}"`,
+      `"${new Date(r.createdAt).toLocaleString()}"`,
       r.status,
       r.checkedIn ? 'Yes' : 'No',
+      `"${r.checkedInAt || ''}"`,
+      `"${(r.checkedInByName || '').replace(/"/g, '""')}"`,
     ]);
 
-    const csvContent = [headers, ...rows].map((e) => e.join(',')).join('\n');
+    const csvContent = [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
     link.setAttribute('download', `VUX_MANIFEST_${event.title.toUpperCase().replace(/\s+/g, '_')}.csv`);
-    link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    toast.success('Attendee manifest exported');
   };
 
   return (
@@ -294,9 +448,9 @@ export function ManageAttendees({ event, onClose }: { event: Event; onClose: () 
           </button>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-              <span className="text-[11px] font-semibold text-blue-400 uppercase tracking-wider">
-                Event Control
+              <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+              <span className="text-[11px] font-semibold text-purple-400 uppercase tracking-wider">
+                VUX Command Operations
               </span>
             </div>
             <h1 className="text-sm sm:text-base font-bold text-white truncate max-w-[200px] sm:max-w-md">
@@ -307,6 +461,16 @@ export function ManageAttendees({ event, onClose }: { event: Event; onClose: () 
 
         {/* Action icons */}
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowAnnouncementModal(true)}
+            className="h-9 px-3 rounded-xl border border-white/[0.08] bg-white/[0.02] text-xs font-semibold gap-1.5 hover:bg-white/10 text-purple-400 hover:text-purple-300"
+          >
+            <Megaphone className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Broadcast</span>
+          </Button>
+
           <Button
             variant="ghost"
             size="sm"
@@ -321,10 +485,21 @@ export function ManageAttendees({ event, onClose }: { event: Event; onClose: () 
             variant="kontyra"
             size="sm"
             onClick={() => setShowShareModal(true)}
-            className="h-9 px-3.5 rounded-xl text-xs font-semibold gap-1.5 shadow-md shadow-blue-900/20"
+            className="h-9 px-3.5 rounded-xl text-xs font-semibold gap-1.5 shadow-md shadow-purple-900/30 bg-purple-600 hover:bg-purple-500"
           >
             <Share2 className="w-3.5 h-3.5" />
             <span>Share</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowCancelModal(true)}
+            className="h-9 px-2.5 rounded-xl border border-rose-500/20 bg-rose-500/5 text-xs font-semibold gap-1 hover:bg-rose-500/10 text-rose-400"
+            title="Cancel Event"
+          >
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Cancel Event</span>
           </Button>
         </div>
       </header>
@@ -446,16 +621,27 @@ export function ManageAttendees({ event, onClose }: { event: Event; onClose: () 
                             <span className="text-sm font-semibold text-white truncate">
                               {rsvp.userDisplayName || 'Anonymous'}
                             </span>
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20 font-bold">
+                              {rsvp.ticketCode || `VUX-TKT-${rsvp.id.substring(0, 8).toUpperCase()}`}
+                            </span>
                             {rsvp.ticketType && (
                               <span className="text-[10px] px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">
                                 {rsvp.ticketType}
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-zinc-400 truncate flex items-center gap-1.5 mt-0.5">
-                            <Mail className="w-3 h-3 text-zinc-500 shrink-0" />
-                            <span>{rsvp.userEmail}</span>
-                          </p>
+                          <div className="flex items-center gap-3 text-xs text-zinc-400 mt-1 flex-wrap">
+                            <span className="flex items-center gap-1">
+                              <Mail className="w-3 h-3 text-zinc-500 shrink-0" />
+                              <span>{rsvp.userEmail}</span>
+                            </span>
+                            {rsvp.checkedIn && rsvp.checkedInAt && (
+                              <span className="text-[10px] text-emerald-400 font-mono">
+                                &bull; In at {new Date(rsvp.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {rsvp.checkedInByName ? ` by ${rsvp.checkedInByName}` : ''}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
@@ -498,19 +684,34 @@ export function ManageAttendees({ event, onClose }: { event: Event; onClose: () 
                         </span>
 
                         {/* Check-in Toggle Button */}
-                        <button
-                          type="button"
-                          onClick={() => toggleCheckIn(rsvp.id, !!rsvp.checkedIn)}
-                          className={cn(
-                            'h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer',
-                            rsvp.checkedIn
-                              ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/30'
-                              : 'bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 hover:text-white border border-white/10'
-                          )}
-                        >
-                          {rsvp.checkedIn && <Check className="w-3.5 h-3.5" />}
-                          <span>{rsvp.checkedIn ? 'Checked In' : 'Check In'}</span>
-                        </button>
+                        {rsvp.status !== 'revoked' && (
+                          <button
+                            type="button"
+                            onClick={() => toggleCheckIn(rsvp.id, !!rsvp.checkedIn)}
+                            className={cn(
+                              'h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer',
+                              rsvp.checkedIn
+                                ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/30'
+                                : 'bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 hover:text-white border border-white/10'
+                            )}
+                          >
+                            {rsvp.checkedIn && <Check className="w-3.5 h-3.5" />}
+                            <span>{rsvp.checkedIn ? 'Checked In' : 'Check In'}</span>
+                          </button>
+                        )}
+
+                        {/* Revoke Action */}
+                        {rsvp.status !== 'revoked' && (
+                          <button
+                            type="button"
+                            onClick={() => handleRevokeTicket(rsvp)}
+                            disabled={revokingId === rsvp.id}
+                            title="Revoke Ticket"
+                            className="h-8 px-2.5 rounded-lg bg-rose-500/5 hover:bg-rose-500/15 border border-rose-500/20 text-rose-400 text-xs font-medium transition-all cursor-pointer"
+                          >
+                            {revokingId === rsvp.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Revoke'}
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -760,6 +961,133 @@ export function ManageAttendees({ event, onClose }: { event: Event; onClose: () 
               >
                 <Copy className="w-4 h-4" />
               </button>
+            </div>
+          </div>
+        </ModalShell>
+      )}
+
+      {/* Broadcast Announcement Modal */}
+      {showAnnouncementModal && (
+        <ModalShell
+          onClose={() => setShowAnnouncementModal(false)}
+          title="Broadcast Announcement"
+          subtitle={`Send an email update to all ${stats.approved} confirmed attendees`}
+          badge={
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-[11px] font-medium text-purple-400">
+              <Megaphone className="w-3.5 h-3.5" />
+              <span>Broadcast</span>
+            </div>
+          }
+          maxWidth="md"
+        >
+          <div className="space-y-4 pt-1">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-zinc-300">Subject / Announcement Title</label>
+              <input
+                type="text"
+                value={announcementTitle}
+                onChange={(e) => setAnnouncementTitle(e.target.value)}
+                placeholder="e.g. Schedule Update, Venue Parking Guide"
+                className="w-full h-11 bg-white/[0.03] border border-white/10 rounded-xl px-3.5 text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-purple-500 transition-all"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-zinc-300">Message Content</label>
+              <textarea
+                value={announcementMessage}
+                onChange={(e) => setAnnouncementMessage(e.target.value)}
+                placeholder="Write your announcement to registered attendees..."
+                rows={5}
+                className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-3.5 text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-purple-500 transition-all resize-none"
+              />
+            </div>
+
+            <div className="pt-2 flex items-center justify-end gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => setShowAnnouncementModal(false)}
+                className="text-xs font-semibold text-zinc-400 hover:text-white"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleBroadcastAnnouncement}
+                disabled={sendingAnnouncement || !announcementTitle.trim() || !announcementMessage.trim()}
+                className="bg-purple-600 hover:bg-purple-500 text-xs font-bold uppercase tracking-wider rounded-xl gap-2"
+              >
+                {sendingAnnouncement ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Broadcasting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Megaphone className="w-3.5 h-3.5" />
+                    <span>Send Announcement</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </ModalShell>
+      )}
+
+      {/* Cancellation Modal */}
+      {showCancelModal && (
+        <ModalShell
+          onClose={() => setShowCancelModal(false)}
+          title="Cancel Event"
+          subtitle="This will mark the event as cancelled and notify all attendees"
+          badge={
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-[11px] font-medium text-rose-400">
+              <AlertTriangle className="w-3.5 h-3.5" />
+              <span>Critical Action</span>
+            </div>
+          }
+          maxWidth="md"
+        >
+          <div className="space-y-4 pt-1">
+            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs leading-relaxed">
+              Cancellation is permanent. All registered participants will receive an official cancellation email notification explaining the reason.
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-zinc-300">Cancellation Reason</label>
+              <textarea
+                value={cancellationReason}
+                onChange={(e) => setCancellationReason(e.target.value)}
+                placeholder="Explain why this event is being cancelled (included in the notification email)..."
+                rows={3}
+                className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-3 text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-rose-500 transition-all resize-none"
+              />
+            </div>
+
+            <div className="pt-2 flex items-center justify-end gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => setShowCancelModal(false)}
+                className="text-xs font-semibold text-zinc-400 hover:text-white"
+              >
+                Abort
+              </Button>
+              <Button
+                onClick={handleCancelEvent}
+                disabled={cancellingEvent}
+                className="bg-rose-600 hover:bg-rose-500 text-xs font-bold uppercase tracking-wider rounded-xl gap-2 text-white"
+              >
+                {cancellingEvent ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Cancelling...</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>Confirm Event Cancellation</span>
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         </ModalShell>

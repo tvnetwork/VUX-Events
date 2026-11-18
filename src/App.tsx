@@ -26,6 +26,8 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(m => ({ 
 const Developer = lazy(() => import('./pages/Developer').then(m => ({ default: m.Developer })));
 const Waitlists = lazy(() => import('./pages/Waitlists').then(m => ({ default: m.Waitlists })));
 const PublicWaitlist = lazy(() => import('./pages/PublicWaitlist').then(m => ({ default: m.PublicWaitlist })));
+const PublicEvent = lazy(() => import('./pages/PublicEvent').then(m => ({ default: m.PublicEvent })));
+const TicketWallet = lazy(() => import('./pages/TicketWallet').then(m => ({ default: m.TicketWallet })));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const ComingSoon = lazy(() => import('./pages/ComingSoon'));
 const EventDetails = lazy(() => import('./components/EventDetails').then(m => ({ default: m.EventDetails })));
@@ -100,6 +102,8 @@ function AppContent() {
             <Route index element={<DashboardWrapper />} />
             <Route path="discover" element={<DiscoverWrapperInsideRoot />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="tickets" element={<TicketWallet />} />
+            <Route path="wallet" element={<TicketWallet />} />
             <Route path="waitlists" element={<Waitlists />} />
             <Route path="settings" element={<Settings />} />
             <Route path="developer" element={<Developer />} />
@@ -109,6 +113,12 @@ function AppContent() {
           </>
         )}
       </Route>
+
+      {/* Direct Public Event Links (Accessible Without Auth) */}
+      <Route path="/events/:id" element={<Suspense fallback={<LoadingFallback />}><PublicEvent /></Suspense>} />
+      <Route path="/e/:id" element={<Suspense fallback={<LoadingFallback />}><PublicEvent /></Suspense>} />
+      <Route path="/tickets" element={<Suspense fallback={<LoadingFallback />}><TicketWallet /></Suspense>} />
+      <Route path="/wallet" element={<Suspense fallback={<LoadingFallback />}><TicketWallet /></Suspense>} />
 
       {!user && (
          <Route path="/discover" element={<DiscoverWrapper />} />

@@ -8,12 +8,20 @@ interface TimeLeft {
   seconds: number;
 }
 
-export function Countdown({ targetDate, className = "", compact = false }: { targetDate: string; className?: string; compact?: boolean }) {
+export function Countdown({ targetDate, targetTime, className = "", compact = false }: { targetDate: string; targetTime?: string; className?: string; compact?: boolean }) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
 
   useEffect(() => {
     const calculateTimeLeft = () => {
-      const difference = +new Date(targetDate) - +new Date();
+      // Form combined timestamp if targetTime is present
+      let target: Date;
+      if (targetTime && targetTime.includes(':')) {
+        target = new Date(`${targetDate}T${targetTime.trim()}:00`);
+      } else {
+        target = new Date(targetDate);
+      }
+
+      const difference = +target - +new Date();
       let timeLeft: TimeLeft | null = null;
 
       if (difference > 0) {
@@ -32,7 +40,7 @@ export function Countdown({ targetDate, className = "", compact = false }: { tar
     calculateTimeLeft();
 
     return () => clearInterval(timer);
-  }, [targetDate]);
+  }, [targetDate, targetTime]);
 
   if (!timeLeft) return null;
 

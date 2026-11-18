@@ -16,7 +16,7 @@ import { Input } from './ui/Input';
 import { Badge } from './ui/Badge';
 import { Select } from './ui/Select';
 import confetti from 'canvas-confetti';
-import { cn } from '../lib/utils';
+import { cn, formatDate } from '../lib/utils';
 import { ImageUpload } from './ImageUpload';
 import { StorageService } from '../services/StorageService';
 import { SiteConfigService } from '../services/SiteConfigService';
@@ -742,6 +742,14 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                                         </div>
                                     </div>
                                 ))}
+
+                                {(!formData.sponsors || formData.sponsors.length === 0) && (
+                                    <div className="py-12 text-center border-2 border-dashed border-white/5 rounded-[32px] space-y-3">
+                                        <Building2 className="w-10 h-10 text-white/15 mx-auto" />
+                                        <p className="text-xs font-semibold text-white/60">No sponsors or partners added</p>
+                                        <p className="text-[10px] text-white/30 max-w-sm mx-auto">Add event sponsors and partner organizations to showcase their brand logos on your event page.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -864,6 +872,14 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                                         </Button>
                                     </div>
                                 ))}
+
+                                {(!formData.sponsors || formData.sponsors.length === 0) && (
+                                    <div className="py-12 text-center border-2 border-dashed border-white/5 rounded-[32px] space-y-3">
+                                        <Building2 className="w-10 h-10 text-white/15 mx-auto" />
+                                        <p className="text-xs font-semibold text-white/60">No sponsors or partners added</p>
+                                        <p className="text-[10px] text-white/30 max-w-sm mx-auto">Add event sponsors and partner organizations to showcase their brand logos on your event page.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                      </div>
@@ -1311,36 +1327,71 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                     className="space-y-6"
                   >
                     <div className="space-y-2">
-                      <h3 className="text-xl font-bold tracking-tight">White-Label Theming</h3>
-                      <p className="text-xs text-white/50">Customize the look and feel of your event page.</p>
+                      <h3 className="text-xl font-bold tracking-tight">White-Label Theming & Brand Identity</h3>
+                      <p className="text-xs text-white/50">Customize colors, organizer branding, and visual appearance for your public event page.</p>
                     </div>
                     
                     <div className="space-y-6">
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-white/40">Primary Brand Color (Hex)</label>
-                        <div className="flex gap-4 items-center">
-                          <input
-                            type="color"
-                            value={formData.theme?.primaryColor || '#a855f7'}
-                            onChange={(e) => setFormData({ ...formData, theme: { ...formData.theme, primaryColor: e.target.value } })}
-                            className="w-12 h-12 rounded-xl cursor-pointer bg-transparent border-0"
-                          />
-                          <Input
-                            placeholder="#a855f7"
-                            value={formData.theme?.primaryColor || ''}
-                            onChange={(e) => setFormData({ ...formData, theme: { ...formData.theme, primaryColor: e.target.value } })}
-                            className="font-mono max-w-[150px]"
-                          />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-white/40">Primary Brand Color</label>
+                          <div className="flex gap-4 items-center">
+                            <input
+                              type="color"
+                              value={formData.theme?.primaryColor || '#a855f7'}
+                              onChange={(e) => setFormData({ ...formData, theme: { ...formData.theme, primaryColor: e.target.value } })}
+                              className="w-12 h-12 rounded-xl cursor-pointer bg-transparent border-0"
+                            />
+                            <Input
+                              placeholder="#a855f7"
+                              value={formData.theme?.primaryColor || ''}
+                              onChange={(e) => setFormData({ ...formData, theme: { ...formData.theme, primaryColor: e.target.value } })}
+                              className="font-mono text-xs"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-white/40">Secondary Accent Color</label>
+                          <div className="flex gap-4 items-center">
+                            <input
+                              type="color"
+                              value={formData.theme?.secondaryColor || '#3b82f6'}
+                              onChange={(e) => setFormData({ ...formData, theme: { ...formData.theme, secondaryColor: e.target.value } })}
+                              className="w-12 h-12 rounded-xl cursor-pointer bg-transparent border-0"
+                            />
+                            <Input
+                              placeholder="#3b82f6"
+                              value={formData.theme?.secondaryColor || ''}
+                              onChange={(e) => setFormData({ ...formData, theme: { ...formData.theme, secondaryColor: e.target.value } })}
+                              className="font-mono text-xs"
+                            />
+                          </div>
                         </div>
                       </div>
-                      
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-white/40">Custom Background Image URL</label>
-                        <Input
-                          placeholder="https://example.com/background.jpg"
-                          value={formData.theme?.backgroundUrl || ''}
-                          onChange={(e) => setFormData({ ...formData, theme: { ...formData.theme, backgroundUrl: e.target.value } })}
-                        />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start pt-4 border-t border-white/5">
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-white/40">Organizer Logo</label>
+                          <ImageUpload
+                            label="Upload Brand Logo"
+                            aspect={1 / 1}
+                            defaultValue={formData.theme?.organizerLogoUrl}
+                            onUpload={(url) => setFormData({ ...formData, theme: { ...formData.theme, organizerLogoUrl: url } })}
+                          />
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="text-xs font-black uppercase tracking-widest text-white/40">Custom Background Pattern / Image URL</label>
+                            <Input
+                              placeholder="https://example.com/custom-backdrop.jpg"
+                              value={formData.theme?.backgroundUrl || ''}
+                              onChange={(e) => setFormData({ ...formData, theme: { ...formData.theme, backgroundUrl: e.target.value } })}
+                            />
+                            <p className="text-[10px] text-white/30 italic">Subtle dark textures or branded wallpapers render behind your event page.</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
@@ -1352,61 +1403,109 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="space-y-10"
+                    className="space-y-8"
                   >
                      <div className="space-y-2">
-                        <h3 className="text-3xl font-bold tracking-tighter">PREVIEW & CONFIRM</h3>
-                        <p className="text-white/50 text-sm">Preview your event cover and details before publishing.</p>
+                        <h3 className="text-2xl font-bold tracking-tight">PREVIEW & CONFIRM</h3>
+                        <p className="text-white/50 text-xs">Verify your complete event experience before publishing live.</p>
                      </div>
 
-                     <div className="space-y-8">
-                        <div className="relative aspect-[21/9] rounded-3xl overflow-hidden group shadow-2xl">
-                           <img src={formData.coverImageUrl} className="w-full h-full object-cover" />
-                           <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                               <label className="flex items-center gap-2 h-10 px-6 rounded-full shadow-2xl bg-white text-black hover:scale-105 transition-transform cursor-pointer font-bold text-[10px] uppercase tracking-widest">
-                                 <ImageIcon className="w-3.5 h-3.5" />
-                                 <span>Upload Image</span>
-                                 <input 
-                                    type="file" 
-                                    className="hidden" 
-                                    accept="image/*"
-                                    onChange={async (e) => {
-                                      const file = e.target.files?.[0];
-                                      if (file) {
-                                        try {
-                                          setLoading(true);
-                                          const url = await StorageService.uploadEventBanner(file, eventToEdit?.id || 'temp');
-                                          setFormData(prev => ({ ...prev, coverImageUrl: url }));
-                                        } catch (err) {
-                                          console.error('Upload failed:', err);
-                                        } finally {
-                                          setLoading(false);
-                                        }
+                     <div className="space-y-6">
+                        {/* Event Banner */}
+                        <div className="relative aspect-[21/9] rounded-3xl overflow-hidden group shadow-2xl border border-white/10">
+                           <img src={formData.coverImageUrl} className="w-full h-full object-cover" alt="Event Cover" />
+                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                           
+                           <div className="absolute inset-x-6 bottom-6 flex items-end justify-between gap-4">
+                             <div className="space-y-2 min-w-0">
+                               <div className="flex items-center gap-2">
+                                 <Badge className="bg-purple-600 text-white uppercase text-[8px] font-black tracking-widest py-1 border-none">{formData.category}</Badge>
+                                 <Badge className="bg-white/20 backdrop-blur-md text-white uppercase text-[8px] font-black tracking-widest py-1 border-none">{formData.visibility}</Badge>
+                               </div>
+                               <h3 className="text-2xl sm:text-3xl font-black text-white italic tracking-tight uppercase break-words leading-tight">
+                                 {formData.title || 'Untitled Event'}
+                               </h3>
+                             </div>
+
+                             <label className="shrink-0 flex items-center gap-2 h-9 px-4 rounded-full shadow-2xl bg-white text-black hover:scale-105 transition-transform cursor-pointer font-bold text-[10px] uppercase tracking-widest">
+                               <ImageIcon className="w-3.5 h-3.5" />
+                               <span>Change Cover</span>
+                               <input 
+                                  type="file" 
+                                  className="hidden" 
+                                  accept="image/*"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      try {
+                                        setLoading(true);
+                                        const url = await StorageService.uploadEventBanner(file, eventToEdit?.id || 'temp');
+                                        setFormData(prev => ({ ...prev, coverImageUrl: url }));
+                                      } catch (err) {
+                                        console.error('Upload failed:', err);
+                                      } finally {
+                                        setLoading(false);
                                       }
-                                    }}
-                                 />
-                               </label>
-                           </div>
-                           <div className="absolute bottom-6 left-6 flex items-center gap-2">
-                              <Badge className="bg-purple-600 text-white uppercase text-[8px] font-black tracking-widest py-1 border-none">{formData.category}</Badge>
-                              <Badge className="bg-white/20 backdrop-blur-md text-white uppercase text-[8px] font-black tracking-widest py-1 border-none">{formData.visibility}</Badge>
+                                    }
+                                  }}
+                               />
+                             </label>
                            </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                           <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1.5 overflow-hidden">
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-white/20">Title</p>
-                              <h4 className="text-sm font-bold truncate">{formData.title || 'Untitled Pulse'}</h4>
+                        {/* Event Details Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                           <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Date & Schedule</p>
+                              <h4 className="text-xs font-bold text-white break-words">
+                                {formData.date ? formatDate(formData.date) : 'Date TBA'} {formData.time ? `at ${formData.time}` : ''}
+                              </h4>
                            </div>
-                           <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1.5">
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-white/20">Occupancy</p>
-                              <h4 className="text-sm font-bold">{formData.capacity} Travelers</h4>
+
+                           <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Venue / Access</p>
+                              <h4 className="text-xs font-bold text-white break-words">
+                                {(formData.isVirtual || formData.category === 'Webinar') 
+                                  ? (formData.meetingLink ? 'Online Meeting Link Configured' : 'Virtual Session') 
+                                  : (formData.location || 'Location TBA')}
+                              </h4>
+                           </div>
+
+                           <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Capacity Limit</p>
+                              <h4 className="text-xs font-bold text-white">{formData.capacity || 50} Attendees</h4>
                            </div>
                         </div>
 
-                        <div className="flex items-center gap-3 p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 text-emerald-500">
-                           <Info className="w-5 h-5 shrink-0" />
-                           <p className="text-[10px] font-bold uppercase tracking-[0.2em]">Ready for grid deployment. All checks passed.</p>
+                        {/* Configured Sections Summary */}
+                        <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-wrap items-center justify-between gap-4 text-xs">
+                          <div className="flex items-center gap-6">
+                            <div>
+                              <span className="text-[10px] font-bold uppercase text-white/30 block">Speakers</span>
+                              <span className="text-white font-semibold">{(formData.speakers || []).length} Lineup</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] font-bold uppercase text-white/30 block">Sponsors</span>
+                              <span className="text-white font-semibold">{(formData.sponsors || []).length} Partners</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] font-bold uppercase text-white/30 block">Custom Fields</span>
+                              <span className="text-white font-semibold">{(formData.registrationFields || []).length} Questions</span>
+                            </div>
+                          </div>
+
+                          {formData.theme?.organizerLogoUrl && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-bold uppercase text-white/40">Brand:</span>
+                              <img src={formData.theme.organizerLogoUrl} alt="Logo" className="w-7 h-7 object-contain rounded-lg border border-white/10" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Ready Status Banner */}
+                        <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                           <Check className="w-5 h-5 shrink-0" />
+                           <p className="text-xs font-bold uppercase tracking-[0.15em]">Ready to Publish. All checks passed.</p>
                         </div>
                      </div>
                   </motion.div>

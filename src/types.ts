@@ -145,6 +145,7 @@ export interface Event {
   hostId: string;
   coHostIds?: string[];
   hostName?: string;
+  hostEmail?: string;
   title: string;
   description: string;
   date: string;
@@ -159,10 +160,12 @@ export interface Event {
   password?: string;
   coverImageUrl: string;
   status: 'draft' | 'published' | 'completed' | 'cancelled';
+  cancellationReason?: string;
+  cancelledAt?: string;
   isApprovalRequired: boolean;
   isPrivate?: boolean;
   hideParticipants?: boolean;
-  registrationFields?: { label: string; type: 'text' | 'email' | 'longtext' | 'select' | 'multichoice' | 'checkbox' | 'phone'; required: boolean; options?: string[] }[];
+  registrationFields?: { label: string; type: 'text' | 'email' | 'longtext' | 'select' | 'multichoice' | 'checkbox' | 'phone'; required: boolean; options?: string[]; placeholder?: string; }[];
   capacity?: number;
   ticketTypes?: TicketType[];
   tags?: string[];
@@ -174,7 +177,9 @@ export interface Event {
   collectionId?: string;
   theme?: {
     primaryColor?: string;
+    secondaryColor?: string;
     backgroundUrl?: string;
+    organizerLogoUrl?: string;
   };
   createdAt: string;
   updatedAt: string;
@@ -188,12 +193,20 @@ export interface RSVP {
   userEmail: string;
   userDisplayName: string;
   userPhotoURL?: string;
-  status: 'pending' | 'approved' | 'declined' | 'waitlist';
-  customFields?: Record<string, string>;
+  status: 'pending' | 'approved' | 'declined' | 'waitlist' | 'revoked';
+  customFields?: Record<string, any>;
   checkedIn?: boolean;
+  checkedInAt?: string;
+  checkedInBy?: string;
+  checkedInByName?: string;
+  ticketCode?: string;
   ticketType?: string;
   shareProfile?: boolean;
+  revokedAt?: string;
+  revokedBy?: string;
+  revocationReason?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface FirestoreErrorInfo {

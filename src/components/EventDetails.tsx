@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Helmet } from 'react-helmet-async';
-import { X, Calendar, MapPin, Users, CheckCircle2, Loader2, ChevronLeft, Share2, Heart, Clock, Ticket, Copy, QrCode, Globe, Info, Zap, ArrowRight, ShieldCheck, Share, Ghost, Sparkles, Trophy, Download, Mic, Video } from 'lucide-react';
+import { X, Calendar, MapPin, Users, CheckCircle2, Loader2, ChevronLeft, Share2, Heart, Clock, Ticket, Copy, QrCode, Globe, Info, Zap, ArrowRight, ShieldCheck, Share, Ghost, Sparkles, Trophy, Download, Mic, Video, ExternalLink } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import toast from 'react-hot-toast';
@@ -25,6 +25,7 @@ import { Card } from './ui/Card';
 import { Select } from './ui/Select';
 import { ModalShell } from './ui/ModalShell';
 import { AddToCalendar } from './AddToCalendar';
+import { TicketPass } from './TicketPass';
 import { PulseService } from '../services/PulseService';
 import confetti from 'canvas-confetti';
 
@@ -35,6 +36,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
   const [rsvpError, setRsvpError] = useState<string | null>(null);
   const [userRSVP, setUserRSVP] = useState<RSVP | null>(null);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showTicketModal, setShowTicketModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showGuestForm, setShowGuestForm] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
@@ -245,40 +247,34 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
   const [shareProfile, setShareProfile] = useState(true);
 
   const handleExportPDF = async () => {
-    const element = document.getElementById('ticket-preview');
-    if (!element) return;
-    
-    try {
-      const canvas = await html2canvas(element, {
-        backgroundColor: '#0b0b0f',
-        scale: 2
-      });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Ticket-${event.title}.pdf`);
-      toast.success('Ticket exported successfully');
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to export ticket');
-    }
+    setShowTicketModal(true);
   };
 
   const handleRSVP = async (isGuest = false) => {
     if (!event) return;
-    
-    // If event is full, user will be placed on the waitlist automatically
+
+    // Validate required custom fields
+    if (event.registrationFields && event.registrationFields.length > 0) {
+      for (const field of event.registrationFields) {
+        if (field.required) {
+          const val = customFields[field.label];
+          if (!val || (typeof val === 'string' && !val.trim())) {
+            setRsvpError(`Please provide a response for "${field.label}"`);
+            return;
+          }
+        }
+      }
+    }
 
     setIsRSVPLoading(true);
     setRsvpError(null);
     try {
-      const emailToRegister = (isGuest ? guestInfo.email : user!.email || '').toLowerCase();
+      const emailToRegister = (isGuest ? guestInfo.email : user!.email || '').toLowerCase().trim();
       
       // Check if already registered
-      const isAlreadyRegistered = rsvps.some(r => r.userEmail.toLowerCase() === emailToRegister);
+      const isAlreadyRegistered = rsvps.some(
+        r => r.userEmail.toLowerCase() === emailToRegister && r.status !== 'declined' && r.status !== 'revoked'
+      );
       if (isAlreadyRegistered) {
         setRsvpError('This email is already registered for this event.');
         setIsRSVPLoading(false);
@@ -287,7 +283,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
 
       // Use email as a deterministic ID to prevent duplicates at the DB level
       const rsvpId = emailToRegister.replace(/[^a-zA-Z0-9@.]/g, '_');
-      
+      const ticketCode = `VUX-TKT-${rsvpId.substring(0, 8).toUpperCase()}`;
       const rsvpStatus = isFull ? 'waitlist' : (event.isApprovalRequired ? 'pending' : 'approved');
 
       const rsvpData: RSVP = {
@@ -298,22 +294,56 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
         userDisplayName: isGuest ? guestInfo.name : profile!.displayName,
         userPhotoURL: isGuest ? getAvatarUrl(guestInfo.email) : profile!.photoURL,
         status: rsvpStatus,
+        ticketCode,
         customFields: { ...customFields },
         shareProfile,
+        checkedIn: false,
         createdAt: new Date().toISOString(),
       };
-      
-      await setDoc(doc(db, 'events', event.id, 'rsvps', rsvpId), {
-        ...rsvpData,
-        createdAt: serverTimestamp()
-      });
+
+      // Attempt server-side transactional registration
+      try {
+        const resp = await fetch(`/api/events/${event.id}/rsvp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: emailToRegister,
+            displayName: rsvpData.userDisplayName,
+            photoURL: rsvpData.userPhotoURL,
+            customFields,
+            shareProfile,
+            userId: rsvpData.userId,
+          }),
+        });
+
+        if (!resp.ok) {
+          if (resp.status === 409) {
+            setRsvpError('This email is already registered for this event.');
+            setIsRSVPLoading(false);
+            return;
+          }
+          // Fallback to direct client Firestore write
+          await setDoc(doc(db, 'events', event.id, 'rsvps', rsvpId), {
+            ...rsvpData,
+            createdAt: serverTimestamp(),
+          });
+        }
+      } catch {
+        // Fallback to direct client Firestore write
+        await setDoc(doc(db, 'events', event.id, 'rsvps', rsvpId), {
+          ...rsvpData,
+          createdAt: serverTimestamp(),
+        });
+      }
 
       if (isGuest) {
         localStorage.setItem(`guest_rsvp_${event.id}`, guestInfo.email);
         setShowGuestForm(false);
       }
 
-      // Send RSVP confirmation email
+      setUserRSVP(rsvpData);
+
+      // Send RSVP confirmation email with ticketCode & organizer notification
       fetch('/api/email/rsvp-confirmation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -327,7 +357,9 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
           rawDate: event.date,
           rawTime: event.time,
           rsvpId: rsvpData.id,
-          eventId: event.id
+          ticketCode: rsvpData.ticketCode,
+          eventId: event.id,
+          organizerEmail: event.hostEmail || undefined,
         }),
       }).catch(e => console.error('Failed to send RSVP email:', e));
 
@@ -339,8 +371,16 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
         origin: { y: 0.6 },
         colors: ['#a855f7', '#ec4899', '#3b82f6', '#ffffff']
       });
-    } catch (e) {
+
+      if (rsvpStatus === 'approved') {
+        toast.success('Registration confirmed! Official pass generated.');
+        setShowTicketModal(true);
+      } else {
+        toast.success('You have been added to the event waitlist.');
+      }
+    } catch (e: any) {
       console.error(e);
+      setRsvpError(e?.message || 'Failed to complete registration');
     } finally {
       setIsRSVPLoading(false);
     }
@@ -644,7 +684,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
 
               {event.registrationFields && event.registrationFields.length > 0 && (
                 <div className="space-y-3 pt-3 border-t border-white/[0.08]">
-                  <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Additional Information</p>
+                  <p className="text-xs font-semibold text-purple-400 uppercase tracking-wider">Registration Details</p>
                   <div className="space-y-3">
                     {event.registrationFields.map((field, idx) => (
                       <div key={idx} className="space-y-1">
@@ -657,8 +697,8 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                             required={field.required}
                             value={customFields[field.label] || ''}
                             onChange={(e) => setCustomFields(prev => ({ ...prev, [field.label]: e.target.value }))}
-                            className="w-full h-24 bg-white/[0.03] border border-white/10 rounded-xl p-3 text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-blue-500/70 transition-all resize-none"
-                            placeholder={`Enter ${field.label.toLowerCase()}...`}
+                            className="w-full h-24 bg-white/[0.03] border border-white/10 rounded-xl p-3 text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-purple-500/70 transition-all resize-none"
+                            placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}...`}
                           />
                         ) : field.type === 'select' ? (
                           <Select 
@@ -668,19 +708,45 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                             placeholder="Select an option"
                             className="h-11"
                           />
+                        ) : field.type === 'multichoice' ? (
+                          <div className="space-y-1.5 pt-1">
+                            {(field.options || []).map((opt, oIdx) => {
+                              const rawVal = customFields[field.label];
+                              const currentSelected: string[] = Array.isArray(rawVal) 
+                                ? rawVal 
+                                : (rawVal ? String(rawVal).split(', ') : []);
+                              const isChecked = currentSelected.includes(opt);
+                              return (
+                                <label key={oIdx} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] cursor-pointer transition-all">
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={(e) => {
+                                      const updated = e.target.checked
+                                        ? [...currentSelected, opt]
+                                        : currentSelected.filter(item => item !== opt);
+                                      setCustomFields(prev => ({ ...prev, [field.label]: updated.join(', ') }));
+                                    }}
+                                    className="rounded border-white/20 text-purple-600 focus:ring-purple-500 bg-white/5"
+                                  />
+                                  <span className="text-xs text-zinc-300">{opt}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
                         ) : field.type === 'checkbox' ? (
                           <button
                             type="button"
                             onClick={() => setCustomFields(prev => ({ ...prev, [field.label]: prev[field.label] === 'true' ? 'false' : 'true' }))}
                             className={cn(
                               "w-full h-11 rounded-xl border px-4 flex items-center justify-between transition-all",
-                              customFields[field.label] === 'true' ? "bg-blue-500/10 border-blue-500/40 text-blue-300" : "bg-white/[0.02] border-white/10 text-zinc-400 hover:text-white"
+                              customFields[field.label] === 'true' ? "bg-purple-500/10 border-purple-500/40 text-purple-300" : "bg-white/[0.02] border-white/10 text-zinc-400 hover:text-white"
                             )}
                           >
                             <span className="text-xs font-medium">{field.label}</span>
                             <div className={cn(
                               "w-5 h-5 rounded-md border flex items-center justify-center transition-all",
-                              customFields[field.label] === 'true' ? "bg-blue-600 border-blue-600 text-white" : "border-white/20"
+                              customFields[field.label] === 'true' ? "bg-purple-600 border-purple-600 text-white" : "border-white/20"
                             )}>
                               {customFields[field.label] === 'true' && <CheckCircle2 className="w-3.5 h-3.5" />}
                             </div>
@@ -688,11 +754,11 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                         ) : (
                           <input
                             required={field.required}
-                            type={field.type === 'phone' ? 'tel' : field.type}
+                            type={field.type === 'phone' ? 'tel' : field.type === 'email' ? 'email' : 'text'}
                             value={customFields[field.label] || ''}
                             onChange={(e) => setCustomFields(prev => ({ ...prev, [field.label]: e.target.value }))}
-                            className="w-full h-11 bg-white/[0.03] border border-white/10 rounded-xl px-3.5 text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-blue-500/70 transition-all"
-                            placeholder={`Enter your ${field.label.toLowerCase()}`}
+                            className="w-full h-11 bg-white/[0.03] border border-white/10 rounded-xl px-3.5 text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-purple-500/70 transition-all"
+                            placeholder={field.placeholder || `Enter your ${field.label.toLowerCase()}`}
                           />
                         )}
                       </div>
@@ -701,11 +767,34 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                 </div>
               )}
 
+              {/* Networking Directory Opt-In & Privacy Notice */}
+              <div className="pt-2 space-y-3 border-t border-white/[0.06]">
+                <label className="flex items-start gap-2.5 p-3 rounded-xl bg-white/[0.02] border border-white/5 cursor-pointer hover:bg-white/[0.04] transition-all">
+                  <input
+                    type="checkbox"
+                    checked={shareProfile}
+                    onChange={(e) => setShareProfile(e.target.checked)}
+                    className="mt-0.5 rounded border-white/20 text-purple-600 focus:ring-purple-500 bg-white/5"
+                  />
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-semibold text-white block">Networking Directory (Optional)</span>
+                    <span className="text-[11px] text-zinc-400 block">Allow other confirmed attendees to view your name and connect during the event.</span>
+                  </div>
+                </label>
+
+                <p className="text-[11px] text-zinc-500 leading-relaxed text-center">
+                  By registering, your information is used solely to issue your digital ticket and deliver event updates per our{' '}
+                  <a href="/privacy" target="_blank" rel="noreferrer" className="text-purple-400 underline hover:text-purple-300">Privacy Policy</a>{' '}
+                  and{' '}
+                  <a href="/terms" target="_blank" rel="noreferrer" className="text-purple-400 underline hover:text-purple-300">Terms</a>.
+                </p>
+              </div>
+
               <Button 
                 type="submit"
                 disabled={isRSVPLoading}
                 variant="kontyra"
-                className="w-full h-12 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-blue-900/20 active:scale-[0.98] transition-all"
+                className="w-full h-12 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-purple-900/30 active:scale-[0.98] transition-all bg-purple-600 hover:bg-purple-500"
               >
                 {isRSVPLoading ? (
                   <div className="flex items-center gap-2">
@@ -754,7 +843,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                         </div>
                         <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.8] uppercase text-white">{event.title}</h1>
                         <div className="pt-8">
-                            <Countdown targetDate={event.date} />
+                            <Countdown targetDate={event.date} targetTime={event.time} />
                         </div>
                     </div>
                 </div>
@@ -1113,19 +1202,26 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                                 <div className="w-14 h-14 rounded-3xl bg-white/[0.03] border border-white/10 flex items-center justify-center shrink-0 shadow-inner group-hover:border-pink-500/20 transition-all duration-700">
                                     {(event.isVirtual || event.category === 'Webinar') ? <Video className="w-6 h-6 text-pink-500" /> : <MapPin className="w-6 h-6 text-pink-500" />}
                                 </div>
-                                <div className="space-y-1">
+                                <div className="space-y-1 min-w-0">
                                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60 leading-none">{(event.isVirtual || event.category === 'Webinar') ? 'Virtual' : 'Venue'}</p>
-                                    <p className="text-lg font-black italic tracking-tighter uppercase text-white truncate max-w-[200px]">
-                                      {(event.isVirtual || event.category === 'Webinar') ? 'Online Meeting' : event.location}
+                                    <p className="text-lg font-black italic tracking-tighter uppercase text-white break-words">
+                                      {(event.isVirtual || event.category === 'Webinar') ? 'Online Virtual Meeting' : event.location}
                                     </p>
-                                    <div className="flex items-center gap-1.5 text-[10px] font-black text-blue-400 italic tracking-widest">
+                                    {!(event.isVirtual || event.category === 'Webinar') && event.location && (
+                                      <a
+                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-1.5 text-[10px] font-black text-purple-400 hover:text-purple-300 italic tracking-widest pt-1"
+                                      >
                                         <Globe className="w-3 h-3" />
-                                        <span>GLOBAL ACCESS</span>
-                                    </div>
+                                        <span>OPEN MAPS ↗</span>
+                                      </a>
+                                    )}
                                     {(event.isVirtual || event.category === 'Webinar') && event.meetingLink && userRSVP?.status === 'approved' && (
                                         <Button 
                                             onClick={() => window.open(event.meetingLink, '_blank')}
-                                            className="h-8 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-500 mt-2 shadow-lg shadow-blue-500/20"
+                                            className="h-8 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest bg-purple-600 hover:bg-purple-500 mt-2 shadow-lg shadow-purple-500/20"
                                         >
                                             JOIN MEETING
                                         </Button>
@@ -1155,68 +1251,69 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                     <div className="pt-6">
                         {userRSVP ? (
                             <div className={cn(
-                                "p-10 rounded-[40px] border flex flex-col items-center gap-6 text-center relative overflow-hidden transition-all duration-700",
-                                userRSVP.status === 'approved' ? "bg-emerald-500/5 border-emerald-500/10" : 
-                                userRSVP.status === 'waitlist' ? "bg-blue-500/5 border-blue-500/10" :
-                                userRSVP.status === 'pending' ? "bg-amber-500/5 border-amber-500/10" : 
-                                "bg-red-500/5 border-red-500/10"
+                                "p-8 rounded-[36px] border flex flex-col items-center gap-5 text-center relative overflow-hidden transition-all duration-700",
+                                userRSVP.status === 'approved' ? "bg-emerald-500/5 border-emerald-500/20" : 
+                                userRSVP.status === 'waitlist' ? "bg-blue-500/5 border-blue-500/20" :
+                                userRSVP.status === 'pending' ? "bg-amber-500/5 border-amber-500/20" : 
+                                "bg-red-500/5 border-red-500/20"
                             )}>
-                                <div id="ticket-preview" className={cn(
-                                    "w-20 h-20 rounded-[2.5rem] flex items-center justify-center shrink-0 border-2",
-                                    userRSVP.status === 'approved' ? "bg-emerald-500 border-white/10 shadow-2xl shadow-emerald-500/20" : 
-                                    userRSVP.status === 'waitlist' ? "bg-blue-500 border-white/10 shadow-2xl shadow-blue-500/20" :
-                                    "bg-white/5 border-white/5"
-                                )}>
-                                     {userRSVP.status === 'approved' ? <CheckCircle2 className="w-10 h-10 text-white" /> : 
-                                      userRSVP.status === 'waitlist' ? <Clock className="w-10 h-10 text-white" /> :
-                                      <Clock className="w-10 h-10 text-white/20" />}
+                                <div className="w-16 h-16 rounded-[2rem] flex items-center justify-center shrink-0 border-2 bg-purple-600/20 border-purple-500/30 shadow-xl shadow-purple-500/10">
+                                     {userRSVP.status === 'approved' ? <CheckCircle2 className="w-8 h-8 text-emerald-400" /> : 
+                                      userRSVP.status === 'waitlist' ? <Clock className="w-8 h-8 text-blue-400" /> :
+                                      <Clock className="w-8 h-8 text-amber-400" />}
                                 </div>
-                                <div className="space-y-2">
-                                    <p className="text-2xl font-black italic uppercase tracking-tighter text-white">
-                                        {userRSVP.status === 'approved' ? "CONFIRMED" : 
-                                         userRSVP.status === 'waitlist' ? "WAITLISTED" : "PENDING APPROVAL"}
+                                <div className="space-y-1">
+                                    <p className="text-xl font-black italic uppercase tracking-tighter text-white">
+                                        {userRSVP.status === 'approved' ? "ADMISSION PASS SECURED" : 
+                                         userRSVP.status === 'waitlist' ? "ON EVENT WAITLIST" : "PENDING APPROVAL"}
                                     </p>
-                                    <p className="text-[10px] font-black uppercase text-white/60 tracking-widest">
-                                        {userRSVP.status === 'approved' ? "You are going to this event." : 
-                                         userRSVP.status === 'waitlist' ? "The event is currently full. We'll notify you if a spot opens up." :
-                                         "Wait for host approval."}
+                                    <p className="text-xs font-mono font-bold text-purple-400 tracking-wider">
+                                        {userRSVP.ticketCode || `VUX-TKT-${(userRSVP.id || '').substring(0, 8).toUpperCase()}`}
+                                    </p>
+                                    <p className="text-[11px] font-medium text-white/60 leading-relaxed">
+                                        {userRSVP.status === 'approved' ? "Your cryptographically verified digital admission pass is ready." : 
+                                         userRSVP.status === 'waitlist' ? "The event is currently full. We'll automatically notify and promote you if a spot opens up." :
+                                         "Your registration is awaiting organizer review."}
                                     </p>
                                 </div>
+
                                 {userRSVP.status === 'approved' && (
                                   <Button 
-                                    variant="outline" 
-                                    onClick={handleExportPDF}
-                                    className="w-full rounded-2xl border-white/5 py-4 text-[10px] font-black uppercase tracking-widest gap-3 hover:bg-white/5"
+                                    variant="primary" 
+                                    onClick={() => setShowTicketModal(true)}
+                                    className="w-full rounded-2xl py-4 text-xs font-black uppercase tracking-widest gap-2 bg-purple-600 hover:bg-purple-500 shadow-xl shadow-purple-900/30"
                                   >
-                                    <Download className="w-4 h-4" />
-                                    Download PDF Ticket
+                                    <Ticket className="w-4 h-4" />
+                                    View & Download Ticket Pass
                                   </Button>
                                 )}
+
                                 {userRSVP.customFields && Object.keys(userRSVP.customFields).length > 0 && (
-                                  <div className="w-full space-y-4 pt-6 border-t border-white/5 text-left">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/60">Your Registration Info</p>
-                                    <div className="space-y-3">
+                                  <div className="w-full space-y-3 pt-4 border-t border-white/5 text-left">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/50">Submitted Information</p>
+                                    <div className="space-y-2">
                                       {Object.entries(userRSVP.customFields).map(([label, value]) => (
-                                        <div key={label} className="space-y-1">
-                                          <p className="text-[8px] font-black uppercase text-white/40 tracking-wider">{label}</p>
-                                          <p className="text-xs text-white/80 font-medium break-words">{value}</p>
+                                        <div key={label} className="space-y-0.5">
+                                          <p className="text-[9px] font-mono uppercase text-white/40">{label}</p>
+                                          <p className="text-xs text-white/80 font-medium break-words">{String(value)}</p>
                                         </div>
                                       ))}
                                     </div>
                                   </div>
                                 )}
+
                                 {userRSVP.status === 'approved' && (
-                                    <AddToCalendar event={event} className="w-full pt-8 border-t border-white/5" />
+                                    <AddToCalendar event={event} className="w-full pt-6 border-t border-white/5" />
                                 )}
                                 
                                 <Button 
                                   variant="ghost" 
                                   onClick={handleCancelRSVP}
                                   disabled={isRSVPLoading}
-                                  className="mt-4 text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-red-400 transition-colors gap-2"
+                                  className="mt-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-red-400 transition-colors gap-2"
                                 >
                                   {isRSVPLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />}
-                                  CANCEL RSVP
+                                  Cancel Registration
                                 </Button>
                             </div>
                         ) : (
@@ -1359,6 +1456,26 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
           </div>
         </div>
       </div>
+
+      {/* Ticket Pass Modal */}
+      <AnimatePresence>
+        {showTicketModal && userRSVP && (
+          <ModalShell
+            onClose={() => setShowTicketModal(false)}
+            badge={
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-[11px] font-medium text-purple-400">
+                <Ticket className="w-3.5 h-3.5" />
+                <span>Verified Ticket Pass</span>
+              </div>
+            }
+            title="Digital Admission Pass"
+            subtitle="Present this digital ticket or save the PDF for fast check-in"
+            maxWidth="xl"
+          >
+            <TicketPass event={event} rsvp={userRSVP} onClose={() => setShowTicketModal(false)} />
+          </ModalShell>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

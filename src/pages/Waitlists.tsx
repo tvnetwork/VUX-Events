@@ -33,7 +33,7 @@ export function Waitlists() {
   const { user } = useAuth();
   const [waitlists, setWaitlists] = useState<Waitlist[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterType, setFilterType] = useState<'all' | 'event' | 'feature'>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'closed'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -128,7 +128,8 @@ export function Waitlists() {
 
   // Filtered waitlists
   const filteredWaitlists = waitlists.filter(w => {
-    if (filterType !== 'all' && w.type !== filterType) return false;
+    if (filterStatus === 'active' && w.status !== 'active') return false;
+    if (filterStatus === 'closed' && w.status === 'active') return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       return w.title.toLowerCase().includes(q) || w.slug.toLowerCase().includes(q) || (w.description || '').toLowerCase().includes(q);
@@ -145,14 +146,14 @@ export function Waitlists() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/[0.08]">
         <div className="space-y-3">
           <div className="flex items-center gap-3 text-purple-400">
-            <Users className="w-5 h-5" />
-            <span className="text-xs font-black uppercase tracking-[0.25em]">Audience & Early Access</span>
+            <Sparkles className="w-5 h-5" />
+            <span className="text-xs font-black uppercase tracking-[0.25em]">App & Feature Beta Queues</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-black italic tracking-tighter text-white uppercase leading-none">
-            Waitlists & Signups
+            Feature Waitlists
           </h1>
           <p className="text-sm text-white/60 max-w-xl leading-relaxed font-normal">
-            Create dedicated landing links to collect signups for upcoming events or new app features. Track subscriber queues and export data anytime.
+            Create dedicated landing links to collect beta testers, gate feature rollouts, and reward early adopters for your apps and software products.
           </p>
         </div>
 
@@ -162,7 +163,7 @@ export function Waitlists() {
           className="h-12 px-6 rounded-2xl shadow-xl shadow-purple-600/30 font-semibold gap-2 shrink-0 self-start md:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          <span>New Waitlist</span>
+          <span>New Feature Waitlist</span>
         </Button>
       </div>
 
@@ -201,36 +202,34 @@ export function Waitlists() {
 
       {/* Controls: Search & Tabs */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-        {/* Type Filter Tabs */}
+        {/* Status Filter Tabs */}
         <div className="inline-flex items-center p-1 rounded-2xl bg-[#09090b] border border-white/10 self-start">
           <button
-            onClick={() => setFilterType('all')}
+            onClick={() => setFilterStatus('all')}
             className={cn(
               "px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer",
-              filterType === 'all' ? "bg-purple-600 text-white shadow-md shadow-purple-600/25" : "text-white/60 hover:text-white"
+              filterStatus === 'all' ? "bg-purple-600 text-white shadow-md shadow-purple-600/25" : "text-white/60 hover:text-white"
             )}
           >
             All ({waitlists.length})
           </button>
           <button
-            onClick={() => setFilterType('event')}
+            onClick={() => setFilterStatus('active')}
             className={cn(
               "px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5",
-              filterType === 'event' ? "bg-purple-600 text-white shadow-md shadow-purple-600/25" : "text-white/60 hover:text-white"
+              filterStatus === 'active' ? "bg-purple-600 text-white shadow-md shadow-purple-600/25" : "text-white/60 hover:text-white"
             )}
           >
-            <Calendar className="w-3.5 h-3.5" />
-            Events
+            Active ({activeCount})
           </button>
           <button
-            onClick={() => setFilterType('feature')}
+            onClick={() => setFilterStatus('closed')}
             className={cn(
               "px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5",
-              filterType === 'feature' ? "bg-purple-600 text-white shadow-md shadow-purple-600/25" : "text-white/60 hover:text-white"
+              filterStatus === 'closed' ? "bg-purple-600 text-white shadow-md shadow-purple-600/25" : "text-white/60 hover:text-white"
             )}
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            App Features
+            Closed ({waitlists.length - activeCount})
           </button>
         </div>
 

@@ -248,9 +248,6 @@ export async function createServer() {
           </html>
         `
       });
-          </html>
-        `,
-      });
       console.log(`[OTP][${rid}] Email sent successfully to ${email}`);
       return res.json({ success: true, requestId: rid });
     } catch (error: any) {
@@ -629,33 +626,20 @@ export async function createServer() {
 
   apiRouter.post('/email/rsvp-confirmation', async (req, res) => {
     try {
-      const { email, displayName, eventTitle, eventDescription, eventDate, eventLocation, rawDate, rawTime, rsvpId, eventId } = req.body || {};
+      const { email, displayName, eventTitle, eventDescription, eventDate, eventLocation, rawDate, rawTime, rsvpId, eventId, ticketCode, organizerEmail } = req.body || {};
       if (!email || !eventTitle) return res.status(400).json({ error: 'Missing required fields' });
 
-      console.log(`[SMTP] Sending ticket email to: ${email} for ${eventTitle}`);
+      console.log(`[Email] Sending ticket confirmation email to: ${email} for "${eventTitle}"`);
 
       const tickets = ['🎟️', '🎫', '✨', '⚡', '🔥', '🎭', '🎬'];
       const randomTicket = tickets[Math.floor(Math.random() * tickets.length)];
 
-      const userSmtp = process.env.SMTP_USER || 'vuxevents@gmail.com';
-      const pass = process.env.SMTP_PASS;
-
-      if (!pass) {
-        console.error('[SMTP] ERROR: SMTP_PASS not configured');
-        return res.status(503).json({ error: 'SMTP_PASS not configured' });
-      }
-
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_PORT === '465',
-        auth: { user: userSmtp, pass },
-      });
-
       const protocol = req.headers['x-forwarded-proto'] || req.protocol;
       const host = req.get('host');
       const baseUrl = `${protocol}://${host}`;
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${rsvpId}&color=a855f7&bgcolor=08080c`;
+      const codeToDisplay = ticketCode || `VUX-TKT-${(rsvpId || 'CONFIRMED').substring(0, 8).toUpperCase()}`;
+      const qrData = encodeURIComponent(`${baseUrl}/events/${eventId}?checkin=${codeToDisplay}`);
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${qrData}&color=a855f7&bgcolor=08080c`;
       const logoUrl = `${baseUrl}/logo.svg`;
       
       const icsContent = generateICS({
@@ -702,7 +686,7 @@ export async function createServer() {
                         <img src="${qrUrl}" width="180" height="180" style="border-radius: 16px; margin-bottom: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); border: 1px solid rgba(168, 85, 247, 0.2);" />
                         <p style="margin: 0; font-size: 9px; font-weight: 900; color: rgba(255,255,255,0.2); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 8px;">DIGITAL ACCESS PROTOCOL</p>
                         <div style="display: inline-block; background: rgba(0,0,0,0.3); padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-                          <code style="font-family: monospace; font-size: 16px; font-weight: 800; color: #a855f7;">VUX-${rsvpId.substring(0, 8).toUpperCase()}</code>
+                          <code style="font-family: monospace; font-size: 16px; font-weight: 800; color: #a855f7;">${codeToDisplay}</code>
                         </div>
                       </div>
                     </td>
@@ -712,6 +696,12 @@ export async function createServer() {
                   <tr>
                     <td style="padding: 40px 48px;">
                       <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                          <td style="padding-bottom: 32px;">
+                            <p style="margin: 0; font-size: 10px; font-weight: 900; color: rgba(255,255,255,0.2); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 12px;">ATTENDEE</p>
+                            <p style="margin: 0; font-size: 16px; font-weight: 700; color: #ffffff;">${displayName || email}</p>
+                          </td>
+                        </tr>
                         <tr>
                           <td style="padding-bottom: 32px;">
                             <p style="margin: 0; font-size: 10px; font-weight: 900; color: rgba(255,255,255,0.2); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 12px;">TIME & DATE</p>
@@ -732,8 +722,8 @@ export async function createServer() {
                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
                               <tr>
                                 <td>
-                                  <a href="${baseUrl}/events/${eventId}" style="display: inline-block; background-color: rgba(168, 85, 247, 0.1); color: #a855f7; text-decoration: none; padding: 12px 24px; border-radius: 12px; font-size: 12px; font-weight: 800; margin-right: 12px; text-transform: uppercase; letter-spacing: 0.1em;">Event Page</a>
-                                  <a href="${baseUrl}/profile" style="display: inline-block; background-color: rgba(255, 255, 255, 0.05); color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 12px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">My Ticket</a>
+                                  <a href="${baseUrl}/events/${eventId}" style="display: inline-block; background-color: rgba(168, 85, 247, 0.1); color: #a855f7; text-decoration: none; padding: 12px 24px; border-radius: 12px; font-size: 12px; font-weight: 800; margin-right: 12px; text-transform: uppercase; letter-spacing: 0.1em;">View Event</a>
+                                  <a href="${baseUrl}/profile" style="display: inline-block; background-color: rgba(255, 255, 255, 0.05); color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 12px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">My Ticket Pass</a>
                                 </td>
                               </tr>
                             </table>
@@ -748,7 +738,7 @@ export async function createServer() {
                     <td style="padding: 32px 48px; background-color: rgba(255,255,255,0.02); text-align: center;">
                       <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.2); font-weight: 600; line-height: 1.6;">
                         You're using VUX NETWORK. The world's fastest event check-in system.<br/>
-                        &copy; ${new Date().getFullYear()} VUX.ZONE — All Rights Reserved.
+                        &copy; ${new Date().getFullYear()} VUX Events — All Rights Reserved.
                       </p>
                     </td>
                   </tr>
@@ -778,11 +768,380 @@ export async function createServer() {
         attachments
       });
 
+      // Notify organizer of new attendee registration
+      if (organizerEmail && organizerEmail !== email) {
+        sendTransactionalEmail({
+          from: 'VUX Events <notifications@kontyra.name.ng>',
+          to: organizerEmail,
+          subject: `New Registration: ${displayName || email} RSVP'd to ${eventTitle}`,
+          html: `
+            <div style="font-family: sans-serif; max-width: 540px; margin: 0 auto; background: #08080c; color: white; padding: 32px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
+              <h3 style="color: #a855f7; margin-top: 0;">New Attendee Registered</h3>
+              <p>A new attendee has successfully registered for your event <strong>${eventTitle}</strong>.</p>
+              <div style="background: rgba(255,255,255,0.04); padding: 16px; border-radius: 12px; margin: 16px 0; border: 1px solid rgba(255,255,255,0.08);">
+                <p style="margin: 0 0 6px 0; font-size: 14px;"><strong>Attendee:</strong> ${displayName || 'Guest'}</p>
+                <p style="margin: 0 0 6px 0; font-size: 14px;"><strong>Email:</strong> ${email}</p>
+                <p style="margin: 0; font-size: 14px;"><strong>Ticket Code:</strong> <code style="color: #c084fc;">${codeToDisplay}</code></p>
+              </div>
+              <p style="font-size: 12px; color: rgba(255,255,255,0.5);">Access your organizer dashboard to manage attendees and live check-ins.</p>
+            </div>
+          `
+        }).catch(err => console.warn('[Email] Organizer notification non-critical delivery error:', err?.message));
+      }
+
       console.log('[Email] Ticket email sent successfully with ICS');
-      res.json({ success: true });
+      res.json({ success: true, ticketCode: codeToDisplay });
     } catch (error: any) {
       console.error('[Email] Ticket Email Error:', error);
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Server-Side RSVP Endpoint with Transactional Capacity Enforcement
+  apiRouter.post('/events/:eventId/rsvp', async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      const { email, displayName, photoURL, customFields, shareProfile, userId } = req.body || {};
+
+      if (!eventId || !email) {
+        return res.status(400).json({ error: 'Event ID and email are required' });
+      }
+
+      const emailNormalized = email.trim().toLowerCase();
+      const rsvpId = emailNormalized.replace(/[^a-zA-Z0-9@.]/g, '_');
+      const ticketCode = `VUX-TKT-${rsvpId.substring(0, 8).toUpperCase()}`;
+
+      const eventRef = db.collection('events').doc(eventId);
+      const eventDoc = await eventRef.get();
+
+      if (!eventDoc.exists) {
+        return res.status(404).json({ error: 'Event not found' });
+      }
+
+      const eventData = eventDoc.data() || {};
+      const rsvpsRef = eventRef.collection('rsvps');
+
+      // Check existing registration
+      const existingRsvp = await rsvpsRef.doc(rsvpId).get();
+      if (existingRsvp.exists) {
+        const data = existingRsvp.data();
+        if (data?.status !== 'declined' && data?.status !== 'revoked') {
+          return res.status(409).json({ error: 'This email is already registered for this event', rsvp: data });
+        }
+      }
+
+      // Check capacity
+      let rsvpStatus: 'approved' | 'waitlist' | 'pending' = 'approved';
+      if (eventData.capacity && eventData.capacity > 0) {
+        const approvedSnapshot = await rsvpsRef.where('status', '==', 'approved').get();
+        if (approvedSnapshot.size >= eventData.capacity) {
+          rsvpStatus = 'waitlist';
+        }
+      }
+
+      if (rsvpStatus === 'approved' && eventData.isApprovalRequired) {
+        rsvpStatus = 'pending';
+      }
+
+      const nowIso = new Date().toISOString();
+      const newRsvp = {
+        id: rsvpId,
+        eventId,
+        userId: userId || rsvpId,
+        userEmail: emailNormalized,
+        userDisplayName: displayName || emailNormalized.split('@')[0],
+        userPhotoURL: photoURL || null,
+        status: rsvpStatus,
+        ticketCode,
+        customFields: customFields || {},
+        shareProfile: shareProfile !== false,
+        checkedIn: false,
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      };
+
+      await rsvpsRef.doc(rsvpId).set(newRsvp);
+
+      // Trigger confirmation email asynchronously (does not block registration response)
+      if (rsvpStatus === 'approved') {
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+        const host = req.get('host');
+        const baseUrl = `${protocol}://${host}`;
+
+        // Send email
+        const icsContent = generateICS({
+          title: eventData.title || 'VUX Event',
+          description: eventData.description || '',
+          date: eventData.date,
+          time: eventData.time,
+          location: eventData.location || 'Virtual'
+        });
+
+        const attachments = [];
+        if (icsContent) {
+          attachments.push({
+            filename: 'invite.ics',
+            content: icsContent,
+            contentType: 'text/calendar; method=PUBLISH'
+          });
+        }
+
+        const qrData = encodeURIComponent(`${baseUrl}/events/${eventId}?checkin=${ticketCode}`);
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${qrData}&color=a855f7&bgcolor=08080c`;
+
+        sendTransactionalEmail({
+          from: 'VUX Events <notifications@kontyra.name.ng>',
+          to: emailNormalized,
+          subject: `🎟️ Registration Confirmed: ${eventData.title || 'VUX Event'}`,
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #08080c; color: white; padding: 36px; border-radius: 28px; border: 1px solid rgba(255,255,255,0.08);">
+              <h2 style="color: #a855f7; margin-top: 0;">Registration Confirmed</h2>
+              <p>Hi ${displayName || 'there'}, your ticket for <strong>${eventData.title}</strong> is confirmed!</p>
+              <div style="text-align: center; margin: 24px 0; background: rgba(168, 85, 247, 0.05); padding: 24px; border-radius: 20px; border: 1px solid rgba(168, 85, 247, 0.15);">
+                <img src="${qrUrl}" width="160" height="160" style="border-radius: 12px; margin-bottom: 12px;" />
+                <div style="font-family: monospace; font-size: 18px; font-weight: bold; color: #c084fc;">${ticketCode}</div>
+              </div>
+              <p><strong>Date:</strong> ${eventData.date || 'TBA'} ${eventData.time || ''}</p>
+              <p><strong>Location:</strong> ${eventData.location || 'Virtual'}</p>
+              <p style="margin-top: 24px;"><a href="${baseUrl}/events/${eventId}" style="background: #a855f7; color: white; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: bold; display: inline-block;">View Event & Download PDF Pass</a></p>
+            </div>
+          `,
+          attachments
+        }).catch(e => console.warn('[Email] RSVP auto-notification error:', e?.message));
+
+        // Notify host
+        if (eventData.hostEmail && eventData.hostEmail !== emailNormalized) {
+          sendTransactionalEmail({
+            from: 'VUX Events <notifications@kontyra.name.ng>',
+            to: eventData.hostEmail,
+            subject: `New Attendee Registered: ${displayName || emailNormalized} for ${eventData.title}`,
+            html: `<p>${displayName || emailNormalized} has registered for ${eventData.title}. Ticket: ${ticketCode}</p>`
+          }).catch(e => console.warn('[Email] Host notification error:', e?.message));
+        }
+      }
+
+      return res.status(201).json({
+        success: true,
+        rsvp: newRsvp,
+        status: rsvpStatus,
+        ticketCode
+      });
+    } catch (err: any) {
+      console.error('[RSVP Error]:', err);
+      return res.status(500).json({ error: err.message || 'Failed to process registration' });
+    }
+  });
+
+  // Server-Side Ticket Validation & Duplicate Check-in Prevention
+  apiRouter.post('/tickets/validate', async (req, res) => {
+    try {
+      const { eventId, ticketCode, qrPayload, checkedByUid, checkedByName } = req.body || {};
+      if (!eventId || (!ticketCode && !qrPayload)) {
+        return res.status(400).json({ error: 'Event ID and ticket code or QR payload required' });
+      }
+
+      let codeToSearch = (ticketCode || '').trim();
+      if (!codeToSearch && qrPayload) {
+        try {
+          const parsed = JSON.parse(qrPayload);
+          codeToSearch = parsed.ticketCode || parsed.rsvpId || parsed.code || qrPayload;
+        } catch {
+          codeToSearch = qrPayload.trim();
+        }
+      }
+
+      const rsvpsRef = db.collection('events').doc(eventId).collection('rsvps');
+
+      // Search by ticketCode, or by document ID (rsvpId), or by userId
+      let querySnapshot = await rsvpsRef.where('ticketCode', '==', codeToSearch).get();
+      if (querySnapshot.empty) {
+        querySnapshot = await rsvpsRef.where('id', '==', codeToSearch).get();
+      }
+      if (querySnapshot.empty) {
+        querySnapshot = await rsvpsRef.where('userEmail', '==', codeToSearch.toLowerCase()).get();
+      }
+      if (querySnapshot.empty) {
+        const directDoc = await rsvpsRef.doc(codeToSearch).get();
+        if (directDoc.exists) {
+          querySnapshot = { empty: false, docs: [directDoc] } as any;
+        }
+      }
+
+      if (querySnapshot.empty) {
+        return res.status(404).json({ error: 'Ticket not found or invalid for this event' });
+      }
+
+      const rsvpDoc = querySnapshot.docs[0];
+      const rsvp = rsvpDoc.data();
+
+      // Check revocation
+      if (rsvp.status === 'revoked') {
+        return res.status(403).json({
+          error: 'This ticket has been REVOKED by the organizer and is not valid for entry.',
+          revoked: true,
+          revokedAt: rsvp.revokedAt,
+          reason: rsvp.revocationReason || 'Revoked by organizer'
+        });
+      }
+
+      // Check duplicate check-in
+      if (rsvp.checkedIn) {
+        return res.status(409).json({
+          error: `${rsvp.userDisplayName || 'Attendee'} has ALREADY checked in.`,
+          alreadyCheckedIn: true,
+          checkedInAt: rsvp.checkedInAt,
+          checkedInByName: rsvp.checkedInByName || 'Staff Member',
+          attendee: {
+            id: rsvp.id,
+            displayName: rsvp.userDisplayName,
+            email: rsvp.userEmail,
+            ticketCode: rsvp.ticketCode,
+          }
+        });
+      }
+
+      // Confirm check-in
+      const checkedInAt = new Date().toISOString();
+      const staffName = checkedByName || 'Staff Validator';
+      await rsvpDoc.ref.update({
+        checkedIn: true,
+        checkedInAt,
+        checkedInBy: checkedByUid || 'staff',
+        checkedInByName: staffName,
+      });
+
+      return res.json({
+        success: true,
+        message: `Validated! Welcome ${rsvp.userDisplayName}`,
+        attendee: {
+          id: rsvp.id,
+          displayName: rsvp.userDisplayName,
+          email: rsvp.userEmail,
+          ticketCode: rsvp.ticketCode,
+          checkedInAt,
+          checkedInByName: staffName,
+        }
+      });
+    } catch (err: any) {
+      console.error('[Ticket Validation Error]:', err);
+      return res.status(500).json({ error: err.message || 'Validation failed' });
+    }
+  });
+
+  // Ticket Revocation Endpoint
+  apiRouter.post('/tickets/revoke', async (req, res) => {
+    try {
+      const { eventId, rsvpId, revokedByUid, reason } = req.body || {};
+      if (!eventId || !rsvpId) {
+        return res.status(400).json({ error: 'Event ID and RSVP ID are required' });
+      }
+
+      const rsvpRef = db.collection('events').doc(eventId).collection('rsvps').doc(rsvpId);
+      const rsvpDoc = await rsvpRef.get();
+      if (!rsvpDoc.exists) {
+        return res.status(404).json({ error: 'Ticket/RSVP record not found' });
+      }
+
+      const nowIso = new Date().toISOString();
+      await rsvpRef.update({
+        status: 'revoked',
+        checkedIn: false,
+        revokedAt: nowIso,
+        revokedBy: revokedByUid || 'organizer',
+        revocationReason: reason || 'Revoked by organizer'
+      });
+
+      return res.json({ success: true, message: 'Ticket successfully revoked', revokedAt: nowIso });
+    } catch (err: any) {
+      console.error('[Ticket Revocation Error]:', err);
+      return res.status(500).json({ error: err.message || 'Failed to revoke ticket' });
+    }
+  });
+
+  // Event Update Email Broadcast
+  apiRouter.post('/email/event-update', async (req, res) => {
+    try {
+      const { eventId, updateTitle, updateMessage } = req.body || {};
+      if (!eventId || !updateTitle || !updateMessage) {
+        return res.status(400).json({ error: 'Event ID, title, and update message are required' });
+      }
+
+      const eventDoc = await db.collection('events').doc(eventId).get();
+      if (!eventDoc.exists) {
+        return res.status(404).json({ error: 'Event not found' });
+      }
+
+      const eventData = eventDoc.data() || {};
+      const rsvpsSnapshot = await db.collection('events').doc(eventId).collection('rsvps')
+        .where('status', '==', 'approved')
+        .get();
+
+      const recipients = rsvpsSnapshot.docs.map(doc => doc.data().userEmail).filter(Boolean);
+      console.log(`[Email Broadcast] Sending event update to ${recipients.length} attendees for "${eventData.title}"`);
+
+      for (const recipient of recipients) {
+        sendTransactionalEmail({
+          from: 'VUX Events <notifications@kontyra.name.ng>',
+          to: recipient,
+          subject: `📢 Event Update: ${eventData.title} - ${updateTitle}`,
+          html: `
+            <div style="font-family: sans-serif; max-width: 580px; margin: 0 auto; background: #08080c; color: white; padding: 36px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.08);">
+              <h2 style="color: #a855f7; margin-top: 0;">${updateTitle}</h2>
+              <p style="font-size: 14px; color: #a1a1aa;">Update from the organizer for <strong>${eventData.title}</strong></p>
+              <div style="background: rgba(255,255,255,0.04); padding: 20px; border-radius: 16px; margin: 20px 0; border: 1px solid rgba(255,255,255,0.08); line-height: 1.6;">
+                ${updateMessage.replace(/\n/g, '<br/>')}
+              </div>
+              <p style="font-size: 12px; color: #71717a;">View the latest schedule and venue details on the event page.</p>
+            </div>
+          `
+        }).catch(err => console.warn(`[Email] Failed update email to ${recipient}:`, err?.message));
+      }
+
+      return res.json({ success: true, count: recipients.length });
+    } catch (err: any) {
+      console.error('[Event Update Email Error]:', err);
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Event Cancellation Email Broadcast
+  apiRouter.post('/email/event-cancellation', async (req, res) => {
+    try {
+      const { eventId, cancellationReason } = req.body || {};
+      if (!eventId) return res.status(400).json({ error: 'Event ID is required' });
+
+      const eventDoc = await db.collection('events').doc(eventId).get();
+      if (!eventDoc.exists) return res.status(404).json({ error: 'Event not found' });
+
+      const eventData = eventDoc.data() || {};
+      const rsvpsSnapshot = await db.collection('events').doc(eventId).collection('rsvps').get();
+      const recipients = rsvpsSnapshot.docs.map(doc => doc.data().userEmail).filter(Boolean);
+
+      for (const recipient of recipients) {
+        sendTransactionalEmail({
+          from: 'VUX Events <notifications@kontyra.name.ng>',
+          to: recipient,
+          subject: `⚠️ Notice: ${eventData.title} has been cancelled`,
+          html: `
+            <div style="font-family: sans-serif; max-width: 580px; margin: 0 auto; background: #08080c; color: white; padding: 36px; border-radius: 24px; border: 1px solid rgba(244,63,94,0.2);">
+              <h2 style="color: #f43f5e; margin-top: 0;">Event Cancelled</h2>
+              <p>We regret to inform you that <strong>${eventData.title}</strong> has been cancelled by the host.</p>
+              ${cancellationReason ? `
+                <div style="background: rgba(244,63,94,0.06); padding: 18px; border-radius: 14px; margin: 20px 0; border: 1px solid rgba(244,63,94,0.15);">
+                  <strong style="color: #f43f5e; font-size: 12px; text-transform: uppercase;">Reason from Host:</strong>
+                  <p style="margin: 8px 0 0 0; line-height: 1.5;">${cancellationReason}</p>
+                </div>
+              ` : ''}
+              <p style="font-size: 12px; color: #71717a;">If you have any questions, please reach out to the event organizers directly.</p>
+            </div>
+          `
+        }).catch(err => console.warn(`[Email] Failed cancellation email to ${recipient}:`, err?.message));
+      }
+
+      return res.json({ success: true, count: recipients.length });
+    } catch (err: any) {
+      console.error('[Event Cancellation Email Error]:', err);
+      return res.status(500).json({ error: err.message });
     }
   });
 

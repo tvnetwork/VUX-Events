@@ -515,8 +515,13 @@ export function PublicWaitlist() {
       </main>
 
       {/* Footer */}
-      <footer className="h-14 px-6 text-center text-xs text-white/30 flex items-center justify-center border-t border-white/[0.04]">
-        © 2026 VUX Events. Built for high-impact communities.
+      <footer className="py-6 px-6 text-center text-xs text-white/40 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/[0.06] max-w-5xl mx-auto w-full">
+        <p>© 2026 VUX Network. The next-generation event & software launch infrastructure.</p>
+        <div className="flex items-center gap-6 text-xs text-white/60">
+          <Link to="/terms" className="hover:text-purple-400 transition-colors">Terms of Service</Link>
+          <Link to="/privacy" className="hover:text-purple-400 transition-colors">Privacy Policy</Link>
+          <Link to="/discover" className="hover:text-purple-400 transition-colors">Discover Events</Link>
+        </div>
       </footer>
     </div>
   );
