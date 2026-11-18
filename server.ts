@@ -493,39 +493,43 @@ export async function createServer() {
 
   apiRouter.post('/email/waitlist-promoted', async (req, res) => {
     try {
-      const { email, displayName, eventTitle } = req.body;
+      const { email, displayName, eventTitle, waitlistType, targetUrl } = req.body || {};
       if (!email || !eventTitle) return res.status(400).json({ error: 'Email and eventTitle are required' });
-
-      const userSmtp = process.env.SMTP_USER || 'vuxevents@gmail.com';
-      const pass = process.env.SMTP_PASS;
-      if (!pass) return res.status(503).json({ error: 'SMTP_PASS not configured' });
-
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_PORT === '465',
-        auth: { user: userSmtp, pass },
-      });
 
       const protocol = req.headers['x-forwarded-proto'] || req.protocol;
       const logoUrl = req ? `${protocol}://${req.get('host')}/logo.svg` : 'https://vuxevents.zone.id/logo.svg';
+      const isFeature = waitlistType === 'feature';
+
+      const subject = isFeature 
+        ? `🚀 You're in! Early access granted for ${eventTitle}`
+        : `🎉 You're in! Access confirmed for ${eventTitle}`;
+
+      const actionText = isFeature ? 'Access Beta' : 'Claim Your Tickets';
+      const destination = targetUrl || `${protocol}://${req.get('host')}`;
       
       const htmlContent = `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0f; color: white; padding: 48px; border-radius: 48px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
-          <img src="${logoUrl}" style="width: 64px; border-radius: 18px; margin-bottom: 32px;" />
-          <h1 style="font-size: 24px; font-weight: 800; margin-bottom: 8px;">YOU'RE IN! 🎉</h1>
-          <p style="color: rgba(255,255,255,0.6); font-size: 16px; margin-bottom: 32px; line-height: 1.6;">
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; background-color: #0b0b0f; color: white; padding: 48px; border-radius: 32px; border: 1px solid rgba(255,255,255,0.08); text-align: center;">
+          <img src="${logoUrl}" style="width: 56px; height: 56px; border-radius: 16px; margin-bottom: 28px;" />
+          <h1 style="font-size: 26px; font-weight: 900; letter-spacing: -0.03em; margin: 0 0 12px; color: #ffffff;">YOU'RE IN! 🎉</h1>
+          <p style="color: rgba(255,255,255,0.7); font-size: 15px; margin: 0 0 28px; line-height: 1.6;">
             Hi ${displayName || 'there'},<br/><br/>
-            Great news! A spot just opened up for <strong>${eventTitle}</strong> and you have been officially moved off the waitlist. Your RSVP is now approved!
+            Great news! A spot just opened up for <strong>${eventTitle}</strong> and you have been officially moved off the waitlist.
           </p>
-          <p style="font-size: 11px; color: rgba(255,255,255,0.2); text-transform: uppercase; letter-spacing: 0.3em; font-weight: 900; margin-top: 40px;">THE PREMIER EVENT PLATFORM</p>
+          <div style="margin: 32px 0;">
+            <a href="${destination}" style="display: inline-block; background-color: #a855f7; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 14px; font-weight: 700; font-size: 14px; box-shadow: 0 10px 25px rgba(168, 85, 247, 0.4);">
+              ${actionText}
+            </a>
+          </div>
+          <p style="font-size: 10px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.3em; font-weight: 800; margin: 36px 0 0;">
+            KONTYRA / VUX EVENTS
+          </p>
         </div>
       `;
 
       await sendTransactionalEmail({
         from: 'VUX Events <notifications@kontyra.name.ng>',
         to: email,
-        subject: `🎉 You're off the waitlist for ${eventTitle}!`,
+        subject,
         html: htmlContent,
       });
 

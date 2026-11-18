@@ -365,12 +365,14 @@ export class WaitlistService {
       return;
     }
 
-    const headers = ['Position', 'Name', 'Email', 'Referrals', 'Status', 'Date Joined'];
+    const typeCol = waitlist.type === 'event' ? 'Ticket Tier' : 'Intended Role';
+    const headers = ['Position', 'Name', 'Email', typeCol, 'Referrals', 'Status', 'Date Joined'];
     const rows = entries.map(e => [
       e.position,
       `"${(e.name || '').replace(/"/g, '""')}"`,
       e.email,
-      e.referralCount,
+      `"${(e.selectedTier || e.intendedRole || 'Standard').replace(/"/g, '""')}"`,
+      e.referralCount || 0,
       e.status,
       new Date(e.createdAt).toLocaleString()
     ]);

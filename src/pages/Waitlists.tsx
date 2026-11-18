@@ -102,11 +102,25 @@ export function Waitlists() {
     }
   };
 
-  const handleEntryStatus = async (entryId: string, status: WaitlistEntry['status']) => {
+  const handleEntryStatus = async (entry: WaitlistEntry, status: WaitlistEntry['status']) => {
     if (!activeWaitlist) return;
     try {
-      await WaitlistService.updateEntryStatus(activeWaitlist.id, entryId, status);
-      setEntries(entries.map(e => e.id === entryId ? { ...e, status } : e));
+      await WaitlistService.updateEntryStatus(activeWaitlist.id, entry.id, status);
+      setEntries(entries.map(e => e.id === entry.id ? { ...e, status } : e));
+
+      if (status === 'invited') {
+        fetch('/api/email/waitlist-promoted', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: entry.email,
+            displayName: entry.name,
+            eventTitle: activeWaitlist.title,
+            waitlistType: activeWaitlist.type,
+            targetUrl: `${window.location.origin}/w/${activeWaitlist.slug}`
+          }),
+        }).catch(err => console.warn('[Waitlist] Promoted email notice:', err));
+      }
     } catch (err) {
       console.error('Failed to update subscriber status:', err);
     }
@@ -444,6 +458,7 @@ export function Waitlists() {
                       <th className="py-3 px-4">Pos</th>
                       <th className="py-3 px-4">Subscriber</th>
                       <th className="py-3 px-4">Email</th>
+                      <th className="py-3 px-4">{activeWaitlist.type === 'event' ? 'Tier' : 'Role'}</th>
                       <th className="py-3 px-4">Referrals</th>
                       <th className="py-3 px-4">Status</th>
                       <th className="py-3 px-4 text-right">Actions</th>
@@ -461,6 +476,19 @@ export function Waitlists() {
                         <td className="py-3 px-4 font-mono text-white/70">
                           {entry.email}
                         </td>
+                        <td className="py-3 px-4">
+                          {entry.selectedTier ? (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                              {entry.selectedTier}
+                            </span>
+                          ) : entry.intendedRole ? (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                              {entry.intendedRole}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-white/40">General</span>
+                          )}
+                        </td>
                         <td className="py-3 px-4 font-mono text-white/60">
                           {entry.referralCount || 0}
                         </td>
@@ -477,8 +505,8 @@ export function Waitlists() {
                         <td className="py-3 px-4 text-right">
                           {entry.status !== 'invited' ? (
                             <button
-                              onClick={() => handleEntryStatus(entry.id, 'invited')}
-                              className="px-2.5 py-1 rounded-lg bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/30 text-[10px] font-bold transition-all"
+                              onClick={() => handleEntryStatus(entry, 'invited')}
+                              className="px-2.5 py-1 rounded-lg bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/30 text-[10px] font-bold transition-all cursor-pointer"
                             >
                               Invite
                             </button>
