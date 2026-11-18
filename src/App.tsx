@@ -184,8 +184,15 @@ function DiscoverWrapper() {
 }
 
 export default function App() {
+  const { user } = useAuth();
   return (
     <HelmetProvider>
+      <MobileNavbar 
+        appName="VUX" 
+        ecosystemApps={ECOSYSTEM_APPS}
+        isAuthenticated={!!user}
+        onSignIn={() => window.location.href = '/login'}
+      />
       <BrowserRouter>
         <ScrollToTop />
         <AuthProvider>
