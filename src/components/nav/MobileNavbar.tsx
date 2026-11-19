@@ -21,6 +21,8 @@ import {
   Ticket,
   ListOrdered,
   Code2,
+  LayoutDashboard,
+  Settings2,
 } from 'lucide-react';
 
 export interface EcosystemApp {
@@ -171,9 +173,11 @@ export const MobileNavbar: React.FC<MobileNavbarProps> = ({
   }, [isOpen]);
 
   const navLinks = [
+    { label: 'Dashboard', path: '/', icon: LayoutDashboard },
     { label: 'Explore Events', path: '/discover', icon: Compass },
     { label: 'My Tickets', path: '/tickets', icon: Ticket },
     { label: 'Waitlists', path: '/waitlists', icon: ListOrdered },
+    { label: 'Settings', path: '/settings', icon: Settings2 },
     { label: 'Developer API', path: '/developer', icon: Code2 },
   ];
 

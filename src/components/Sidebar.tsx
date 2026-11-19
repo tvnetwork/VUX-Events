@@ -17,7 +17,6 @@ export function Sidebar({ onSearchClick, onCreateClick, onLoginClick }: {
   const location = useLocation();
   const navigate = useNavigate();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const isAdmin = profile?.email?.toLowerCase() === 'oladoyeheritage445@gmail.com'.toLowerCase();
 
@@ -37,29 +36,14 @@ export function Sidebar({ onSearchClick, onCreateClick, onLoginClick }: {
 
   const navigateTo = (path: string) => {
     navigate(path);
-    setShowMobileMenu(false);
     setShowProfileMenu(false);
   };
 
   return (
     <>
-      {/* Mobile Menu Button - Fixed Top (56px Kontyra Standard) */}
-      <div className="md:hidden fixed top-0 inset-x-0 h-14 bg-black/85 backdrop-blur-xl border-b border-white/[0.08] z-50 flex items-center justify-between px-4">
-        <Logo size="sm" />
-        <button 
-          onClick={() => setShowMobileMenu(!showMobileMenu)}
-          className="p-2 text-white/70 hover:text-white transition-colors rounded-lg hover:bg-white/5"
-        >
-          {showMobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
-      </div>
-
-      {/* Sidebar Navigation */}
-      <nav className={cn(
-        "fixed inset-y-0 left-0 z-40 w-64 bg-black/80 backdrop-blur-xl border-r border-white/[0.08] transition-transform duration-300 ease-in-out md:translate-x-0 flex flex-col",
-        showMobileMenu ? "translate-x-0" : "-translate-x-full"
-      )}>
-        <div className="h-16 flex items-center px-6 border-b border-white/[0.08] mt-14 md:mt-0 cursor-pointer" onClick={() => navigateTo('/')}>
+      {/* Desktop Sidebar Navigation (Mobile handled by Kontyra Standard 08 MobileNavbar) */}
+      <nav className="hidden md:flex fixed inset-y-0 left-0 z-40 w-64 bg-black/80 backdrop-blur-xl border-r border-white/[0.08] flex-col">
+        <div className="h-16 flex items-center px-6 border-b border-white/[0.08] cursor-pointer" onClick={() => navigateTo('/')}>
           <Logo size="sm" />
         </div>
 

@@ -18,7 +18,7 @@ export function LandingNavbar({ onAuthClick }: { onAuthClick: () => void }) {
 
   return (
     <nav className={cn(
-      "fixed top-4 inset-x-0 z-[60] transition-all duration-500 px-4 sm:px-6 flex justify-center",
+      "hidden md:flex fixed top-4 inset-x-0 z-[60] transition-all duration-500 px-4 sm:px-6 justify-center",
     )}>
       <div className={cn(
         "max-w-[1000px] w-full flex items-center justify-between px-6 transition-all duration-500",

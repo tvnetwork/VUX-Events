@@ -218,7 +218,7 @@ export function PublicWaitlist() {
       </div>
 
       {/* Top Header */}
-      <header className="h-16 px-6 max-w-5xl mx-auto w-full flex items-center justify-between z-10">
+      <header className="hidden md:flex h-16 px-6 max-w-5xl mx-auto w-full items-center justify-between z-10">
         <Link to="/" className="flex items-center gap-2">
           <Logo size="sm" showText={true} />
         </Link>
