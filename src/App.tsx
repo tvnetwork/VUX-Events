@@ -197,7 +197,7 @@ function MainApp() {
         user={user ? {
           name: profile?.displayName || user.displayName || 'Kontyra Member',
           email: user.email || undefined,
-          avatarUrl: profile?.avatarUrl || user.photoURL || undefined
+          avatarUrl: profile?.photoURL || (profile as any)?.avatarUrl || user.photoURL || undefined
         } : null}
         onSignIn={() => {
           window.location.href = '/?auth=true';
