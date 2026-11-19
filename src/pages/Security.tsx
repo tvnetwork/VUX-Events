@@ -12,11 +12,31 @@ import { useAuth } from '../AuthContext';
 import { TwoFactorSetup } from '../components/auth/TwoFactorSetup';
 import { cn } from '../lib/utils';
 import { Card } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
 
 export function Security() {
-  const { profile, updateProfileData } = useAuth();
+  const { profile, updateProfileData, registerPasskey } = useAuth();
   const [showSetup, setShowSetup] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
+  const [passkeySuccess, setPasskeySuccess] = useState<string | null>(null);
+  const [passkeyError, setPasskeyError] = useState<string | null>(null);
+
+  const handleRegisterPasskey = async () => {
+    setPasskeyLoading(true);
+    setPasskeyError(null);
+    setPasskeySuccess(null);
+    try {
+      await registerPasskey();
+      setPasskeySuccess('Biometric passkey registered successfully!');
+      setTimeout(() => setPasskeySuccess(null), 4000);
+    } catch (err: any) {
+      setPasskeyError(err.message || 'Passkey registration failed');
+      setTimeout(() => setPasskeyError(null), 5000);
+    } finally {
+      setPasskeyLoading(false);
+    }
+  };
 
   const handleDisable2FA = async () => {
      if (!confirm('Are you sure you want to disable two-factor authentication? This will reduce your account security.')) return;
@@ -117,17 +137,36 @@ export function Security() {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between p-8 rounded-[2rem] bg-white/[0.02] border border-white/5 group hover:bg-white/[0.04] opacity-50 cursor-not-allowed">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-8 rounded-[2rem] bg-white/[0.02] border border-white/5 group hover:bg-white/[0.04] gap-6 transition-all">
                             <div className="flex gap-6">
-                                <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center border border-white/5">
-                                    <Fingerprint className="w-6 h-6 text-white/20" />
+                                <div className="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20 shrink-0">
+                                    <Fingerprint className="w-6 h-6 text-purple-400" />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <h3 className="text-sm font-black uppercase tracking-widest text-white/70">Biometric Link</h3>
-                                    <p className="text-[10px] text-white/50 font-bold uppercase tracking-widest italic leading-relaxed">Hardware-level passkey authentication.</p>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="text-sm font-black uppercase tracking-widest text-white">Biometric Passkey (FIDO2)</h3>
+                                        <Badge variant="outline" className="border-purple-500/30 text-purple-400 uppercase text-[9px] font-black tracking-widest">
+                                            {profile?.passkeys && profile.passkeys.length > 0 ? `${profile.passkeys.length} Active` : 'WebAuthn'}
+                                        </Badge>
+                                    </div>
+                                    <p className="text-xs text-white/50 font-medium leading-relaxed max-w-[340px]">
+                                        {profile?.passkeys && profile.passkeys.length > 0 
+                                          ? 'Your hardware passkey is linked for instant Face ID, Touch ID, or security key login.' 
+                                          : 'Log in instantly using Face ID, Touch ID, or your physical security key.'}
+                                    </p>
+                                    {passkeySuccess && <p className="text-xs text-emerald-400 font-bold">{passkeySuccess}</p>}
+                                    {passkeyError && <p className="text-xs text-rose-400 font-bold">{passkeyError}</p>}
                                 </div>
                             </div>
-                            <Badge variant="outline" className="border-white/5 text-white/20 uppercase text-[9px] font-black tracking-widest italic">Coming Soon</Badge>
+                            <Button 
+                                variant="vux" 
+                                size="sm" 
+                                onClick={handleRegisterPasskey}
+                                disabled={passkeyLoading}
+                                className="h-12 px-6 rounded-xl text-[9px] font-black uppercase tracking-widest gap-2 shadow-lg shadow-purple-600/20 shrink-0"
+                            >
+                                {passkeyLoading ? 'Registering...' : (profile?.passkeys && profile.passkeys.length > 0 ? '+ Add Passkey' : 'Register Passkey')}
+                            </Button>
                         </div>
                     </div>
                 </div>
