@@ -12,7 +12,6 @@ import { useAuth } from '../AuthContext';
 import { TwoFactorSetup } from '../components/auth/TwoFactorSetup';
 import { cn } from '../lib/utils';
 import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
 
 export function Security() {
   const { profile, updateProfileData, registerPasskey } = useAuth();
