@@ -26,7 +26,7 @@ export interface SiteConfig {
 const DEFAULT_CONFIG: SiteConfig = {
   title: 'VUX Events',
   tagline: 'Modern events for modern communities.',
-  contactEmail: 'vuxevents@gmail.com',
+  contactEmail: 'events@kontyra.name.ng',
   supportLink: '/help',
   categories: ['Conference', 'Workshop', 'Meetup', 'Social', 'Webinar', 'Other'],
   announcement: {

@@ -69,27 +69,41 @@ const db = databaseId ? getFirestore(databaseId) : getFirestore();
 const resendApiKey = process.env.RESEND_API_KEY;
 const resendClient = resendApiKey ? new Resend(resendApiKey) : null;
 
+function resolveFromAddress(requestedFrom?: string): string {
+  const configuredFrom = process.env.RESEND_FROM || process.env.SMTP_FROM;
+  // If configuredFrom is set and not the old placeholder vuxevents@gmail.com, use it
+  if (configuredFrom && !configuredFrom.includes('vuxevents@gmail.com') && !configuredFrom.includes('vux@gmail.com')) {
+    return configuredFrom;
+  }
+  return requestedFrom || 'VUX Events <notifications@kontyra.name.ng>';
+}
+
 export async function sendTransactionalEmail({
   to,
   subject,
   html,
-  from = 'VUX Events <notifications@kontyra.name.ng>',
+  from,
+  replyTo = 'events@kontyra.name.ng',
   attachments = [],
 }: {
   to: string;
   subject: string;
   html: string;
   from?: string;
+  replyTo?: string;
   attachments?: any[];
 }) {
-  // 1. Try Resend if configured (Kontyra Primary Provider)
+  const resolvedFrom = resolveFromAddress(from);
+
+  // 1. Try Resend if configured (Kontyra Primary Provider for custom domain deliverability)
   if (resendClient) {
     try {
       const res = await resendClient.emails.send({
-        from,
+        from: resolvedFrom,
         to,
         subject,
         html,
+        replyTo,
         attachments: attachments.map(a => ({
           filename: a.filename,
           content: Buffer.isBuffer(a.content) ? a.content : Buffer.from(a.content)
@@ -114,7 +128,8 @@ export async function sendTransactionalEmail({
         auth: { user: smtpUser || 'events@kontyra.name.ng', pass: smtpPass },
       });
       const info = await transporter.sendMail({
-        from: process.env.SMTP_FROM || from,
+        from: resolvedFrom,
+        replyTo,
         to,
         subject,
         html,
@@ -128,7 +143,7 @@ export async function sendTransactionalEmail({
   }
 
   // 3. Fallback simulation (avoids blocking local dev or unconfigured test accounts)
-  console.log(`[Email][Dev-Simulated] To: ${to} | Subject: "${subject}"`);
+  console.log(`[Email][Dev-Simulated] To: ${to} | Subject: "${subject}" | From: "${resolvedFrom}"`);
   return { success: true, provider: 'simulated' };
 }
 
@@ -1193,7 +1208,7 @@ export async function createServer() {
 
       console.log(`[SMTP] Starting broadcast to ${recipients.length} recipients...`);
 
-      const user = process.env.SMTP_USER || 'vuxevents@gmail.com';
+      const user = process.env.SMTP_USER || 'events@kontyra.name.ng';
       const pass = process.env.SMTP_PASS;
 
       if (!pass) {
@@ -1532,7 +1547,7 @@ export async function createServer() {
 
       console.log(`[Automation] Found ${eventsToSurvey.length} events for surveys.`);
 
-      const userSmtp = process.env.SMTP_USER || 'vuxevents@gmail.com';
+      const userSmtp = process.env.SMTP_USER || 'events@kontyra.name.ng';
       const pass = process.env.SMTP_PASS;
 
       if (!pass) return res.status(503).json({ error: 'SMTP not configured' });
@@ -1615,7 +1630,7 @@ export async function createServer() {
 
       console.log(`[Automation] Found ${eventsToRemind.length} events for reminders.`);
 
-      const userSmtp = process.env.SMTP_USER || 'vuxevents@gmail.com';
+      const userSmtp = process.env.SMTP_USER || 'events@kontyra.name.ng';
       const pass = process.env.SMTP_PASS;
 
       if (!pass) return res.status(503).json({ error: 'SMTP not configured' });

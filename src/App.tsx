@@ -185,16 +185,24 @@ function DiscoverWrapper() {
 }
 
 function MainApp() {
-  const { user } = useAuth();
+  const { user, profile, logout } = useAuth();
   return (
     <>
       <MobileNavbar 
         appName="VUX" 
+        appBadge="Events"
+        accentColor="#E60082"
         ecosystemApps={ECOSYSTEM_APPS}
         isAuthenticated={!!user}
+        user={user ? {
+          name: profile?.displayName || user.displayName || 'Kontyra Member',
+          email: user.email || undefined,
+          avatarUrl: profile?.avatarUrl || user.photoURL || undefined
+        } : null}
         onSignIn={() => {
           window.location.href = '/?auth=true';
         }}
+        onSignOut={logout}
       />
       <Suspense fallback={<LoadingFallback />}>
         <AppContent />

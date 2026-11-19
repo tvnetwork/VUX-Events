@@ -114,7 +114,7 @@ router.post('/events/:id/rsvp', async (req, res) => {
     await rsvpRef.set(rsvpData);
 
     const qrDataUrl = await QRCode.toDataURL(JSON.stringify({ eventId, ticket: rsvpData.ticketNumber, email }));
-    const userSmtp = process.env.SMTP_USER || 'vuxevents@gmail.com';
+    const userSmtp = process.env.SMTP_USER || 'events@kontyra.name.ng';
     const pass = process.env.SMTP_PASS;
 
     if (pass) {
@@ -126,7 +126,7 @@ router.post('/events/:id/rsvp', async (req, res) => {
       });
 
       await transporter.sendMail({
-        from: process.env.SMTP_FROM || `"VUX Ticketing" <${userSmtp}>`,
+        from: process.env.SMTP_FROM || 'VUX Events <notifications@kontyra.name.ng>',
         to: email,
         subject: `Your Ticket for ${eventData?.title}`,
         html: `<div style="font-family: sans-serif; padding: 20px;"><h2>Hi ${name}, you're going to ${eventData?.title}!</h2><p>Date: ${eventData?.date}</p><p>Ticket Number: ${rsvpData.ticketNumber}</p><p>Here is your QR code for entry:</p><img src="${qrDataUrl}" alt="Ticket QR Code" /></div>`

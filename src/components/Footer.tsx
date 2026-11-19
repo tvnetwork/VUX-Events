@@ -47,7 +47,7 @@ export function Footer({ onAuthClick }: { onAuthClick?: () => void }) {
           <div className="md:col-span-3 space-y-6 md:text-right">
             <h4 className="text-[10px] uppercase tracking-[0.3em] font-black text-white/60">Connect</h4>
             <div className="flex flex-wrap md:justify-end gap-5">
-                <a href="mailto:vuxevents@gmail.com" className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 text-white/60 hover:text-purple-400 hover:border-purple-500/30 transition-all" title="Email"><Mail className="w-5 h-5" /></a>
+                <a href="mailto:events@kontyra.name.ng" className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 text-white/60 hover:text-purple-400 hover:border-purple-500/30 transition-all" title="Email"><Mail className="w-5 h-5" /></a>
                 <a href="https://x.com/vuxevents" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 text-white/60 hover:text-purple-400 hover:border-purple-500/30 transition-all" title="X (Twitter)"><X className="w-5 h-5" /></a>
                 <a href="https://instagram.com/vuxevents" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 text-white/60 hover:text-purple-400 hover:border-purple-500/30 transition-all" title="Instagram"><Instagram className="w-5 h-5" /></a>
                 <a href="https://vuxevents.com" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 text-white/60 hover:text-purple-400 hover:border-purple-500/30 transition-all" title="Website"><Globe className="w-5 h-5" /></a>

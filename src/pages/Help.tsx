@@ -208,7 +208,7 @@ export function Help() {
              </p>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 relative">
-             <a href="mailto:vuxevents@gmail.com" className="w-full sm:w-auto">
+             <a href="mailto:events@kontyra.name.ng" className="w-full sm:w-auto">
                <Button variant="vux" className="w-full sm:w-auto h-20 px-14 rounded-3xl text-lg font-black uppercase tracking-widest gap-3 shadow-2xl shadow-indigo-500/20">
                  <Mail className="w-5 h-5" /> Email Us
                </Button>
