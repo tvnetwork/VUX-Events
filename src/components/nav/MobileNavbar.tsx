@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { getSafeAvatarUrl } from '../../lib/utils';
 import {
   Menu,
   X,
@@ -359,7 +360,14 @@ export const MobileNavbar: React.FC<MobileNavbarProps> = ({
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
                       {user?.avatarUrl ? (
-                        <img src={user.avatarUrl} alt={user.name || 'User'} className="w-full h-full object-cover" />
+                        <img 
+                          src={getSafeAvatarUrl(user.avatarUrl, user.name || 'User')} 
+                          alt={user.name || 'User'} 
+                          className="w-full h-full object-cover" 
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = getSafeAvatarUrl(null, user.name || 'User');
+                          }}
+                        />
                       ) : (
                         <UserIcon className="w-4 h-4" />
                       )}

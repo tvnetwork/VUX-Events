@@ -312,8 +312,8 @@ export async function createServer() {
       if (typeof title !== 'string' || !title.trim() || title.trim().length > 200) {
         return res.status(400).json({ error: 'A title of 1–200 characters is required' });
       }
-      if (type !== 'event' && type !== 'feature') {
-        return res.status(400).json({ error: 'Waitlist type must be event or feature' });
+      if (type !== 'event' && type !== 'feature' && type !== 'product' && type !== 'community') {
+        return res.status(400).json({ error: 'Waitlist type must be event, feature, product, or community' });
       }
 
       let resolvedOrganizationId = typeof organizationId === 'string' && organizationId.trim()

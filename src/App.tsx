@@ -10,6 +10,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from './lib/firebase';
 import { Event } from './types';
 import { MobileNavbar, ECOSYSTEM_APPS } from './components/nav/MobileNavbar';
+import { getSafeAvatarUrl } from './lib/utils';
 
 // Lazy load pages for performance
 const Landing = lazy(() => import('./pages/Landing').then(m => ({ default: m.Landing })));
@@ -197,7 +198,7 @@ function MainApp() {
         user={user ? {
           name: profile?.displayName || user.displayName || 'Kontyra Member',
           email: user.email || undefined,
-          avatarUrl: profile?.photoURL || (profile as any)?.avatarUrl || user.photoURL || undefined
+          avatarUrl: getSafeAvatarUrl(profile?.photoURL || (profile as any)?.avatarUrl || user.photoURL, profile?.email || user.email || 'user')
         } : null}
         onSignIn={() => {
           window.location.href = '/?auth=true';

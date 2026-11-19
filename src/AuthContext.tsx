@@ -405,7 +405,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 1. Get auth options from server
       const emailQuery = email ? `?email=${encodeURIComponent(email)}` : '';
       const resp = await fetch(`/api/auth/login-options${emailQuery}`);
-      const options = await resp.json();
+      const options = await resp.json().catch(() => ({ error: 'Invalid response from server' }));
       if (options.error) throw new Error(options.error);
 
       // 2. Start browser authentication
@@ -422,7 +422,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }),
       });
 
-      const verification = await verifyResp.json();
+      const verification = await verifyResp.json().catch(() => ({ error: 'Verification response unreadable' }));
       if (verification.verified && verification.token) {
         await signInWithCustomToken(auth, verification.token);
       } else {
@@ -442,7 +442,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // 1. Get registration options from server
       const resp = await fetch(`/api/auth/register-options?email=${encodeURIComponent(profile.email)}&displayName=${encodeURIComponent(profile.displayName)}`);
-      const options = await resp.json();
+      const options = await resp.json().catch(() => ({ error: 'Invalid response from server' }));
       if (options.error) throw new Error(options.error);
 
       // 2. Start browser registration
@@ -459,7 +459,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }),
       });
 
-      const verification = await verifyResp.json();
+      const verification = await verifyResp.json().catch(() => ({ error: 'Registration response unreadable' }));
       if (verification.verified && verification.registrationInfo) {
         const { credentialID, credentialPublicKey, counter } = verification.registrationInfo;
         

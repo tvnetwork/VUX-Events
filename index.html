@@ -15,16 +15,15 @@
       // Workaround for some libraries trying to overwrite window.fetch
       // which is a read-only getter in some environments like AI Studio.
       if (typeof window !== 'undefined') {
-        const originalFetch = window.fetch;
+        let currentFetch = window.fetch;
         try {
           Object.defineProperty(window, 'fetch', {
-            get: () => originalFetch,
-            set: () => { console.warn('Something tried to overwrite window.fetch - ignoring.'); },
-            configurable: true
+            get: () => currentFetch,
+            set: (newFetch) => { if (typeof newFetch === 'function') currentFetch = newFetch; },
+            configurable: true,
+            enumerable: true
           });
-        } catch (e) {
-          console.warn('Could not redefine window.fetch setter:', e);
-        }
+        } catch (_) {}
       }
     </script>
   </head>
