@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from './lib/firebase';
 import { Event } from './types';
+import { MobileNavbar, ECOSYSTEM_APPS } from './components/nav/MobileNavbar';
 
 // Lazy load pages for performance
 const Landing = lazy(() => import('./pages/Landing').then(m => ({ default: m.Landing })));
@@ -183,22 +184,32 @@ function DiscoverWrapper() {
   );
 }
 
-export default function App() {
+function MainApp() {
   const { user } = useAuth();
   return (
-    <HelmetProvider>
+    <>
       <MobileNavbar 
         appName="VUX" 
         ecosystemApps={ECOSYSTEM_APPS}
         isAuthenticated={!!user}
-        onSignIn={() => window.location.href = '/login'}
+        onSignIn={() => {
+          window.location.href = '/?auth=true';
+        }}
       />
+      <Suspense fallback={<LoadingFallback />}>
+        <AppContent />
+      </Suspense>
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <HelmetProvider>
       <BrowserRouter>
         <ScrollToTop />
         <AuthProvider>
-          <Suspense fallback={<LoadingFallback />}>
-            <AppContent />
-          </Suspense>
+          <MainApp />
         </AuthProvider>
       </BrowserRouter>
     </HelmetProvider>

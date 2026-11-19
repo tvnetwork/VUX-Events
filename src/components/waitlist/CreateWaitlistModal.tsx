@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ModalShell } from '../ui/ModalShell';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { Waitlist } from '../../types';
+import { Waitlist, WaitlistType } from '../../types';
 import { WaitlistService } from '../../services/WaitlistService';
 import { useAuth } from '../../AuthContext';
 import { Sparkles, Plus, X, Check, Link2, ArrowRight, Layers, Monitor, Smartphone, Terminal, Shield } from 'lucide-react';
@@ -76,7 +76,7 @@ export function CreateWaitlistModal({ onClose, onCreated, initialWaitlist }: Cre
       const waitlistData = {
         slug: slug.trim() || WaitlistService.slugify(title),
         title: title.trim(),
-        type: 'feature',
+        type: (initialWaitlist?.type || 'feature') as WaitlistType,
         description: description.trim(),
         organizationId: profile?.organizationId || user.uid,
         targetDate: targetRelease.trim() || undefined,
