@@ -303,6 +303,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const updates: any = {
               lastLoginAt: new Date().toISOString()
             };
+            const isKontyraSession = Boolean(sessionStorage.getItem('kontyra_sso_email') || localStorage.getItem('kontyra_connected') === 'true');
+            if (isKontyraSession) {
+              updates.kontyraConnected = true;
+              updates.kontyraUid = existingProfile.kontyraUid || user.uid;
+              const kEmail = sessionStorage.getItem('kontyra_sso_email') || localStorage.getItem('kontyra_email');
+              if (kEmail) updates.kontyraEmail = kEmail;
+              updates.linkedAccounts = arrayUnion('kontyra');
+            }
+
             if (user.uid !== existingProfile.uid) {
               updates.kontyraUid = user.uid;
               updates.linkedAccounts = arrayUnion('kontyra');
@@ -318,7 +327,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
 
             updateDoc(profileRef, updates).catch(() => {});
-            setProfile(existingProfile);
+            setProfile({
+              ...existingProfile,
+              ...updates,
+              linkedAccounts: Array.from(new Set([...(existingProfile.linkedAccounts || []), ...(updates.linkedAccounts ? ['kontyra'] : [])]))
+            });
 
             // Send login notification (Security)
             fetch('/api/email/login-notification', {
@@ -336,6 +349,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // New profile creation
             const targetDocId = resolvedEmail || user.uid;
             const newProfileRef = doc(db, 'users', targetDocId);
+            const isKontyraSession = Boolean(sessionStorage.getItem('kontyra_sso_email') || localStorage.getItem('kontyra_connected') === 'true');
+            const kEmail = sessionStorage.getItem('kontyra_sso_email') || localStorage.getItem('kontyra_email');
             const newProfile: UserProfile = {
               uid: user.uid,
               email: resolvedEmail || (user.uid.includes('@') ? user.uid : ''),
@@ -343,6 +358,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               photoURL: user.photoURL || getAvatarUrl(user.uid),
               createdAt: new Date().toISOString(),
               onboardingCompleted: false,
+              kontyraConnected: isKontyraSession,
+              kontyraUid: isKontyraSession ? user.uid : undefined,
+              kontyraEmail: isKontyraSession ? (kEmail || undefined) : undefined,
+              linkedAccounts: isKontyraSession ? ['kontyra'] : [],
             };
             await setDoc(newProfileRef, {
               ...newProfile,

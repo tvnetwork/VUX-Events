@@ -35,6 +35,10 @@ export interface UserProfile {
   isVerified?: boolean;
   createdAt: string;
   passkeys?: Passkey[];
+  kontyraUid?: string;
+  kontyraEmail?: string;
+  kontyraConnected?: boolean;
+  linkedAccounts?: string[];
   preferences?: {
     emailNotifications: boolean;
     pushNotifications: boolean;

@@ -60,11 +60,17 @@ export function SSOCallback() {
 
     if (extractedEmail) {
       sessionStorage.setItem('kontyra_sso_email', extractedEmail);
+      localStorage.setItem('kontyra_email', extractedEmail);
     }
+    localStorage.setItem('kontyra_connected', 'true');
+    localStorage.setItem('kontyra_connected_at', new Date().toISOString());
+
+    const returnUrl = searchParams.get('returnUrl') || (searchParams.get('linkAccount') === 'true' ? '/settings' : '/');
 
     const processAuth = async () => {
       try {
         const userCred = await signInWithCustomToken(auth, token);
+        localStorage.setItem('kontyra_uid', userCred.user.uid);
         
         // Also check refreshed ID token claims
         try {
@@ -72,6 +78,7 @@ export function SSOCallback() {
           const claimEmail = (idToken.claims.email as string) || (idToken.claims.userEmail as string);
           if (claimEmail) {
             sessionStorage.setItem('kontyra_sso_email', claimEmail);
+            localStorage.setItem('kontyra_email', claimEmail);
           }
         } catch (e) {
           console.warn('ID token claims check skipped:', e);
@@ -80,7 +87,7 @@ export function SSOCallback() {
         setStatus('success');
         // Brief moment to show success state before redirecting
         setTimeout(() => {
-          navigate('/', { replace: true });
+          navigate(returnUrl, { replace: true });
         }, 800);
       } catch (err: any) {
         console.error('Kontyra SSO sign-in failed:', err);
