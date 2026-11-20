@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Component } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getSafeAvatarUrl } from '../../lib/utils';
 import {
-  Menu,
   X,
   LayoutGrid,
-  ChevronRight,
   ExternalLink,
   User as UserIcon,
   LogOut,
@@ -24,6 +22,20 @@ import {
   LayoutDashboard,
   Settings2,
 } from 'lucide-react';
+
+// Minimal error boundary to prevent nav crashes from blanking the page
+class NavErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(err: Error) { console.warn('[MobileNavbar] Render error caught:', err.message); }
+  render() {
+    if (this.state.hasError) return null;
+    return this.props.children;
+  }
+}
 
 export interface EcosystemApp {
   id: string;
@@ -182,8 +194,9 @@ export const MobileNavbar: React.FC<MobileNavbarProps> = ({
   ];
 
   return (
-    <>
-      {/* Kontyra Standard 08: 56px Mobile Header Bar (< 768px) */}
+    <NavErrorBoundary>
+      <>
+        {/* Kontyra Standard 08: 56px Mobile Header Bar (< 768px) */}
       <header className="md:hidden sticky top-0 z-40 h-14 w-full bg-black/85 backdrop-blur-xl border-b border-white/[0.08] px-4 flex items-center justify-between">
         {/* Brand Lockup */}
         <Link to="/" className="flex items-center gap-2.5">
@@ -246,14 +259,15 @@ export const MobileNavbar: React.FC<MobileNavbarProps> = ({
                   {ecosystemApps.map((app) => {
                     const Icon = app.icon;
                     const isCurrent = app.id === 'vux';
+                    if (!Icon) return null;
                     return (
                       <a
                         key={app.id}
-                        href={app.url}
+                        href={isCurrent ? undefined : app.url}
                         target={isCurrent ? undefined : '_blank'}
                         rel={isCurrent ? undefined : 'noopener noreferrer'}
                         onClick={() => setAppSwitcherOpen(false)}
-                        className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all ${
+                        className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all cursor-pointer ${
                           isCurrent
                             ? 'bg-white/10 border-white/20'
                             : 'bg-white/[0.02] hover:bg-white/[0.08] border-white/5'
@@ -270,10 +284,13 @@ export const MobileNavbar: React.FC<MobileNavbarProps> = ({
                             <span className="text-[8px] font-mono uppercase px-1 py-0.5 rounded bg-white/5 text-zinc-400">
                               {app.badge}
                             </span>
+                            {isCurrent && (
+                              <span className="text-[8px] font-mono uppercase px-1 py-0.5 rounded bg-pink-500/20 text-pink-400">Here</span>
+                            )}
                           </div>
                           <p className="text-[10px] text-zinc-400 truncate">{app.tagline}</p>
                         </div>
-                        <ExternalLink className="w-3 h-3 text-zinc-600 shrink-0" />
+                        {!isCurrent && <ExternalLink className="w-3 h-3 text-zinc-600 shrink-0" />}
                       </a>
                     );
                   })}
@@ -380,13 +397,16 @@ export const MobileNavbar: React.FC<MobileNavbarProps> = ({
               <div className="grid grid-cols-2 gap-2">
                 {ecosystemApps.slice(0, 4).map((app) => {
                   const Icon = app.icon;
+                  const isCurrent = app.id === 'vux';
+                  if (!Icon) return null;
                   return (
                     <a
                       key={app.id}
-                      href={app.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all group"
+                      href={isCurrent ? undefined : app.url}
+                      onClick={isCurrent ? () => setIsOpen(false) : undefined}
+                      target={isCurrent ? undefined : '_blank'}
+                      rel={isCurrent ? undefined : 'noopener noreferrer'}
+                      className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all group cursor-pointer"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
@@ -396,7 +416,11 @@ export const MobileNavbar: React.FC<MobileNavbarProps> = ({
                           {app.name}
                         </span>
                       </div>
-                      <ExternalLink className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400 shrink-0" />
+                      {isCurrent ? (
+                        <span className="text-[8px] font-mono uppercase px-1.5 py-0.5 rounded bg-pink-500/20 text-pink-400 shrink-0">Here</span>
+                      ) : (
+                        <ExternalLink className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400 shrink-0" />
+                      )}
                     </a>
                   );
                 })}
@@ -458,5 +482,6 @@ export const MobileNavbar: React.FC<MobileNavbarProps> = ({
         </div>
       )}
     </>
+    </NavErrorBoundary>
   );
 };
