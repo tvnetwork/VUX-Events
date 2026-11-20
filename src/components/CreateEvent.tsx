@@ -120,8 +120,17 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
       const isEditing = !!eventToEdit;
       const eventId = eventToEdit ? eventToEdit.id : Math.random().toString(36).substring(7);
       
+      const cleanedRegistrationFields = (formData.registrationFields || [])
+        .filter(f => f && typeof f.label === 'string' && f.label.trim().length > 0)
+        .map(f => ({
+          ...f,
+          label: f.label.trim(),
+          options: f.options ? f.options.filter(o => typeof o === 'string' && o.trim().length > 0) : undefined
+        }));
+
       const eventData = {
         ...formData,
+        registrationFields: cleanedRegistrationFields,
         id: eventId,
         hostId: user.uid,
         hostName: user.displayName || 'VUX Host',

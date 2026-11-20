@@ -236,8 +236,10 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
     }
   };
 
+  const validRegistrationFields = (event.registrationFields || []).filter(f => f && typeof f.label === 'string' && f.label.trim().length > 0);
+
   const handleRSVPTrigger = () => {
-    if ((event.registrationFields && event.registrationFields.length > 0) || !user || !profile) {
+    if (validRegistrationFields.length > 0 || !user || !profile) {
       setShowGuestForm(true);
     } else {
       handleRSVP(false);
@@ -256,9 +258,9 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
   const handleRSVP = async (isGuest = false) => {
     if (!event) return;
 
-    // Validate required custom fields
-    if (event.registrationFields && event.registrationFields.length > 0) {
-      for (const field of event.registrationFields) {
+    // Validate required custom fields (ignoring empty/invalid field definitions)
+    if (validRegistrationFields.length > 0) {
+      for (const field of validRegistrationFields) {
         if (field.required) {
           const val = customFields[field.label];
           if (!val || (typeof val === 'string' && !val.trim())) {
@@ -702,11 +704,11 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                 </div>
               )}
 
-              {event.registrationFields && event.registrationFields.length > 0 && (
+              {validRegistrationFields.length > 0 && (
                 <div className="space-y-3 pt-3 border-t border-white/[0.08]">
                   <p className="text-xs font-semibold text-purple-400 uppercase tracking-wider">Registration Details</p>
                   <div className="space-y-3">
-                    {event.registrationFields.map((field, idx) => (
+                    {validRegistrationFields.map((field, idx) => (
                       <div key={idx} className="space-y-1">
                         <label className="text-xs font-semibold text-zinc-300">
                           {field.label} {field.required && <span className="text-rose-400">*</span>}
@@ -718,19 +720,19 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                             value={customFields[field.label] || ''}
                             onChange={(e) => setCustomFields(prev => ({ ...prev, [field.label]: e.target.value }))}
                             className="w-full h-24 bg-white/[0.03] border border-white/10 rounded-xl p-3 text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-purple-500/70 transition-all resize-none"
-                            placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}...`}
+                            placeholder={field.placeholder || `Enter ${field.label.trim().toLowerCase()}...`}
                           />
                         ) : field.type === 'select' ? (
                           <Select 
                             value={customFields[field.label] || ''}
                             onChange={(val) => setCustomFields(prev => ({ ...prev, [field.label]: val }))}
-                            options={(field.options || []).map(opt => ({ value: opt, label: opt }))}
+                            options={(field.options || []).filter(opt => typeof opt === 'string' && opt.trim().length > 0).map(opt => ({ value: opt, label: opt }))}
                             placeholder="Select an option"
                             className="h-11"
                           />
                         ) : field.type === 'multichoice' ? (
                           <div className="space-y-1.5 pt-1">
-                            {(field.options || []).map((opt, oIdx) => {
+                            {(field.options || []).filter(opt => typeof opt === 'string' && opt.trim().length > 0).map((opt, oIdx) => {
                               const rawVal = customFields[field.label];
                               const currentSelected: string[] = Array.isArray(rawVal) 
                                 ? rawVal 
@@ -778,7 +780,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
                             value={customFields[field.label] || ''}
                             onChange={(e) => setCustomFields(prev => ({ ...prev, [field.label]: e.target.value }))}
                             className="w-full h-11 bg-white/[0.03] border border-white/10 rounded-xl px-3.5 text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-purple-500/70 transition-all"
-                            placeholder={field.placeholder || `Enter your ${field.label.toLowerCase()}`}
+                            placeholder={field.placeholder || `Enter your ${field.label.trim().toLowerCase()}`}
                           />
                         )}
                       </div>
