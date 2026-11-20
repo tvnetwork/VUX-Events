@@ -169,18 +169,21 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
       const rsvpList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as RSVP));
       setRsvps(rsvpList);
       
-      // If we have a user, find their RSVP
-      if (user) {
+      // If we have a user or profile, find their RSVP
+      if (user || profile) {
         const found = rsvpList.find(r => 
-          r.userId === user.uid || 
-          (r.userEmail && user.email && r.userEmail.toLowerCase() === user.email.toLowerCase())
+          (user && r.userId === user.uid) || 
+          (r.userEmail && (
+            (user?.email && r.userEmail.toLowerCase() === user.email.toLowerCase()) ||
+            (profile?.email && r.userEmail.toLowerCase() === profile.email.toLowerCase())
+          ))
         );
         setUserRSVP(found || null);
       } else {
         // If guest, try to find by email in localStorage if we previously RSVP'd as guest
         const guestEmail = localStorage.getItem(`guest_rsvp_${event.id}`);
         if (guestEmail) {
-          const found = rsvpList.find(r => r.userEmail === guestEmail);
+          const found = rsvpList.find(r => r.userEmail.toLowerCase() === guestEmail.toLowerCase());
           setUserRSVP(found || null);
         }
       }
@@ -189,7 +192,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
     });
 
     return unsubscribe;
-  }, [event.id, user]);
+  }, [event.id, user, profile?.email]);
 
   useEffect(() => {
     if (!event.id) return;
@@ -269,11 +272,22 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
     setIsRSVPLoading(true);
     setRsvpError(null);
     try {
-      const emailToRegister = (isGuest ? guestInfo.email : user!.email || '').toLowerCase().trim();
+      const emailToRegister = (
+        isGuest 
+          ? guestInfo.email 
+          : (profile?.email || user?.email || (typeof window !== 'undefined' ? (sessionStorage.getItem('kontyra_sso_email') || localStorage.getItem('kontyra_email')) : '') || '')
+      ).toLowerCase().trim();
+
+      if (!emailToRegister) {
+        setRsvpError('Please provide a valid email address to receive your event pass.');
+        setShowGuestForm(true);
+        setIsRSVPLoading(false);
+        return;
+      }
       
       // Check if already registered
       const isAlreadyRegistered = rsvps.some(
-        r => r.userEmail.toLowerCase() === emailToRegister && r.status !== 'declined' && r.status !== 'revoked'
+        r => r.userEmail && r.userEmail.toLowerCase() === emailToRegister && r.status !== 'declined' && r.status !== 'revoked'
       );
       if (isAlreadyRegistered) {
         setRsvpError('This email is already registered for this event.');
@@ -282,7 +296,8 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
       }
 
       // Use email as a deterministic ID to prevent duplicates at the DB level
-      const rsvpId = emailToRegister.replace(/[^a-zA-Z0-9@.]/g, '_');
+      const sanitizedEmail = emailToRegister.replace(/[^a-zA-Z0-9@.]/g, '_');
+      const rsvpId = sanitizedEmail || user?.uid || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `rsvp_${Date.now()}`);
       const ticketCode = `VUX-TKT-${rsvpId.substring(0, 8).toUpperCase()}`;
       const rsvpStatus = isFull ? 'waitlist' : (event.isApprovalRequired ? 'pending' : 'approved');
 
@@ -291,8 +306,8 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
         eventId: event.id,
         userId: user?.uid || rsvpId,
         userEmail: emailToRegister,
-        userDisplayName: isGuest ? guestInfo.name : profile!.displayName,
-        userPhotoURL: isGuest ? getAvatarUrl(guestInfo.email) : profile!.photoURL,
+        userDisplayName: isGuest ? (guestInfo.name || 'Guest') : (profile?.displayName || user?.displayName || 'Attendee'),
+        userPhotoURL: isGuest ? getAvatarUrl(guestInfo.email) : (profile?.photoURL || user?.photoURL || getAvatarUrl(emailToRegister)),
         status: rsvpStatus,
         ticketCode,
         customFields: { ...customFields },
@@ -323,17 +338,22 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
             return;
           }
           // Fallback to direct client Firestore write
+          if (event.id && rsvpId) {
+            await setDoc(doc(db, 'events', event.id, 'rsvps', rsvpId), {
+              ...rsvpData,
+              createdAt: serverTimestamp(),
+            });
+          }
+        }
+      } catch (fetchErr) {
+        console.warn('Server RSVP endpoint failed, falling back to direct Firestore write:', fetchErr);
+        // Fallback to direct client Firestore write
+        if (event.id && rsvpId) {
           await setDoc(doc(db, 'events', event.id, 'rsvps', rsvpId), {
             ...rsvpData,
             createdAt: serverTimestamp(),
           });
         }
-      } catch {
-        // Fallback to direct client Firestore write
-        await setDoc(doc(db, 'events', event.id, 'rsvps', rsvpId), {
-          ...rsvpData,
-          createdAt: serverTimestamp(),
-        });
       }
 
       if (isGuest) {
@@ -387,7 +407,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
   };
 
   const handleCancelRSVP = async () => {
-    if (!userRSVP || !event) return;
+    if (!userRSVP?.id || !event?.id) return;
     
     setIsRSVPLoading(true);
     try {

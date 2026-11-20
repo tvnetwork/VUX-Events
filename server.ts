@@ -818,11 +818,20 @@ export async function createServer() {
       const { eventId } = req.params;
       const { email, displayName, photoURL, customFields, shareProfile, userId } = req.body || {};
 
-      if (!eventId || !email) {
+      let emailNormalized = (email || '').trim().toLowerCase();
+      if (!emailNormalized && userId) {
+        try {
+          const userDoc = await db.collection('users').doc(userId).get();
+          if (userDoc.exists) {
+            emailNormalized = (userDoc.data()?.email || '').trim().toLowerCase();
+          }
+        } catch (_) {}
+      }
+
+      if (!eventId || !emailNormalized) {
         return res.status(400).json({ error: 'Event ID and email are required' });
       }
 
-      const emailNormalized = email.trim().toLowerCase();
       const rsvpId = emailNormalized.replace(/[^a-zA-Z0-9@.]/g, '_');
       const ticketCode = `VUX-TKT-${rsvpId.substring(0, 8).toUpperCase()}`;
 

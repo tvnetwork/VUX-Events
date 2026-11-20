@@ -101,6 +101,7 @@ export function TicketWallet() {
   }, [user]);
 
   const handleCancelRegistration = async (item: TicketItem) => {
+    if (!item.event?.id || !item.rsvp?.id) return;
     if (!window.confirm(`Are you sure you want to cancel your ticket for "${item.event.title}"?`)) {
       return;
     }
