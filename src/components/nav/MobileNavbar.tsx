@@ -378,25 +378,28 @@ export const MobileNavbar: React.FC<MobileNavbarProps> = ({
                 Kontyra Portals
               </p>
               <div className="grid grid-cols-2 gap-2">
-                {apps.slice(0, 4).map((app) => (
-                  <a
-                    key={app.id}
-                    href={app.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all group"
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
-                        <img src={app.icon} alt={app.name} className="w-3.5 h-3.5 object-contain" />
+                {ecosystemApps.slice(0, 4).map((app) => {
+                  const Icon = app.icon;
+                  return (
+                    <a
+                      key={app.id}
+                      href={app.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all group"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                          <Icon className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white" />
+                        </div>
+                        <span className="text-[11px] font-medium text-zinc-300 group-hover:text-white truncate">
+                          {app.name}
+                        </span>
                       </div>
-                      <span className="text-[11px] font-medium text-zinc-300 group-hover:text-white truncate">
-                        {app.name}
-                      </span>
-                    </div>
-                    <ExternalLink className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400 shrink-0" />
-                  </a>
-                ))}
+                      <ExternalLink className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400 shrink-0" />
+                    </a>
+                  );
+                })}
               </div>
             </div>
 

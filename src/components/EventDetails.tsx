@@ -383,6 +383,13 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
           eventId: event.id,
           organizerEmail: event.hostEmail || undefined,
         }),
+      }).then(async res => {
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          console.warn('[Email] RSVP confirmation endpoint returned status', res.status, errData);
+        } else {
+          console.log('[Email] RSVP confirmation successfully sent');
+        }
       }).catch(e => console.error('Failed to send RSVP email:', e));
 
       PulseService.sendPulse('RSVP', `${rsvpData.userDisplayName} RSVP'd to ${event.title}`, rsvpData.userId, { eventId: event.id, eventTitle: event.title, isGuest });

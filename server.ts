@@ -95,20 +95,67 @@ export async function sendTransactionalEmail({
 }) {
   const resolvedFrom = resolveFromAddress(from);
 
+  // Convert attachments to base64 for Resend REST API compliance (prevents JSON buffer serialization corruption)
+  const safeResendAttachments = attachments.map(a => {
+    let base64Content: string;
+    if (Buffer.isBuffer(a.content)) {
+      base64Content = a.content.toString('base64');
+    } else if (typeof a.content === 'string') {
+      base64Content = Buffer.from(a.content).toString('base64');
+    } else {
+      base64Content = Buffer.from(String(a.content || '')).toString('base64');
+    }
+    return {
+      filename: a.filename,
+      content: base64Content,
+    };
+  });
+
   // 1. Try Resend if configured (Kontyra Primary Provider for custom domain deliverability)
   if (resendClient) {
     try {
-      const res = await resendClient.emails.send({
+      let res = await resendClient.emails.send({
         from: resolvedFrom,
         to,
         subject,
         html,
         replyTo,
-        attachments: attachments.map(a => ({
-          filename: a.filename,
-          content: Buffer.isBuffer(a.content) ? a.content : Buffer.from(a.content)
-        })),
+        attachments: safeResendAttachments,
       });
+
+      if (res.error) {
+        console.warn('[Email][Resend] Initial send error:', res.error);
+        const errMsg = String(res.error.message || JSON.stringify(res.error));
+
+        // If domain not verified or sender address rejected by Resend, attempt fallback to onboarding@resend.dev
+        if (
+          errMsg.toLowerCase().includes('not verified') ||
+          errMsg.toLowerCase().includes('domain') ||
+          errMsg.toLowerCase().includes('from') ||
+          res.error.name === 'validation_error'
+        ) {
+          console.log('[Email][Resend] Retrying with onboarding@resend.dev sender fallback...');
+          const retryRes = await resendClient.emails.send({
+            from: 'VUX Events <onboarding@resend.dev>',
+            to,
+            subject,
+            html,
+            replyTo,
+            attachments: safeResendAttachments,
+          });
+
+          if (!retryRes.error && retryRes.data?.id) {
+            console.log('[Email][Resend] Email sent to', to, 'via onboarding fallback:', retryRes.data.id);
+            return { success: true, provider: 'resend-onboarding', id: retryRes.data.id };
+          }
+          if (retryRes.error) {
+            console.warn('[Email][Resend] Onboarding fallback error:', retryRes.error);
+          }
+        }
+
+        throw new Error(`Resend Error: ${errMsg}`);
+      }
+
       console.log('[Email][Resend] Email sent to', to, res.data?.id);
       return { success: true, provider: 'resend', id: res.data?.id };
     } catch (err: any) {
@@ -127,14 +174,31 @@ export async function sendTransactionalEmail({
         secure: process.env.SMTP_PORT === '465',
         auth: { user: smtpUser || 'events@kontyra.name.ng', pass: smtpPass },
       });
-      const info = await transporter.sendMail({
-        from: resolvedFrom,
-        replyTo,
-        to,
-        subject,
-        html,
-        attachments,
-      });
+      let info;
+      try {
+        info = await transporter.sendMail({
+          from: resolvedFrom,
+          replyTo,
+          to,
+          subject,
+          html,
+          attachments,
+        });
+      } catch (smtpFromErr: any) {
+        if (smtpUser && smtpUser.includes('@')) {
+          console.warn('[Email][SMTP] Retrying with direct smtpUser as from address:', smtpFromErr.message);
+          info = await transporter.sendMail({
+            from: `VUX Events <${smtpUser}>`,
+            replyTo,
+            to,
+            subject,
+            html,
+            attachments,
+          });
+        } else {
+          throw smtpFromErr;
+        }
+      }
       console.log('[Email][SMTP] Email sent to', to, info.messageId);
       return { success: true, provider: 'smtp', id: info.messageId };
     } catch (err: any) {
@@ -194,8 +258,9 @@ export async function createServer() {
     return hostname;
   };
 
-  // Register the API router
+  // Register the API router for both /api prefixed routes and direct routes
   app.use('/api', apiRouter);
+  app.use(apiRouter);
 
   // --- OTP Endpoints (on apiRouter) ---
 
