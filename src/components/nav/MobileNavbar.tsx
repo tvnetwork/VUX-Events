@@ -282,53 +282,69 @@ export const MobileNavbar: React.FC<MobileNavbarProps> = ({
             )}
           </div>
 
-          {/* Hamburger Drawer Toggle */}
+          {/* Asymmetric Pulse Dash Menu Trigger */}
           <button
             onClick={() => {
               setIsOpen(!isOpen);
               if (appSwitcherOpen) setAppSwitcherOpen(false);
             }}
-            className="p-2 text-white bg-white/5 rounded-xl border border-white/10 active:scale-95 transition-transform"
-            aria-label="Toggle navigation drawer"
+            className="p-2 rounded-xl text-white/80 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 active:scale-95 transition-all cursor-pointer flex items-center justify-center"
+            aria-label={isOpen ? "Close navigation drawer" : "Open navigation drawer"}
           >
-            {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {isOpen ? (
+              <X className="w-5 h-5 text-white" />
+            ) : (
+              <div className="w-6 h-5 flex flex-col justify-center items-end gap-1.5 group">
+                <span className="w-5 h-[2px] rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-300 group-hover:w-6" />
+                <span className="w-3.5 h-[2px] rounded-full bg-gradient-to-r from-blue-500 to-pink-500 transition-all duration-300 group-hover:w-5 relative">
+                  <span className="absolute -left-1.5 -top-[2px] w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping opacity-75" />
+                </span>
+              </div>
+            )}
           </button>
         </div>
       </header>
 
-      {/* Slide-Over Navigation Drawer */}
+      {/* Vercel-Style Bottom-Sheet Navigation Drawer */}
       {isOpen && (
-        <div className="md:hidden fixed inset-0 z-50 flex justify-end">
+        <div className="md:hidden fixed inset-0 z-50 flex flex-col justify-end">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
             onClick={() => setIsOpen(false)}
           />
 
-          {/* Drawer Body */}
-          <div className="relative w-80 max-w-[85vw] h-full bg-[#050508] border-l border-white/10 p-5 flex flex-col justify-between shadow-2xl z-10 animate-in slide-in-from-right duration-200">
-            {/* Top Row */}
-            <div className="space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
-                    <img src="/logo.svg" alt={appName} className="w-4 h-4 object-contain" />
-                  </div>
-                  <span className="font-extrabold text-sm text-white uppercase">{appName}</span>
-                </div>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+          {/* Bottom Sheet Body */}
+          <div className="relative w-full max-h-[85vh] bg-[#07090e]/95 backdrop-blur-2xl border-t border-white/15 rounded-t-[32px] overflow-y-auto shadow-2xl p-6 pb-12 flex flex-col z-10 animate-in slide-in-from-bottom duration-300">
+            {/* Grab Handle */}
+            <div className="w-12 h-1.5 bg-white/20 hover:bg-white/30 rounded-full mx-auto mb-6 shrink-0" />
 
-              {/* Navigation Links */}
-              <div className="space-y-1">
-                <p className="text-[10px] font-mono uppercase text-zinc-500 tracking-wider px-3 mb-2">
-                  Navigation
-                </p>
+            {/* Top Row */}
+            <div className="flex items-center justify-between pb-4 border-b border-white/10 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center p-1.5">
+                  <img src="/logo.svg" alt={appName} className="w-full h-full object-contain" />
+                </div>
+                <div>
+                  <span className="font-extrabold text-sm text-white uppercase tracking-wider">{appName}</span>
+                  <span className="text-[10px] text-zinc-400 block -mt-0.5">Kontyra Ecosystem</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+                aria-label="Close menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Navigation Links */}
+            <div className="py-4 space-y-2">
+              <p className="text-[10px] font-mono uppercase text-zinc-500 tracking-wider px-1">
+                Navigation
+              </p>
+              <div className="grid grid-cols-2 gap-2">
                 {navLinks.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
@@ -337,32 +353,59 @@ export const MobileNavbar: React.FC<MobileNavbarProps> = ({
                       key={item.path}
                       to={item.path}
                       onClick={() => setIsOpen(false)}
-                      className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                      className={`flex items-center gap-2.5 px-3.5 py-3 rounded-2xl text-xs font-semibold transition-all ${
                         isActive
-                          ? 'bg-white/10 text-white border border-white/15'
-                          : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                          ? 'bg-white/10 text-white border border-white/15 shadow-sm'
+                          : 'text-zinc-300 hover:text-white bg-white/[0.02] hover:bg-white/5 border border-white/5'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5">
+                      <div className="p-1.5 rounded-lg bg-white/5 shrink-0">
                         <Icon
                           className="w-4 h-4"
                           style={{ color: isActive ? accentColor : undefined }}
                         />
-                        <span>{item.label}</span>
                       </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
+                      <span className="truncate">{item.label}</span>
                     </Link>
                   );
                 })}
               </div>
             </div>
 
+            {/* Ecosystem Portals Quick Access */}
+            <div className="py-3 space-y-2 border-t border-white/10">
+              <p className="text-[10px] font-mono uppercase text-zinc-500 tracking-wider px-1">
+                Kontyra Portals
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {apps.slice(0, 4).map((app) => (
+                  <a
+                    key={app.id}
+                    href={app.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all group"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                        <img src={app.icon} alt={app.name} className="w-3.5 h-3.5 object-contain" />
+                      </div>
+                      <span className="text-[11px] font-medium text-zinc-300 group-hover:text-white truncate">
+                        {app.name}
+                      </span>
+                    </div>
+                    <ExternalLink className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400 shrink-0" />
+                  </a>
+                ))}
+              </div>
+            </div>
+
             {/* Bottom User / Session Section */}
-            <div className="pt-4 border-t border-white/10">
+            <div className="pt-4 mt-auto border-t border-white/10 shrink-0">
               {isAuthenticated ? (
-                <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/5">
+                <div className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.03] border border-white/5">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white text-xs font-bold overflow-hidden shrink-0">
                       {user?.avatarUrl ? (
                         <img 
                           src={getSafeAvatarUrl(user.avatarUrl, user.name || 'User')} 
@@ -387,7 +430,7 @@ export const MobileNavbar: React.FC<MobileNavbarProps> = ({
                         onSignOut();
                         setIsOpen(false);
                       }}
-                      className="p-1.5 text-zinc-400 hover:text-rose-400 hover:bg-white/5 rounded-lg transition-colors"
+                      className="p-2 text-zinc-400 hover:text-rose-400 hover:bg-white/5 rounded-xl transition-colors shrink-0"
                       title="Sign Out"
                     >
                       <LogOut className="w-4 h-4" />
@@ -401,7 +444,7 @@ export const MobileNavbar: React.FC<MobileNavbarProps> = ({
                       onSignIn();
                       setIsOpen(false);
                     }}
-                    className="w-full py-2.5 bg-white text-black font-bold text-xs rounded-xl hover:bg-zinc-200 transition-colors shadow-lg"
+                    className="w-full py-3 bg-white text-black font-bold text-xs rounded-xl hover:bg-zinc-200 transition-colors shadow-lg"
                   >
                     Sign In with Kontyra
                   </button>

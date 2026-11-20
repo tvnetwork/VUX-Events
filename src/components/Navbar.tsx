@@ -41,12 +41,22 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
     <nav className="sticky top-0 z-50 w-full glass border-b border-white/5 h-20 flex items-center justify-center px-4 lg:px-8">
       <div className="max-w-[1280px] w-full flex items-center justify-between">
         <div className="flex items-center gap-4">
-          {/* Mobile Menu Button */}
+          {/* Asymmetric Pulse Dash Menu Trigger */}
           <button 
             onClick={() => setShowMobileMenu(!showMobileMenu)}
-            className="md:hidden p-2 text-white/70 hover:text-white transition-colors"
+            className="md:hidden p-2 rounded-xl text-white/80 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 active:scale-95 transition-all cursor-pointer flex items-center justify-center"
+            aria-label={showMobileMenu ? "Close navigation menu" : "Open navigation menu"}
           >
-            {showMobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {showMobileMenu ? (
+              <X className="w-5 h-5 text-white" />
+            ) : (
+              <div className="w-6 h-5 flex flex-col justify-center items-end gap-1.5 group">
+                <span className="w-5 h-[2px] rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-300 group-hover:w-6" />
+                <span className="w-3.5 h-[2px] rounded-full bg-gradient-to-r from-blue-500 to-pink-500 transition-all duration-300 group-hover:w-5 relative">
+                  <span className="absolute -left-1.5 -top-[2px] w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping opacity-75" />
+                </span>
+              </div>
+            )}
           </button>
 
           {/* Left: Logo */}
@@ -226,32 +236,61 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
     </nav>
     <AnimatePresence>
       {showMobileMenu && (
-        <>
-          <div className="fixed inset-0 z-40 md:hidden bg-black/20 backdrop-blur-sm" onClick={() => setShowMobileMenu(false)} />
+        <div className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-x-0 top-20 z-[45] md:hidden bg-[#0b0b0f]/95 backdrop-blur-xl border-b border-white/5 shadow-2xl p-6 space-y-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm"
+            onClick={() => setShowMobileMenu(false)}
+          />
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 28, stiffness: 320 }}
+            className="relative w-full max-h-[85vh] bg-[#07090e]/95 backdrop-blur-2xl border-t border-white/15 rounded-t-[32px] overflow-y-auto shadow-2xl p-6 pb-12 flex flex-col z-10"
           >
-            <div className="grid grid-cols-1 gap-2">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => { onTabChange(item.id); setShowMobileMenu(false); }}
-                  className={cn(
-                    'w-full text-left px-6 py-4 text-[11px] font-black tracking-[0.3em] transition-all rounded-2xl uppercase italic',
-                    activeTab === item.id 
-                        ? 'text-white bg-white/10 shadow-lg' 
-                        : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
-                  )}
-                >
-                  {item.label}
-                </button>
-              ))}
+            {/* Grab Handle */}
+            <div className="w-12 h-1.5 bg-white/20 hover:bg-white/30 rounded-full mx-auto mb-6 shrink-0" />
+
+            <div className="flex items-center justify-between pb-4 border-b border-white/10 shrink-0">
+              <Logo className="gap-2 sm:gap-4" />
+              <button
+                onClick={() => setShowMobileMenu(false)}
+                className="p-1.5 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+                aria-label="Close menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="py-4 space-y-2">
+              <p className="text-[10px] font-mono uppercase text-zinc-500 tracking-wider px-1">
+                Navigation
+              </p>
+              <div className="grid grid-cols-1 gap-2">
+                {navItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => { onTabChange(item.id); setShowMobileMenu(false); }}
+                    className={cn(
+                      'w-full text-left px-5 py-3.5 text-xs font-black tracking-[0.2em] transition-all rounded-2xl uppercase italic flex items-center justify-between',
+                      activeTab === item.id 
+                          ? 'text-white bg-white/10 border border-white/15 shadow-lg' 
+                          : 'text-white/50 hover:text-white/80 hover:bg-white/[0.03] border border-white/5'
+                    )}
+                  >
+                    <span>{item.label}</span>
+                    {activeTab === item.id && (
+                      <span className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500" />
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
             
-            <div className="pt-6 border-t border-white/5 flex flex-col gap-3">
+            <div className="pt-4 border-t border-white/10 flex flex-col gap-3">
                <Button 
                   variant="vux" 
                   className="w-full h-14 rounded-2xl text-[10px] font-black uppercase tracking-widest gap-3"
@@ -281,7 +320,7 @@ export function Navbar({ activeTab, onTabChange, onSearchClick, onCreateClick, o
                </div>
             </div>
           </motion.div>
-        </>
+        </div>
       )}
     </AnimatePresence>
     </>
