@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../AuthContext';
-import { Search, Bell, Plus, User, LogOut, Settings as SettingsIcon, Shield, Menu, X, LayoutDashboard, Compass, Settings2, ShieldCheck, UserCircle, LucideIcon, Code2, ListOrdered, Ticket } from 'lucide-react';
+import { Plus, User, LogOut, Settings as SettingsIcon, LayoutDashboard, Compass, Settings2, ShieldCheck, UserCircle, LucideIcon, Code2, ListOrdered, Ticket } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from './ui/Button';
 import { Avatar } from './ui/Avatar';
@@ -138,19 +138,6 @@ export function Sidebar({ onSearchClick, onCreateClick, onLoginClick }: {
           )}
         </div>
       </nav>
-
-      {/* Backdrop for mobile */}
-      <AnimatePresence>
-        {showMobileMenu && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowMobileMenu(false)}
-            className="md:hidden fixed inset-0 z-30 bg-black/50 backdrop-blur-sm"
-          />
-        )}
-      </AnimatePresence>
     </>
   );
 }
