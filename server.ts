@@ -127,43 +127,18 @@ export async function sendTransactionalEmail({
         console.warn('[Email][Resend] Initial send error:', res.error);
         const errMsg = String(res.error.message || JSON.stringify(res.error));
 
-        // If domain not verified or sender address rejected by Resend, attempt fallback to onboarding@resend.dev
-        if (
-          errMsg.toLowerCase().includes('not verified') ||
-          errMsg.toLowerCase().includes('domain') ||
-          errMsg.toLowerCase().includes('from') ||
-          res.error.name === 'validation_error'
-        ) {
-          console.log('[Email][Resend] Retrying with onboarding@resend.dev sender fallback...');
-          const retryRes = await resendClient.emails.send({
-            from: 'VUX Events <onboarding@resend.dev>',
-            to,
-            subject,
-            html,
-            replyTo,
-            attachments: safeResendAttachments,
-          });
-
-          if (!retryRes.error && retryRes.data?.id) {
-            console.log('[Email][Resend] Email sent to', to, 'via onboarding fallback:', retryRes.data.id);
-            return { success: true, provider: 'resend-onboarding', id: retryRes.data.id };
-          }
-          if (retryRes.error) {
-            console.warn('[Email][Resend] Onboarding fallback error:', retryRes.error);
-          }
-        }
-
         throw new Error(`Resend Error: ${errMsg}`);
       }
 
       console.log('[Email][Resend] Email sent to', to, res.data?.id);
       return { success: true, provider: 'resend', id: res.data?.id };
     } catch (err: any) {
-      console.warn('[Email][Resend] Provider error, falling back to SMTP:', err.message);
+      console.error('[Email][Resend] Send failed; refusing to switch providers:', err.message);
+      throw err;
     }
   }
 
-  // 2. Try Nodemailer SMTP if configured
+  // Use SMTP only when Resend is not configured.
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
   if (smtpPass) {
@@ -614,6 +589,42 @@ export async function createServer() {
     } catch (error: any) {
       console.error('[Email] Waitlist Email Error:', error);
       return res.status(500).json({ error: 'Failed to send waitlist email' });
+    }
+  });
+
+  apiRouter.post('/email/waitlist-confirmation', async (req, res) => {
+    try {
+      const { waitlistId, entryId } = req.body || {};
+      if (typeof waitlistId !== 'string' || typeof entryId !== 'string') {
+        return res.status(400).json({ error: 'Waitlist and entry are required' });
+      }
+
+      const [waitlistSnap, entrySnap] = await Promise.all([
+        db.collection('waitlists').doc(waitlistId).get(),
+        db.collection('waitlists').doc(waitlistId).collection('entries').doc(entryId).get(),
+      ]);
+      if (!waitlistSnap.exists || !entrySnap.exists) {
+        return res.status(404).json({ error: 'Waitlist signup not found' });
+      }
+
+      const waitlist = waitlistSnap.data()!;
+      const entry = entrySnap.data()!;
+      const safeName = String(entry.name || 'there').replace(/[&<>"']/g, (char: string) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[char]!));
+      const safeTitle = String(waitlist.title || 'our waitlist').replace(/[&<>"']/g, (char: string) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[char]!));
+
+      await sendTransactionalEmail({
+        to: entry.email,
+        subject: `We received your signup for ${waitlist.title || 'the waitlist'}`,
+        html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:32px auto;padding:32px;color:#18181b;border:1px solid #e4e4e7;border-radius:16px"><h1 style="font-size:22px">You&apos;re on the list, ${safeName}.</h1><p>We&apos;ve received your signup for <strong>${safeTitle}</strong>.</p><p>Your position is <strong>#${Number(entry.position) || 1}</strong>. We&apos;ll email you when there&apos;s an update.</p><p style="color:#71717a;font-size:13px">VUX Events</p></div>`,
+      });
+      return res.json({ success: true });
+    } catch (error: any) {
+      console.error('[Email] Waitlist confirmation failed:', error?.message);
+      return res.status(500).json({ error: 'Failed to send signup confirmation' });
     }
   });
 
@@ -1757,7 +1768,8 @@ export async function createServer() {
   });
 
   // API 404 handler for any unmatched routes inside the apiRouter
-  apiRouter.use((req, res) => {
+  apiRouter.use((req, res, next) => {
+    if (!req.originalUrl.startsWith('/api/')) return next();
     console.log(`[API 404] ${req.method} ${req.url}`);
     res.status(404).json({ 
       error: 'Not Found', 
