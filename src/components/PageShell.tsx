@@ -34,7 +34,7 @@ export function PageShell({ children }: PageShellProps) {
           onAuthClick={() => setIsAuthOpen(true)}
         />
         
-        <main className="flex-1 pt-24 pb-16">
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-16 pt-24 sm:px-6 lg:px-8">
           {children}
         </main>
 
