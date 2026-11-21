@@ -121,13 +121,13 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
   }
 
   return (
-    <div className="space-y-16 py-8">
+    <div className="space-y-10 py-2 sm:space-y-14 sm:py-6">
       {/* Dynamic Hero Section - Large Format */}
       {featuredEvent && (
         <motion.section 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative h-[400px] md:h-[600px] rounded-[32px] md:rounded-[48px] overflow-hidden group shadow-2xl mx-4"
+          className="relative h-[390px] sm:h-[460px] lg:h-[560px] rounded-3xl sm:rounded-[2rem] overflow-hidden group shadow-2xl"
         >
           <img 
             src={featuredEvent.coverImageUrl} 
@@ -195,7 +195,7 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
                  Personal Dashboard
                </span>
             </div>
-            <h2 className="text-5xl font-black italic tracking-tighter uppercase leading-[0.8] text-white">
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight leading-[0.95] text-white">
               {viewMode === 'attending' ? <>YOUR<br/>SCHEDULE</> : <>YOUR<br/>EVENTS</>}
             </h2>
           </div>
@@ -272,7 +272,7 @@ export function Dashboard({ onEventClick, onCreateClick, onEditEvent }: {
             {/* Visual Timeline Path */}
             <div className="absolute left-[39px] top-4 bottom-4 w-px bg-gradient-to-b from-purple-500 via-white/5 to-transparent hidden md:block" />
             
-            <div className="space-y-20 md:space-y-40">
+            <div className="space-y-14 sm:space-y-20">
                 {Object.entries(groupedEvents).map(([date, dateEvents], sectionIdx) => (
                     <TimelineSection 
                       key={date} 

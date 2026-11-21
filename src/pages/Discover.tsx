@@ -3,7 +3,7 @@ import { collection, query, onSnapshot, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Event } from '../types';
 import { motion } from 'motion/react';
-import { Search, Sparkles, Brain, Cpu, Coins, Music, Palette, ArrowRight, Ghost, Globe, Flame } from 'lucide-react';
+import { Search, Sparkles, Brain, Cpu, Coins, Music, Palette, ArrowRight, Ghost, Globe, Flame, MapPin } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -16,6 +16,7 @@ export function Discover({ onCreateClick, onEventClick }: { onCreateClick?: () =
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<{id: string, label: string, icon: any, color: string}[]>([]);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [nearbySort, setNearbySort] = useState(false);
@@ -84,12 +85,13 @@ export function Discover({ onCreateClick, onEventClick }: { onCreateClick?: () =
       
       const matchesTags = selectedTags.length === 0 || 
                          selectedTags.every(t => (e.tags || []).includes(t));
+      const matchesCategory = !selectedCategory || (e.category || '').toLowerCase() === selectedCategory;
 
       const isVisible = !e.isPrivate || (searchQuery.length > 5 && (e.id.includes(searchQuery) || e.title.toLowerCase().includes(searchQuery.toLowerCase())));
 
-      return matchesSearch && matchesTags && isVisible;
+      return matchesSearch && matchesTags && matchesCategory && isVisible;
     });
-  }, [featuredEvents, searchQuery, selectedTags]);
+  }, [featuredEvents, searchQuery, selectedTags, selectedCategory]);
 
   const sortedEvents = useMemo(() => {
     const sorted = [...filteredEvents];
@@ -144,6 +146,14 @@ export function Discover({ onCreateClick, onEventClick }: { onCreateClick?: () =
                 {nearbySort ? "Nearby" : "Find Nearby"}
              </button>
           </div>
+          <button
+            type="button"
+            onClick={() => setNearbySort(!nearbySort)}
+            className={cn("mt-3 inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition-colors sm:hidden", nearbySort ? "border-purple-400/40 bg-purple-500/15 text-purple-200" : "border-white/10 bg-white/[0.03] text-white/70")}
+          >
+            <MapPin className="h-4 w-4" />
+            {nearbySort ? "Sorting by nearby" : "Find events near me"}
+          </button>
         </div>
       </header>
 
@@ -153,7 +163,21 @@ export function Discover({ onCreateClick, onEventClick }: { onCreateClick?: () =
         </div>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {categories.map((cat) => (
-            <Card key={cat.id} hover={true} className="p-6 flex flex-col items-center gap-4 cursor-pointer group bg-black/40 backdrop-blur-xl border-white/[0.08] hover:border-purple-500/35 rounded-2xl relative overflow-hidden transition-all duration-300">
+            <Card
+              key={cat.id}
+              hover={true}
+              role="button"
+              tabIndex={0}
+              aria-pressed={selectedCategory === cat.id}
+              onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  setSelectedCategory(selectedCategory === cat.id ? null : cat.id);
+                }
+              }}
+              className={cn("p-5 sm:p-6 flex flex-col items-center gap-4 cursor-pointer group bg-black/40 backdrop-blur-xl rounded-2xl relative overflow-hidden transition-all duration-300", selectedCategory === cat.id ? "border-purple-400/60 bg-purple-500/10" : "border-white/[0.08] hover:border-purple-500/35")}
+            >
                 <div className="w-12 h-12 rounded-xl bg-white/[0.03] flex items-center justify-center border border-white/5 group-hover:border-purple-500/30 group-hover:bg-purple-500/10 transition-all duration-300">
                   {cat.icon}
                 </div>
@@ -196,7 +220,7 @@ export function Discover({ onCreateClick, onEventClick }: { onCreateClick?: () =
               {selectedTags.length > 0 ? 'Matching Events' : 'Top Events'}
            </h2>
            <button 
-             onClick={() => setSelectedTags([])}
+             onClick={() => { setSelectedTags([]); setSelectedCategory(null); setSearchQuery(''); }}
              className={cn(
                "text-xs font-semibold text-purple-400 hover:text-purple-300 transition-all cursor-pointer",
                selectedTags.length === 0 && "opacity-0 pointer-events-none"
@@ -309,8 +333,4 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
     Math.sin(dLon/2) * Math.sin(dLon/2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   return R * c;
-}
-
-function MapPin({ className }: { className?: string }) {
-    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>;
 }

@@ -1,4 +1,3 @@
-import { motion } from 'motion/react';
 import { 
   Sparkles, 
   Zap, 
@@ -62,19 +61,9 @@ export function WatermarkBackground() {
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-[1] select-none opacity-50">
       <div className="flex flex-wrap gap-x-32 gap-y-24 rotate-[-15deg] scale-125 origin-center justify-center p-20 min-w-[200vw] min-h-[200vh] -translate-x-1/4 -translate-y-1/4">
         {pattern.map((item, idx) => (
-          <motion.div
+          <div
             key={item.id}
-            initial={{ opacity: 0 }}
-            animate={{ 
-              opacity: [0.05, 0.1, 0.05],
-            }}
-            transition={{ 
-              duration: 20 + (idx % 10), 
-              repeat: Infinity, 
-              delay: idx * 0.1,
-              ease: "linear" 
-            }}
-            className="flex items-center gap-4 whitespace-nowrap"
+            className="flex items-center gap-4 whitespace-nowrap opacity-[0.075]"
           >
             <div className="text-white/30">
               {item.icon}
@@ -82,7 +71,7 @@ export function WatermarkBackground() {
             <span className="text-xl font-semibold tracking-widest uppercase text-white/20 leading-none">
               {item.word}
             </span>
-          </motion.div>
+          </div>
         ))}
       </div>
     </div>

@@ -28,11 +28,11 @@
 }
 
 :root {
-  /* Surfaces & Backgrounds */
-  --kontyra-bg-base: #000000;
-  --kontyra-bg-surface: #09090b;
-  --kontyra-bg-overlay: #18181b;
-  --kontyra-bg-glass: rgba(255, 255, 255, 0.03);
+  /* Semantic surfaces */
+  --kontyra-bg-base: #08080b;
+  --kontyra-bg-surface: #101014;
+  --kontyra-bg-overlay: #1a1a21;
+  --kontyra-bg-glass: rgba(255, 255, 255, 0.045);
 
   /* Typography */
   --kontyra-text-primary: #ffffff;
@@ -93,6 +93,26 @@
 
   h1, h2, h3 {
     letter-spacing: -0.025em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--vux-purple);
+    outline-offset: 3px;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
