@@ -65,6 +65,19 @@
 }
 
 @layer base {
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  html,
+  body {
+    overflow-x: clip;
+  }
+
   body {
     @apply bg-[#050508] text-white selection:bg-purple-500/30 font-sans antialiased;
     background-image: 

@@ -10,6 +10,9 @@ import { getFirestore } from 'firebase-admin/firestore';
 import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
 import fs from 'fs';
+import dotenv from 'dotenv';
+import { registerBillingRoutes, registerEventCreationRoute, registerStripeWebhook, getRegistrationUsageRef, getMonthKeyForUsage } from './src/server/billing.js';
+import { getEffectivePlan } from './src/lib/entitlements.js';
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
@@ -24,6 +27,7 @@ import externalApiRouter from './src/api/external.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '.env.development.local') });
 
 // Initialize Firebase Admin globally with robust error handling
 let databaseId: string | undefined;
@@ -127,43 +131,18 @@ export async function sendTransactionalEmail({
         console.warn('[Email][Resend] Initial send error:', res.error);
         const errMsg = String(res.error.message || JSON.stringify(res.error));
 
-        // If domain not verified or sender address rejected by Resend, attempt fallback to onboarding@resend.dev
-        if (
-          errMsg.toLowerCase().includes('not verified') ||
-          errMsg.toLowerCase().includes('domain') ||
-          errMsg.toLowerCase().includes('from') ||
-          res.error.name === 'validation_error'
-        ) {
-          console.log('[Email][Resend] Retrying with onboarding@resend.dev sender fallback...');
-          const retryRes = await resendClient.emails.send({
-            from: 'VUX Events <onboarding@resend.dev>',
-            to,
-            subject,
-            html,
-            replyTo,
-            attachments: safeResendAttachments,
-          });
-
-          if (!retryRes.error && retryRes.data?.id) {
-            console.log('[Email][Resend] Email sent to', to, 'via onboarding fallback:', retryRes.data.id);
-            return { success: true, provider: 'resend-onboarding', id: retryRes.data.id };
-          }
-          if (retryRes.error) {
-            console.warn('[Email][Resend] Onboarding fallback error:', retryRes.error);
-          }
-        }
-
         throw new Error(`Resend Error: ${errMsg}`);
       }
 
       console.log('[Email][Resend] Email sent to', to, res.data?.id);
       return { success: true, provider: 'resend', id: res.data?.id };
     } catch (err: any) {
-      console.warn('[Email][Resend] Provider error, falling back to SMTP:', err.message);
+      console.error('[Email][Resend] Send failed; refusing to switch providers:', err.message);
+      throw err;
     }
   }
 
-  // 2. Try Nodemailer SMTP if configured
+  // Use SMTP only when Resend is not configured.
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
   if (smtpPass) {
@@ -222,6 +201,7 @@ export async function createServer() {
   app.set('trust proxy', true);
 
   app.use(cors());
+  registerStripeWebhook(app, db);
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
   app.use(cookieParser());
@@ -240,6 +220,8 @@ export async function createServer() {
 
   // Use a router for all API routes to ensure they are handled as a group
   const apiRouter = express.Router();
+  registerBillingRoutes(apiRouter, db);
+  registerEventCreationRoute(apiRouter, db);
   
   // Register external API routes (for DevOS integration)
   apiRouter.use('/external', externalApiRouter);
@@ -617,6 +599,42 @@ export async function createServer() {
     }
   });
 
+  apiRouter.post('/email/waitlist-confirmation', async (req, res) => {
+    try {
+      const { waitlistId, entryId } = req.body || {};
+      if (typeof waitlistId !== 'string' || typeof entryId !== 'string') {
+        return res.status(400).json({ error: 'Waitlist and entry are required' });
+      }
+
+      const [waitlistSnap, entrySnap] = await Promise.all([
+        db.collection('waitlists').doc(waitlistId).get(),
+        db.collection('waitlists').doc(waitlistId).collection('entries').doc(entryId).get(),
+      ]);
+      if (!waitlistSnap.exists || !entrySnap.exists) {
+        return res.status(404).json({ error: 'Waitlist signup not found' });
+      }
+
+      const waitlist = waitlistSnap.data()!;
+      const entry = entrySnap.data()!;
+      const safeName = String(entry.name || 'there').replace(/[&<>"']/g, (char: string) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[char]!));
+      const safeTitle = String(waitlist.title || 'our waitlist').replace(/[&<>"']/g, (char: string) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[char]!));
+
+      await sendTransactionalEmail({
+        to: entry.email,
+        subject: `We received your signup for ${waitlist.title || 'the waitlist'}`,
+        html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:32px auto;padding:32px;color:#18181b;border:1px solid #e4e4e7;border-radius:16px"><h1 style="font-size:22px">You&apos;re on the list, ${safeName}.</h1><p>We&apos;ve received your signup for <strong>${safeTitle}</strong>.</p><p>Your position is <strong>#${Number(entry.position) || 1}</strong>. We&apos;ll email you when there&apos;s an update.</p><p style="color:#71717a;font-size:13px">VUX Events</p></div>`,
+      });
+      return res.json({ success: true });
+    } catch (error: any) {
+      console.error('[Email] Waitlist confirmation failed:', error?.message);
+      return res.status(500).json({ error: 'Failed to send signup confirmation' });
+    }
+  });
+
   apiRouter.post('/email/welcome', async (req, res) => {
     try {
       const email = req.body?.email;
@@ -910,15 +928,6 @@ export async function createServer() {
       const eventData = eventDoc.data() || {};
       const rsvpsRef = eventRef.collection('rsvps');
 
-      // Check existing registration
-      const existingRsvp = await rsvpsRef.doc(rsvpId).get();
-      if (existingRsvp.exists) {
-        const data = existingRsvp.data();
-        if (data?.status !== 'declined' && data?.status !== 'revoked') {
-          return res.status(409).json({ error: 'This email is already registered for this event', rsvp: data });
-        }
-      }
-
       // Check capacity
       let rsvpStatus: 'approved' | 'waitlist' | 'pending' = 'approved';
       if (eventData.capacity && eventData.capacity > 0) {
@@ -949,7 +958,29 @@ export async function createServer() {
         updatedAt: nowIso,
       };
 
-      await rsvpsRef.doc(rsvpId).set(newRsvp);
+      const usageOwnerId = typeof eventData.organizationId === 'string' ? eventData.organizationId : String(eventData.hostId || '');
+      if (!usageOwnerId) return res.status(422).json({ error: 'This event is missing an organiser account.' });
+      const usageRef = getRegistrationUsageRef(db, usageOwnerId);
+      const billingRef = db.collection('billing_accounts').doc(usageOwnerId);
+      await db.runTransaction(async (transaction) => {
+        const [existingSnapshot, usageSnapshot, billingSnapshot] = await Promise.all([
+          transaction.get(rsvpsRef.doc(rsvpId)),
+          transaction.get(usageRef),
+          transaction.get(billingRef),
+        ]);
+        const existing = existingSnapshot.data();
+        if (existingSnapshot.exists && existing?.status !== 'declined' && existing?.status !== 'revoked') {
+          throw Object.assign(new Error('This email is already registered for this event.'), { code: 'already-registered' });
+        }
+        const plan = getEffectivePlan(billingSnapshot.data());
+        const currentUsage = Number(usageSnapshot.data()?.registrations || 0);
+        const monthlyLimit = plan.limits.monthlyRegistrations;
+        if (monthlyLimit !== null && currentUsage >= monthlyLimit) {
+          throw Object.assign(new Error(`The organiser has reached the ${plan.name} plan limit of ${monthlyLimit} registrations this month.`), { code: 'registration-limit' });
+        }
+        transaction.set(usageRef, { month: getMonthKeyForUsage(), registrations: currentUsage + 1, updatedAt: nowIso }, { merge: true });
+        transaction.set(rsvpsRef.doc(rsvpId), newRsvp);
+      });
 
       // Trigger confirmation email asynchronously (does not block registration response)
       if (rsvpStatus === 'approved') {
@@ -1016,6 +1047,8 @@ export async function createServer() {
         ticketCode
       });
     } catch (err: any) {
+      if (err?.code === 'already-registered') return res.status(409).json({ error: err.message });
+      if (err?.code === 'registration-limit') return res.status(429).json({ error: err.message });
       console.error('[RSVP Error]:', err);
       return res.status(500).json({ error: err.message || 'Failed to process registration' });
     }
@@ -1757,7 +1790,8 @@ export async function createServer() {
   });
 
   // API 404 handler for any unmatched routes inside the apiRouter
-  apiRouter.use((req, res) => {
+  apiRouter.use((req, res, next) => {
+    if (!req.originalUrl.startsWith('/api/')) return next();
     console.log(`[API 404] ${req.method} ${req.url}`);
     res.status(404).json({ 
       error: 'Not Found', 

@@ -36,6 +36,8 @@ const EventDetails = lazy(() => import('./components/EventDetails').then(m => ({
 const MFAModal = lazy(() => import('./components/auth/MFAModal').then(m => ({ default: m.MFAModal })));
 const Embed = lazy(() => import('./pages/Embed').then(m => ({ default: m.Embed })));
 const SSOCallback = lazy(() => import('./pages/SSOCallback').then(m => ({ default: m.SSOCallback })));
+const Pricing = lazy(() => import('./pages/Pricing'));
+const Billing = lazy(() => import('./pages/Billing'));
 
 function RouteTransition({ children }: { children: React.ReactNode }) {
   return (
@@ -108,6 +110,7 @@ function AppContent() {
             <Route path="wallet" element={<TicketWallet />} />
             <Route path="waitlists" element={<Waitlists />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="billing" element={<Billing />} />
             <Route path="developer" element={<Developer />} />
             {profile?.email?.toLowerCase() === 'oladoyeheritage445@gmail.com'.toLowerCase() && (
                <Route path="admin" element={<AdminDashboard />} />
@@ -135,9 +138,9 @@ function AppContent() {
       <Route path="/privacy" element={<RouteTransition><PageShell><Privacy /></PageShell></RouteTransition>} />
       <Route path="/security" element={<RouteTransition><PageShell><Security /></PageShell></RouteTransition>} />
       <Route path="/dmca" element={<RouteTransition><PageShell><DMCA /></PageShell></RouteTransition>} />
-      <Route path="/pricing" element={<RouteTransition><ComingSoon /></RouteTransition>} />
+      <Route path="/pricing" element={<RouteTransition><Pricing /></RouteTransition>} />
       <Route path="/synchronization" element={<RouteTransition><ComingSoon /></RouteTransition>} />
-      <Route path="/upgrade" element={<RouteTransition><ComingSoon /></RouteTransition>} />
+      <Route path="/upgrade" element={<Navigate to="/pricing" replace />} />
       <Route path="*" element={<RouteTransition><NotFound /></RouteTransition>} />
     </Routes>
   );

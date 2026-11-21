@@ -118,7 +118,7 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
     setLoading(true);
     try {
       const isEditing = !!eventToEdit;
-      const eventId = eventToEdit ? eventToEdit.id : Math.random().toString(36).substring(7);
+      let eventId = eventToEdit ? eventToEdit.id : Math.random().toString(36).substring(7);
       
       const cleanedRegistrationFields = (formData.registrationFields || [])
         .filter(f => f && typeof f.label === 'string' && f.label.trim().length > 0)
@@ -132,8 +132,8 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
         ...formData,
         registrationFields: cleanedRegistrationFields,
         id: eventId,
-        hostId: user.uid,
-        hostName: user.displayName || 'VUX Host',
+        hostId: eventToEdit?.hostId || user.uid,
+        hostName: eventToEdit?.hostName || user.displayName || 'VUX Host',
         updatedAt: serverTimestamp(),
       };
 
@@ -142,7 +142,22 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
         (eventData as any).status = 'published';
       }
 
-      await setDoc(doc(db, 'events', eventId), eventData, { merge: true });
+      if (isEditing) {
+        await setDoc(doc(db, 'events', eventId), eventData, { merge: true });
+      } else {
+        const token = await user.getIdToken();
+        const response = await fetch('/api/events', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...formData, registrationFields: cleanedRegistrationFields }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || !payload.event?.id) {
+          throw new Error(payload.error || 'Unable to create this event.');
+        }
+        eventData.id = payload.event.id;
+        eventId = payload.event.id;
+      }
       
       if (!isEditing) {
         confetti({
@@ -159,6 +174,7 @@ export function CreateEvent({ onClose, eventToEdit }: { onClose: () => void, eve
       }
     } catch (e) {
       console.error(e);
+      toast.error(e instanceof Error ? e.message : 'Unable to save this event.');
     } finally {
       setLoading(false);
     }

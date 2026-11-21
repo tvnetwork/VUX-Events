@@ -121,6 +121,17 @@ export function PublicWaitlist() {
       setJoinedEntry(entry);
 
       if (isNew) {
+        try {
+          const response = await fetch('/api/email/waitlist-confirmation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ waitlistId: waitlist.id, entryId: entry.id }),
+          });
+          if (!response.ok) throw new Error(`Email API returned ${response.status}`);
+        } catch (emailError) {
+          console.warn('Waitlist signup saved, but confirmation email could not be sent:', emailError);
+        }
+
         // Fire celebration confetti
         confetti({
           particleCount: 80,
