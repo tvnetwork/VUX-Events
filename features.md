@@ -4,41 +4,51 @@
 
 VUX is intended to become a comprehensive event-management platform for individuals, communities, businesses, educational institutions, agencies, and large organisations. This document is the working inventory for implementation tracking. Check an item only when the capability is implemented and verified; planned, partial, demo-only, or UI-only work remains unchecked. A checked item does not by itself imply production readiness or contractual availability.
 
-**Status:** `[ ]` Not yet verified · `[x]` Implemented and verified  
-**Scope:** Product capabilities and proposed commercial entitlements. The catalogue is a roadmap, not a claim that every item is currently available.
+**Status:** `[ ]` Not yet verified · `[x]` Implemented and code-reviewed
+**Scope:** Product capabilities and proposed commercial entitlements. Checked items have code-level evidence and pass the project build; there is no dedicated end-to-end test suite, so checked items are not a production-readiness or contractual claim. Features with incomplete security or operational verification remain unchecked.
 
 ## 1. Event management
 
-- [ ] Create, edit, delete, duplicate, publish, and unpublish events
-- [ ] Schedule publication; save drafts; archive completed events
-- [ ] Titles, descriptions, banners, cover images, categories, and tags
-- [ ] Event dates, times, time zones, physical/online/hybrid locations
-- [ ] Capacity and registration deadlines
-- [ ] Public, private, password-protected, and invite-only visibility
+- [x] Create, edit, and delete events; publish/unpublish through event status controls
+- [ ] Duplicate events
+- [ ] Schedule publication and archive completed events
+- [ ] Save and manage draft events
+- [x] Titles, descriptions, cover images, and categories
+- [ ] Banners, tags, time zones, and hybrid location workflows
+- [x] Event dates, times, and physical or virtual locations
+- [x] Event capacity limits
+- [ ] Registration deadlines
+- [x] Public and private event visibility
+- [ ] Password-protected and invite-only access
 - [ ] Recurring events and event calendars
-- [ ] Event status tracking
+- [x] Event status tracking
 
 ## 2. Event pages and website builder
 
-- [ ] Public event landing pages and custom event URLs
+- [x] Public event landing pages and shareable event links
+- [ ] Custom event URLs
 - [ ] Rich-text descriptions and image galleries
-- [ ] Speaker profiles, schedules, venue details, FAQs, sponsors, and organiser details
+- [x] Speaker and sponsor profiles on event pages
+- [ ] Schedules, FAQs, and venue details
 - [ ] Google Maps integration
-- [ ] Social sharing and SEO metadata, including Open Graph previews
+- [x] Social sharing and SEO metadata, including Open Graph previews
 - [ ] Custom branding and themes; responsive mobile layouts
 - [ ] Custom domains (eligible plans)
 - [ ] Event-page analytics
 
 ## 3. Registration management
 
-- [ ] Online and free registration; configurable registration forms
-- [ ] Custom form fields: required/optional, dropdown, multiple choice, and consent
-- [ ] Confirmation and approval workflows
+- [x] Online and free registration; configurable registration forms
+- [x] Custom form fields with required/optional and selectable field types
+- [ ] Multiple choice and consent field workflows
+- [x] Registration confirmation and organiser approval workflows
 - [ ] Manual and bulk attendee registration
-- [ ] Registration cancellation and editing
-- [ ] Deadlines, capacity limits, and status tracking
-- [ ] Attendee database and registration history
-- [ ] CSV imports/exports and duplicate-registration detection
+- [x] Registration cancellation and attendee status management
+- [ ] Registration deadlines
+- [x] Capacity limits and registration status tracking
+- [x] Attendee database and registration records
+- [ ] CSV imports; attendee CSV export is available in the attendee manager
+- [x] Duplicate-registration detection
 
 ## 4. RSVP management
 
@@ -69,9 +79,9 @@ VUX is intended to become a comprehensive event-management platform for individu
 
 ## 7. QR code and event check-in
 
-- [ ] Unique QR codes and digital QR tickets
-- [ ] QR scanning, mobile check-in, and manual check-in
-- [ ] Attendee/guest verification and duplicate check-in prevention
+- [x] QR ticket codes and digital QR tickets
+- [ ] QR scanning and manual check-in (implemented, but not marked complete until the check-in endpoint is access-controlled)
+- [ ] Attendee/guest verification and race-safe duplicate check-in prevention
 - [ ] Real-time attendance, timestamps, and check-in history
 - [ ] Multiple check-in stations and staff accounts
 - [ ] Offline check-in with later synchronisation
@@ -79,19 +89,21 @@ VUX is intended to become a comprehensive event-management platform for individu
 
 ## 8. Attendee management
 
-- [ ] Attendee profiles and directories with registration/ticket records
-- [ ] Contact information and attendance history
-- [ ] Guest categorisation, search, filtering, and sorting
-- [ ] Bulk management, imports, and exports
-- [ ] Attendance status and manual status updates
-- [ ] Attendee notes and communications
-- [ ] Personal-data management and privacy controls
+- [x] Attendee records with registration and ticket details
+- [x] Contact information and attendance status
+- [x] Search and filter attendees by registration status
+- [ ] Sorting and guest categorisation
+- [ ] Bulk management and imports
+- [x] CSV attendee export
+- [x] Manual check-in and attendee status updates
+- [ ] Attendee notes and privacy controls
 
 ## 9. Speakers, sponsors, and exhibitors
 
-- [ ] Speaker registration, profiles, biographies, photographs, and schedules
-- [ ] Speaker session assignments
-- [ ] Sponsor profiles, logos, categories, packages, and event-page visibility
+- [x] Speaker profiles, biographies, and photographs
+- [ ] Speaker registration, schedules, and session assignments
+- [x] Sponsor profiles, logos, categories, and event-page visibility
+- [ ] Sponsor packages
 - [ ] Exhibitor profiles, directories, and booth information
 - [ ] Sponsor reporting
 
@@ -105,10 +117,12 @@ VUX is intended to become a comprehensive event-management platform for individu
 
 ## 11. Communication and notifications
 
-- [ ] Registration and ticket confirmations; invitations and RSVP reminders
-- [ ] Event reminders, waitlist, cancellation, and event-update notifications
-- [ ] Announcement broadcasts and scheduled notifications
-- [ ] Attendee email lists and organiser/payment/check-in notifications
+- [x] Registration and ticket confirmation emails
+- [ ] Invitations and RSVP reminders
+- [x] Waitlist-promotion and event-cancellation notifications
+- [x] Event announcement broadcasts
+- [ ] Scheduled notifications
+- [x] Organiser notifications for new registrations
 - [ ] Custom email templates and notification preferences
 - [ ] Optional SMS notifications integration
 
@@ -125,10 +139,12 @@ VUX is intended to become a comprehensive event-management platform for individu
 
 ## 13. Organiser dashboard
 
-- [ ] Overview of events, upcoming/past events, and drafts
-- [ ] Registration, ticket-sales, and attendance summaries
-- [ ] Recent activity, notifications, and quick actions
-- [ ] Subscription overview and usage monitoring
+- [x] Overview of events, upcoming/past events, and draft status
+- [x] Registration and check-in summaries
+- [ ] Ticket-sales summaries
+- [ ] Recent activity and notification centre
+- [x] Event-management quick actions
+- [x] Subscription plan and registration-usage status
 - [ ] Account settings and organisation switching
 
 ## 14. Organisation and team management
@@ -147,8 +163,9 @@ VUX is intended to become a comprehensive event-management platform for individu
 
 ## 15. Discovery and public event directory
 
-- [ ] Public event directory and upcoming-event browsing
-- [ ] Search by event, category, location, and date
+- [x] Public event directory and upcoming-event browsing
+- [x] Browse/search events by available event details and categories
+- [ ] Search by location and date
 - [ ] Featured, popular, and recommended events
 - [ ] Organiser profiles and public event sharing
 - [ ] Bookmark and mark events as interested
@@ -156,21 +173,26 @@ VUX is intended to become a comprehensive event-management platform for individu
 
 ## 16. User accounts and identity
 
-- [ ] User registration/login, email verification, and password recovery
-- [ ] Profile management and profile photographs
-- [ ] Account preferences, secure sessions, and security settings
+- [x] User authentication and account sign-in
+- [ ] Email verification and password recovery
+- [x] Profile management and profile photographs
+- [x] Account preferences and security settings
+- [ ] Full session-security review
 - [ ] Social login integrations (only when selected for implementation)
 - [ ] Account deletion, organisation memberships, and subscription history
 
 ## 17. Subscription and billing management
 
-- [ ] Free, Starter, Professional, Business, and Enterprise plans
-- [ ] Monthly/annual billing; upgrades, downgrades, and cancellation
-- [ ] Renewals with clear consent; payment verification
+- [x] Central definitions for Free, Starter, Professional, Business, and Enterprise plans
+- [x] Monthly/annual plan comparison and paid-plan checkout for supported tiers
+- [ ] Complete upgrades, downgrades, and cancellation lifecycle verification
+- [x] Stripe webhook-based subscription status synchronisation
 - [ ] Billing history, invoices, and receipts
-- [ ] Expiry notifications, failed-payment handling, and grace periods
-- [ ] Usage tracking and feature-entitlement enforcement
-- [ ] Plan comparison and organisation billing
+- [ ] Expiry notifications and full failed-payment handling
+- [ ] Grace-period and renewal lifecycle verification
+- [x] Account-level registration usage tracking and server-side limits
+- [ ] Complete enforcement of all plan entitlements and seat limits
+- [x] Plan comparison UI; Business checkout requires a verified organisation owner
 - [ ] Admin-controlled plan configuration
 
 ## 18. Integrations and developer features
@@ -245,11 +267,11 @@ The five tiers and prices below are the proposed commercial model. Entitlements 
 The allocation above is proposed, not a verified list of features already implemented in VUX. Reconcile it against shipped functionality and commercial decisions before using it as a public plan comparison.
 
 - [ ] Confirm final pricing and billing cadence
-- [ ] Implement account/workspace-level usage measurement and server enforcement
-- [ ] Implement payment verification, renewals, cancellation, grace period, and expiry behavior
-- [ ] Implement plan changes and billing history/invoices
+- [x] Implement account-level registration usage measurement and server enforcement
+- [ ] Verify payment, renewal, cancellation, grace-period, and expiry lifecycle end to end
+- [ ] Implement billing history and invoice presentation; plan changes remain to be verified
 - [ ] Implement organisation-owned subscriptions and seat enforcement
-- [ ] Configure plan entitlements centrally rather than scattering plan checks
+- [x] Configure plan definitions and registration limits centrally; other entitlements remain incomplete
 - [ ] Verify each advertised feature before enabling it for a tier
 
 ## Product and commercial notes
