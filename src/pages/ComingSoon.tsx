@@ -14,7 +14,7 @@ export default function ComingSoon() {
         <div className="absolute top-1/4 left-1/4 w-[60%] h-[60%] bg-indigo-600/10 blur-[150px] rounded-full animate-pulse" />
       </div>
 
-      <div className="space-y-16 text-center max-w-3xl relative z-10">
+      <div className="space-y-10 sm:space-y-16 text-center max-w-3xl relative z-10">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -41,11 +41,11 @@ export default function ComingSoon() {
                 transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
                 className="space-y-6"
             >
-                <h1 className="text-7xl md:text-9xl font-black italic uppercase tracking-tighter leading-[0.8]">
+                <h1 className="text-5xl sm:text-7xl md:text-9xl font-black italic uppercase tracking-tighter leading-[0.9]">
                     COMING <br />
                     <span className="text-indigo-500">SOON.</span>
                 </h1>
-                <p className="text-xl md:text-2xl text-white/60 leading-relaxed font-bold italic uppercase tracking-wider max-w-lg mx-auto">
+                <p className="text-base sm:text-xl md:text-2xl text-white/60 leading-relaxed font-bold italic uppercase tracking-wide sm:tracking-wider max-w-lg mx-auto">
                     We are currently building this feature. It will be available very soon.
                 </p>
             </motion.div>

@@ -56,7 +56,7 @@ export function Security() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent pt-32 pb-20 px-6">
+    <div className="min-h-screen bg-transparent pt-8 sm:pt-12 pb-16 sm:pb-20 px-4 sm:px-6">
       <div className="max-w-3xl mx-auto space-y-12">
         <Link to="/">
           <Button variant="ghost" className="gap-2 text-white/70 hover:text-white -ml-4">
@@ -69,7 +69,7 @@ export function Security() {
             <Shield className="w-8 h-8 text-blue-400" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-5xl font-black tracking-tight text-white uppercase italic leading-none">Security<br/><span className="text-blue-500">Center</span></h1>
+            <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white uppercase italic leading-none">Security<br/><span className="text-blue-500">Center</span></h1>
             <p className="text-[10px] text-white/50 font-bold uppercase tracking-wider">Account Security Settings</p>
           </div>
         </header>

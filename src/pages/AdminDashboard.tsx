@@ -266,7 +266,7 @@ const handleVerifyUser = async (userId: string) => {
           <h1 className="text-6xl md:text-8xl font-medium tracking-tight leading-[0.8] text-white">ADMIN<br/>CONTROLS</h1>
         </div>
         
-        <div className="flex items-center gap-2 bg-white/[0.02] border border-white/10 shadow-xl p-2 rounded-2xl border border-white/5 shadow-2xl backdrop-blur-xl">
+        <div className="flex w-full md:w-auto items-center gap-2 bg-white/[0.02] border border-white/10 shadow-xl p-2 rounded-2xl shadow-2xl backdrop-blur-xl overflow-x-auto no-scrollbar">
             {[
                 { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
                 { id: 'analytics', label: 'Revenue', icon: <TrendingUp className="w-4 h-4" /> },
@@ -283,7 +283,7 @@ const handleVerifyUser = async (userId: string) => {
                     size="sm" 
                     onClick={() => setActiveView(tab.id as any)}
                     className={cn(
-                        "text-[10px] font-medium  tracking-tight h-12 px-8 rounded-2xl transition-all gap-3 whitespace-nowrap",
+                        "text-[10px] font-medium tracking-tight h-11 px-4 sm:px-6 rounded-xl transition-all gap-2 whitespace-nowrap shrink-0",
                         activeView === tab.id ? "bg-indigo-600 shadow-2xl shadow-indigo-500/20" : "text-white/40 hover:text-white"
                     )}
                 >

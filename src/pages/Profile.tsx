@@ -102,7 +102,7 @@ export function Profile() {
   }, [formData, profile, user, updateProfileData]);
 
   return (
-    <div className="max-w-[1000px] mx-auto py-8 animate-in fade-in duration-700">
+    <div className="max-w-[1000px] min-w-0 mx-auto py-2 sm:py-6 animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-8">
         <div className="space-y-2">
           <h1 className="text-3xl font-semibold tracking-tight text-white">Profile Settings</h1>

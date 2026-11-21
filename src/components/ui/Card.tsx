@@ -21,7 +21,7 @@ export function Card({ className, hover = false, ...props }: CardProps) {
       } : undefined}
       transition={{ duration: 0.25, ease: 'easeOut' }}
       className={cn(
-        'glass-card p-6 border border-white/[0.08]',
+        'glass-card p-5 sm:p-6 border border-white/[0.09] bg-white/[0.025] shadow-[0_12px_40px_-28px_rgba(0,0,0,0.8)]',
         className
       )}
       {...props}

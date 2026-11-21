@@ -130,7 +130,7 @@ export function Settings() {
              <p className="text-sm text-white/50">Manage your account preferences, security, and developer settings.</p>
           </div>
           
-          <div className="flex bg-white/[0.02] p-1.5 rounded-full border border-white/10 overflow-x-auto no-scrollbar">
+          <div className="flex w-full sm:w-fit max-w-full bg-white/[0.02] p-1.5 rounded-2xl sm:rounded-full border border-white/10 overflow-x-auto no-scrollbar">
             {tabs.map((tab) => (
               <button
                 key={tab.id}

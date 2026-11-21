@@ -24,7 +24,7 @@ export function DMCA() {
             <FileText className="w-10 h-10 text-indigo-400 relative z-10" />
           </div>
           <div className="space-y-4">
-            <h1 className="text-7xl md:text-9xl font-black tracking-tighter text-white uppercase italic leading-[0.8]">IP<br/>PROTECT</h1>
+            <h1 className="text-4xl sm:text-6xl md:text-8xl font-black tracking-tighter text-white uppercase italic leading-[0.9]">IP<br/>PROTECT</h1>
             <div className="flex items-center gap-4">
                 <div className="h-px w-12 bg-indigo-500" />
                 <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.4em] italic leading-none">Last sync: April 23, 2026</p>
