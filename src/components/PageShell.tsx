@@ -6,6 +6,7 @@ import { Footer } from './Footer';
 import { useNavigate } from 'react-router-dom';
 import { WatermarkBackground } from './WatermarkBackground';
 import { motion, AnimatePresence } from 'motion/react';
+import { AUTH_DIALOG_EVENT } from '../lib/authDialog';
 
 interface PageShellProps {
   children: React.ReactNode;
@@ -15,6 +16,12 @@ export function PageShell({ children }: PageShellProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  useEffect(() => {
+    const openAuthDialog = () => setIsAuthOpen(true);
+    window.addEventListener(AUTH_DIALOG_EVENT, openAuthDialog);
+    return () => window.removeEventListener(AUTH_DIALOG_EVENT, openAuthDialog);
+  }, []);
 
   return (
     <div className="relative min-h-screen flex flex-col bg-[#07070a] text-white">

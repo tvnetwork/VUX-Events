@@ -11,7 +11,7 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import toast from 'react-hot-toast';
 import { db } from '../lib/firebase';
-import { doc, getDoc, setDoc, query, collection, where, onSnapshot, serverTimestamp, deleteDoc, updateDoc, runTransaction } from 'firebase/firestore';
+import { doc, getDoc, query, collection, where, onSnapshot, deleteDoc, updateDoc, runTransaction } from 'firebase/firestore';
 import { useAuth } from '../AuthContext';
 import { Event, RSVP } from '../types';
 import { formatDate, cn, getAvatarUrl } from '../lib/utils';
@@ -318,44 +318,26 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
         createdAt: new Date().toISOString(),
       };
 
-      // Attempt server-side transactional registration
-      try {
-        const resp = await fetch(`/api/events/${event.id}/rsvp`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: emailToRegister,
-            displayName: rsvpData.userDisplayName,
-            photoURL: rsvpData.userPhotoURL,
-            customFields,
-            shareProfile,
-            userId: rsvpData.userId,
-          }),
-        });
-
-        if (!resp.ok) {
-          if (resp.status === 409) {
-            setRsvpError('This email is already registered for this event.');
-            setIsRSVPLoading(false);
-            return;
-          }
-          // Fallback to direct client Firestore write
-          if (event.id && rsvpId) {
-            await setDoc(doc(db, 'events', event.id, 'rsvps', rsvpId), {
-              ...rsvpData,
-              createdAt: serverTimestamp(),
-            });
-          }
+      const resp = await fetch(`/api/events/${event.id}/rsvp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: emailToRegister,
+          displayName: rsvpData.userDisplayName,
+          photoURL: rsvpData.userPhotoURL,
+          customFields,
+          shareProfile,
+          userId: rsvpData.userId,
+        }),
+      });
+      const registrationResult = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        if (resp.status === 409) {
+          setRsvpError('This email is already registered for this event.');
+          setIsRSVPLoading(false);
+          return;
         }
-      } catch (fetchErr) {
-        console.warn('Server RSVP endpoint failed, falling back to direct Firestore write:', fetchErr);
-        // Fallback to direct client Firestore write
-        if (event.id && rsvpId) {
-          await setDoc(doc(db, 'events', event.id, 'rsvps', rsvpId), {
-            ...rsvpData,
-            createdAt: serverTimestamp(),
-          });
-        }
+        throw new Error(registrationResult.error || 'Registration could not be completed. Please try again.');
       }
 
       if (isGuest) {
@@ -363,7 +345,7 @@ export function EventDetails({ event, onClose, onManage, onEdit }: { event: Even
         setShowGuestForm(false);
       }
 
-      setUserRSVP(rsvpData);
+      setUserRSVP(registrationResult.rsvp || rsvpData);
 
       // Send RSVP confirmation email with ticketCode & organizer notification
       fetch('/api/email/rsvp-confirmation', {

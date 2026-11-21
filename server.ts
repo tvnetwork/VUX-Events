@@ -10,6 +10,9 @@ import { getFirestore } from 'firebase-admin/firestore';
 import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
 import fs from 'fs';
+import dotenv from 'dotenv';
+import { registerBillingRoutes, registerEventCreationRoute, registerStripeWebhook, getRegistrationUsageRef, getMonthKeyForUsage } from './src/server/billing.js';
+import { getEffectivePlan } from './src/lib/entitlements.js';
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
@@ -24,6 +27,7 @@ import externalApiRouter from './src/api/external.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '.env.development.local') });
 
 // Initialize Firebase Admin globally with robust error handling
 let databaseId: string | undefined;
@@ -197,6 +201,7 @@ export async function createServer() {
   app.set('trust proxy', true);
 
   app.use(cors());
+  registerStripeWebhook(app, db);
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
   app.use(cookieParser());
@@ -215,6 +220,8 @@ export async function createServer() {
 
   // Use a router for all API routes to ensure they are handled as a group
   const apiRouter = express.Router();
+  registerBillingRoutes(apiRouter, db);
+  registerEventCreationRoute(apiRouter, db);
   
   // Register external API routes (for DevOS integration)
   apiRouter.use('/external', externalApiRouter);
@@ -921,15 +928,6 @@ export async function createServer() {
       const eventData = eventDoc.data() || {};
       const rsvpsRef = eventRef.collection('rsvps');
 
-      // Check existing registration
-      const existingRsvp = await rsvpsRef.doc(rsvpId).get();
-      if (existingRsvp.exists) {
-        const data = existingRsvp.data();
-        if (data?.status !== 'declined' && data?.status !== 'revoked') {
-          return res.status(409).json({ error: 'This email is already registered for this event', rsvp: data });
-        }
-      }
-
       // Check capacity
       let rsvpStatus: 'approved' | 'waitlist' | 'pending' = 'approved';
       if (eventData.capacity && eventData.capacity > 0) {
@@ -960,7 +958,29 @@ export async function createServer() {
         updatedAt: nowIso,
       };
 
-      await rsvpsRef.doc(rsvpId).set(newRsvp);
+      const usageOwnerId = typeof eventData.organizationId === 'string' ? eventData.organizationId : String(eventData.hostId || '');
+      if (!usageOwnerId) return res.status(422).json({ error: 'This event is missing an organiser account.' });
+      const usageRef = getRegistrationUsageRef(db, usageOwnerId);
+      const billingRef = db.collection('billing_accounts').doc(usageOwnerId);
+      await db.runTransaction(async (transaction) => {
+        const [existingSnapshot, usageSnapshot, billingSnapshot] = await Promise.all([
+          transaction.get(rsvpsRef.doc(rsvpId)),
+          transaction.get(usageRef),
+          transaction.get(billingRef),
+        ]);
+        const existing = existingSnapshot.data();
+        if (existingSnapshot.exists && existing?.status !== 'declined' && existing?.status !== 'revoked') {
+          throw Object.assign(new Error('This email is already registered for this event.'), { code: 'already-registered' });
+        }
+        const plan = getEffectivePlan(billingSnapshot.data());
+        const currentUsage = Number(usageSnapshot.data()?.registrations || 0);
+        const monthlyLimit = plan.limits.monthlyRegistrations;
+        if (monthlyLimit !== null && currentUsage >= monthlyLimit) {
+          throw Object.assign(new Error(`The organiser has reached the ${plan.name} plan limit of ${monthlyLimit} registrations this month.`), { code: 'registration-limit' });
+        }
+        transaction.set(usageRef, { month: getMonthKeyForUsage(), registrations: currentUsage + 1, updatedAt: nowIso }, { merge: true });
+        transaction.set(rsvpsRef.doc(rsvpId), newRsvp);
+      });
 
       // Trigger confirmation email asynchronously (does not block registration response)
       if (rsvpStatus === 'approved') {
@@ -1027,6 +1047,8 @@ export async function createServer() {
         ticketCode
       });
     } catch (err: any) {
+      if (err?.code === 'already-registered') return res.status(409).json({ error: err.message });
+      if (err?.code === 'registration-limit') return res.status(429).json({ error: err.message });
       console.error('[RSVP Error]:', err);
       return res.status(500).json({ error: err.message || 'Failed to process registration' });
     }

@@ -10,7 +10,7 @@ import { AnnouncementBanner } from '../components/AnnouncementBanner';
 import { WatermarkBackground } from '../components/WatermarkBackground';
 
 export function Landing() {
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(() => new URLSearchParams(window.location.search).get('auth') === 'true');
 
   return (
     <div className="relative min-h-screen bg-[#07070a] text-white selection:bg-indigo-500/30 overflow-x-hidden font-sans">
