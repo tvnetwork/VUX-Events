@@ -1,7 +1,8 @@
 {
-  "name": "react-example",
+  "name": "vux-events",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "VUX Events — Event Ticketing, Cryptographic QR Passes & Split Payments",
   "type": "module",
   "engines": {
     "node": ">=22"
