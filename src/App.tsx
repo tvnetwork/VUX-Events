@@ -120,6 +120,9 @@ function AppContent() {
       </Route>
 
       {/* Direct Public Event Links (Accessible Without Auth) */}
+      {/* Replit-style /~ home workspace & /~/:username routes */}
+      <Route path="/~" element={<Navigate to="/" replace />} />
+      <Route path="/~/:username" element={<Suspense fallback={<LoadingFallback />}><Profile /></Suspense>} />
       <Route path="/events/:id" element={<Suspense fallback={<LoadingFallback />}><PublicEvent /></Suspense>} />
       <Route path="/e/:id" element={<Suspense fallback={<LoadingFallback />}><PublicEvent /></Suspense>} />
       <Route path="/tickets" element={<Suspense fallback={<LoadingFallback />}><TicketWallet /></Suspense>} />
