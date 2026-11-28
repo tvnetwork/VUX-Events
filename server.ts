@@ -1270,9 +1270,15 @@ export async function createServer() {
   apiRouter.post('/email/login-notification', async (req, res) => {
     try {
       const { email, displayName, timestamp } = req.body || {};
-      if (!email) return res.status(400).json({ error: 'Email is required' });
+      if (!email) return res.status(200).json({ success: true, skipped: 'No recipient email provided' });
 
       console.log(`[Email] Sending login notification to: ${email}`);
+
+      // Graceful fallback if SMTP transport is not configured
+      if (!process.env.SMTP_HOST && !process.env.SMTP_USER) {
+        console.warn('[Email] SMTP credentials not set; skipping physical notification email safely.');
+        return res.status(200).json({ success: true, delivered: false, note: 'SMTP unconfigured' });
+      }
 
       const alerts = ['🔒', '🛡️', '⚠️', '🚨', '👤', '🔐', '🤫'];
       const randomAlert = alerts[Math.floor(Math.random() * alerts.length)];
@@ -1287,7 +1293,7 @@ export async function createServer() {
             <p>Hi ${displayName || 'User'},</p>
             <p>A new login was detected for your VUX Events account.</p>
             <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin: 20px 0;">
-              <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.5);">TIME: ${timestamp}</p>
+              <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.5);">TIME: ${timestamp || new Date().toISOString()}</p>
               <p style="margin: 5px 0 0; font-size: 12px; color: rgba(255,255,255,0.5);">LOCATION: Detected via Web Access</p>
             </div>
             <p style="font-size: 11px; color: rgba(255,255,255,0.3);">If this wasn't you, please secure your account immediately.</p>
@@ -1298,10 +1304,10 @@ export async function createServer() {
       });
 
       console.log('[Email] Login notification handled');
-      return res.json({ success: true });
+      return res.status(200).json({ success: true, delivered: true });
     } catch (error: any) {
       console.warn('[Email] Login Email handled gracefully:', error?.message);
-      return res.json({ success: true, warning: 'Notification delivery skipped' });
+      return res.status(200).json({ success: true, delivered: false, warning: 'Notification delivery skipped' });
     }
   });
 
